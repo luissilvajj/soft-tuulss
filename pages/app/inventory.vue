@@ -1,79 +1,173 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">Inventario</h1>
-      <button @click="openModal" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm font-medium">
-        Nuevo Producto
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight text-gradient">Inventario</h1>
+        <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Gestiona tus productos y existencias desde aquí.</p>
+      </div>
+      <button @click="openModal" class="btn btn-primary shadow-lg hover:shadow-xl transform transition-all duration-300">
+        <span class="relative flex items-center gap-2">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+           Nuevo Producto
+        </span>
       </button>
     </div>
 
-    <!-- Product List -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-      <ul role="list" class="divide-y divide-gray-200" v-if="products.length > 0">
-        <li v-for="product in products" :key="product.id">
-          <div class="px-4 py-4 sm:px-6 flex items-center justify-between">
-            <div class="flex items-center truncate">
-              <div class="ml-2 flex-shrink-0 flex flex-col">
-                <p class="text-sm font-medium text-indigo-600 truncate">{{ product.name }}</p>
-                <p class="text-xs text-gray-500">{{ product.sku }}</p>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-               <div class="text-sm text-gray-900 font-bold">${{ product.price }}</div>
-               <div :class="[product.stock > 10 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800', 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full']">
-                 {{ product.stock }} un.
-               </div>
-            </div>
+    <!-- Stats Review -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+       <div class="glass-panel p-6 flex flex-col justify-between relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-[var(--color-accent-blue)] opacity-10 rounded-full blur-2xl -mr-10 -mt-10 transition-opacity group-hover:opacity-20"></div>
+          <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Productos</p>
+          <div class="mt-4 flex items-baseline gap-2">
+            <p class="text-3xl font-extrabold text-[var(--color-white)]">{{ products.length }}</p>
+            <span class="text-xs text-emerald-500 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full">+12%</span>
           </div>
-        </li>
-      </ul>
-      <div v-else class="p-4 text-center text-gray-500">
-        No hay productos registrados.
+       </div>
+       <div class="glass-panel p-6 flex flex-col justify-between relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-[var(--color-accent-violet)] opacity-10 rounded-full blur-2xl -mr-10 -mt-10 transition-opacity group-hover:opacity-20"></div>
+          <p class="text-sm font-medium text-[var(--color-text-secondary)]">Valor en Stock</p>
+          <div class="mt-4 flex items-baseline gap-2">
+             <p class="text-3xl font-extrabold text-[var(--color-white)]">${{ totalInventoryValue }}</p>
+          </div>
+       </div>
+       <div class="glass-panel p-6 flex flex-col justify-between relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-[var(--color-accent-green)] opacity-10 rounded-full blur-2xl -mr-10 -mt-10 transition-opacity group-hover:opacity-20"></div>
+          <p class="text-sm font-medium text-[var(--color-text-secondary)]">Bajo Stock</p>
+           <div class="mt-4 flex items-baseline gap-2">
+              <p class="text-3xl font-extrabold text-red-500">{{ lowStockCount }}</p>
+              <span v-if="lowStockCount > 0" class="text-xs text-red-500 font-bold bg-red-500/10 px-2 py-0.5 rounded-full">Atención</span>
+           </div>
+       </div>
+    </div>
+
+    <!-- Product List Table -->
+    <div class="glass-panel overflow-hidden">
+      <div v-if="products.length > 0">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-[var(--color-border-subtle)] text-left align-middle">
+            <thead class="bg-[var(--color-bg-dark)]/50">
+              <tr>
+                <th scope="col" class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Producto</th>
+                <th scope="col" class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">SKU</th>
+                <th scope="col" class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Precio</th>
+                <th scope="col" class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Stock</th>
+                <th scope="col" class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[var(--color-border-subtle)]">
+              <tr v-for="product in products" :key="product.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors duration-150 group">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="h-10 w-10 flex-shrink-0">
+                       <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center text-[var(--color-accent-blue)] font-bold shadow-sm">
+                          {{ product.name.charAt(0).toUpperCase() }}
+                       </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-bold text-[var(--color-white)] group-hover:text-[var(--color-accent-blue)] transition-colors">{{ product.name }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-[var(--color-text-secondary)] font-mono bg-[var(--color-bg-dark)] px-2 py-1 rounded-md inline-block border border-[var(--color-border-subtle)]">{{ product.sku || 'N/A' }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-bold text-[var(--color-white)]">${{ product.price }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span :class="[
+                      product.stock > 10 
+                        ? 'bg-emerald-500/10 text-emerald-600' 
+                        : 'bg-red-500/10 text-red-600',
+                      'px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border border-current/20'
+                    ]">
+                    {{ product.stock }} un.
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button class="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-blue)] transition-colors p-2 hover:bg-[var(--color-accent-blue)]/10 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Empty State -->
+      <div v-else class="flex flex-col items-center justify-center py-20 px-4 text-center">
+         <div class="w-24 h-24 bg-[var(--color-bg-dark)] rounded-full flex items-center justify-center mb-6 shadow-inner">
+            <svg class="w-10 h-10 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+         </div>
+         <h3 class="text-xl font-bold text-[var(--color-white)] mb-2">No tienes productos aún</h3>
+         <p class="text-[var(--color-text-secondary)] max-w-sm mb-8">
+            Comienza agregando los productos o servicios que ofreces para llevar el control de stock.
+         </p>
+         <button @click="openModal" class="btn btn-primary">
+            Agregar Primer Producto
+         </button>
       </div>
     </div>
 
-    <!-- Add Product Modal (Simple implementation) -->
-    <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="closeModal"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+    <!-- Modern Modal -->
+    <AppModal
+      :show="showModal"
+      title="Nuevo Producto"
+      description="Ingresa los detalles básicos."
+      @close="closeModal"
+    >
+        <div class="space-y-5">
           <div>
-            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Agregar Producto</h3>
-            <div class="mt-4 space-y-4">
-              <input v-model="newProduct.name" type="text" placeholder="Nombre del Producto" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border">
-              <input v-model="newProduct.sku" type="text" placeholder="SKU / Código" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border">
-              <div class="flex gap-2">
-                <input v-model="newProduct.price" type="number" placeholder="Precio" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border">
-                <input v-model="newProduct.stock" type="number" placeholder="Stock Inicial" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border">
-              </div>
+            <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Nombre del Producto</label>
+            <input v-model="newProduct.name" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="Ej. iPhone 13 Pro">
+          </div>
+          
+          <div>
+              <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">SKU / Código</label>
+              <input v-model="newProduct.sku" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="Ej. SKU-001">
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Precio ($)</label>
+              <input v-model="newProduct.price" type="number" step="0.01" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="0.00">
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Stock Inicial</label>
+              <input v-model="newProduct.stock" type="number" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="0">
             </div>
           </div>
-          <div class="mt-5 sm:mt-6 flex gap-3">
-            <button @click="addProduct" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none sm:text-sm" :disabled="saving">
-              {{ saving ? 'Guardando...' : 'Guardar' }}
-            </button>
-             <button @click="closeModal" type="button" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:text-sm">
-              Cancelar
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
+
+      <template #actions>
+        <button @click="addProduct" type="button" class="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving">
+          {{ saving ? 'Guardando...' : 'Guardar Producto' }}
+        </button>
+          <button @click="closeModal" type="button" class="px-6 py-2.5 text-sm font-bold text-[var(--color-text-secondary)] bg-transparent border border-[var(--color-border-subtle)] rounded-xl hover:bg-[var(--color-bg-dark)] focus:outline-none transition-colors">
+          Cancelar
+        </button>
+      </template>
+    </AppModal>
   </div>
 </template>
 
 <script setup>
 definePageMeta({
-  layout: 'dashboard',
-  middleware: 'auth'
+  layout: 'dashboard'
 })
+useAuthGuard()
 
 const client = useSupabaseClient()
-const { organization } = useOrganization()
+const { organization, fetchOrganization } = useOrganization()
 
 const products = ref([])
 const showModal = ref(false)
+
+// ... (omitting lines for brevity in search matching if possible, but replace_file_content requires exact block) 
+// Actually I'll match the top and bottom block to be safe.
+
 const saving = ref(false)
 
 const newProduct = ref({
@@ -83,13 +177,23 @@ const newProduct = ref({
   stock: ''
 })
 
+// Metrics
+const totalInventoryValue = computed(() => {
+  return products.value.reduce((acc, p) => acc + (p.price * p.stock), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+})
+
+const lowStockCount = computed(() => {
+   return products.value.filter(p => p.stock < 10).length
+})
+
 const fetchProducts = async () => {
-    // RLS handles filtering by org automatically, but we can explicit if needed.
-    // relying on RLS requires policies to be correct (using get_auth_org_ids()).
-    // If not, we get empty or error.
-    const { data, error } = await client.from('products').select('*').order('created_at', { ascending: false })
-    if (error) console.error(error)
-    else products.value = data
+    try {
+        const { data, error } = await client.from('products').select('*').order('created_at', { ascending: false })
+        if (error) console.error(error)
+        else products.value = data || []
+    } catch (e) {
+        console.error("Error fetching products", e)
+    }
 }
 
 const openModal = () => showModal.value = true
@@ -120,7 +224,8 @@ const addProduct = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await fetchOrganization()
   fetchProducts()
 })
 </script>

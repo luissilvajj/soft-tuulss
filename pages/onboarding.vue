@@ -1,29 +1,58 @@
 <template>
-  <div class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
-    <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">Configura tu Organización</h2>
-      <p class="mt-2 text-center text-sm text-gray-600">
-        Para comenzar, necesitamos el nombre de tu empresa o equipo.
-      </p>
-    </div>
+  <div class="min-h-screen flex items-center justify-center bg-[var(--color-bg-dark)] transition-colors duration-300 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    
+    <!-- Background Ambience -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[var(--color-accent-blue)]/20 rounded-full blur-[120px] -z-10"></div>
+    <div class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[var(--color-accent-violet)]/10 rounded-full blur-[100px] -z-10"></div>
 
-    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-      <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+    <div class="max-w-md w-full space-y-8 relative z-10 animate-fade-in-up">
+      <!-- Header -->
+      <div class="text-center">
+         <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-accent-blue)] to-[var(--color-accent-violet)] flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-8 transform hover:scale-110 transition-transform duration-300">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+         </div>
+        <h2 class="text-4xl font-extrabold text-gradient tracking-tight">Crea tu Organización</h2>
+        <p class="mt-4 text-[var(--color-text-secondary)]">
+          Dale un nombre a tu espacio de trabajo para empezar a gestionar.
+        </p>
+      </div>
+
+      <!-- Card -->
+      <div class="glass-panel p-8 shadow-2xl relative overflow-hidden">
         <form class="space-y-6" @submit.prevent="createOrganization">
           <div>
-            <label for="orgName" class="block text-sm font-medium text-gray-700">Nombre de la Organización</label>
-            <div class="mt-1">
-              <input id="orgName" v-model="orgName" name="orgName" type="text" required placeholder="Ej. Mi Empresa S.A." class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm" />
+            <label for="orgName" class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Nombre de la Organización</label>
+            <div class="relative">
+              <input id="orgName" v-model="orgName" name="orgName" type="text" required placeholder="Ej. Startup Innovadora" class="appearance-none block w-full px-4 py-4 border border-[var(--color-border-subtle)] rounded-xl shadow-sm placeholder-[var(--color-text-secondary)]/30 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent bg-[var(--color-bg-subtle)]/50 text-[var(--color-white)] font-medium transition-all" />
             </div>
+            <p class="mt-3 text-xs text-[var(--color-text-secondary)]">
+               Podrás cambiarlo o crear más organizaciones después.
+            </p>
           </div>
 
           <div>
-            <button type="submit" :disabled="loading" class="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-gray-400">
-              {{ loading ? 'Creando...' : 'Comenzar' }}
+            <button type="submit" :disabled="loading" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-500/20 text-sm font-bold text-white bg-gradient-to-r from-[var(--color-accent-blue)] to-[var(--color-accent-violet)] hover:from-indigo-500 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-accent-blue)] disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]">
+               <span v-if="loading" class="flex items-center gap-2">
+                  <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  Configurando...
+               </span>
+               <span v-else>Crear Espacio de Trabajo</span>
             </button>
           </div>
         </form>
-        <p v-if="errorMsg" class="mt-4 text-center text-sm text-red-600">{{ errorMsg }}</p>
+        
+        <div v-if="errorMsg" class="mt-6 rounded-xl bg-red-500/10 border border-red-500/20 p-4 animate-pulse">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-bold text-red-500">{{ errorMsg }}</h3>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -31,8 +60,9 @@
 
 <script setup>
 definePageMeta({
-  middleware: 'auth'
+  layout: false // Full screen
 })
+useAuthGuard()
 
 const client = useSupabaseClient()
 const router = useRouter()

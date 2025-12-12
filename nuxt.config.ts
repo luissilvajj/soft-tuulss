@@ -7,7 +7,11 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt'
   ],
+  css: [
+    '~/assets/css/velo-theme.css'
+  ],
   supabase: {
-    redirect: false // We will handle protection with custom middleware as requested
-  }
+    redirect: false
+  },
+  ssr: false
 })

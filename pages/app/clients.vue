@@ -1,57 +1,119 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-semibold text-gray-900">Clientes</h1>
-      <button @click="openModal" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm font-medium">
-        Nuevo Cliente
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight text-gradient">Clientes</h1>
+        <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Gestiona tu base de datos de clientes.</p>
+      </div>
+      <button @click="openModal" class="btn btn-primary shadow-lg hover:shadow-xl transform transition-all duration-300">
+        <span class="relative flex items-center gap-2">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+           Nuevo Cliente
+        </span>
       </button>
     </div>
 
-    <!-- Clients List -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-      <ul role="list" class="divide-y divide-gray-200" v-if="clients.length > 0">
-        <li v-for="client in clients" :key="client.id">
-          <div class="px-4 py-4 sm:px-6 flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-indigo-600">{{ client.name }}</p>
-              <p class="text-xs text-gray-500">{{ client.email }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-900">{{ client.phone }}</p>
-            </div>
+    <!-- Stats Review -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+       <div class="glass-panel p-6 flex items-center gap-4 group">
+          <div class="p-3 bg-[var(--color-accent-blue)]/10 rounded-xl text-[var(--color-accent-blue)]">
+             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
           </div>
-        </li>
-      </ul>
-      <div v-else class="p-4 text-center text-gray-500">
-        No hay clientes registrados.
-      </div>
+          <div>
+            <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Clientes</p>
+            <p class="mt-1 text-3xl font-extrabold text-[var(--color-white)]">{{ clients.length }}</p>
+          </div>
+       </div>
+    </div>
+
+    <!-- Clients Grid -->
+    <div v-if="clients.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+       <div v-for="client in clients" :key="client.id" class="glass-panel p-6 hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+            <svg class="w-24 h-24 text-[var(--color-accent-blue)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          </div>
+
+          <div class="flex items-center gap-4 mb-4 relative z-10">
+             <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-indigo-500/20">
+                {{ client.name.charAt(0).toUpperCase() }}
+             </div>
+             <div>
+                <h3 class="text-lg font-bold text-[var(--color-white)] truncate">{{ client.name }}</h3>
+                <p class="text-xs text-[var(--color-accent-blue)] font-bold uppercase tracking-wider">Cliente</p>
+             </div>
+          </div>
+          
+          <div class="space-y-3 relative z-10">
+             <div class="flex items-center gap-3 text-sm text-[var(--color-text-secondary)]">
+                <div class="w-8 h-8 rounded-lg bg-[var(--color-bg-dark)] flex items-center justify-center flex-shrink-0 border border-[var(--color-border-subtle)]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </div>
+                <span class="truncate">{{ client.email || 'Sin email' }}</span>
+             </div>
+             <div class="flex items-center gap-3 text-sm text-[var(--color-text-secondary)]">
+                <div class="w-8 h-8 rounded-lg bg-[var(--color-bg-dark)] flex items-center justify-center flex-shrink-0 border border-[var(--color-border-subtle)]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                </div>
+                <span class="truncate">{{ client.phone || 'Sin teléfono' }}</span>
+             </div>
+          </div>
+       </div>
+    </div>
+    
+    <!-- Empty State -->
+    <div v-else class="glass-panel p-12 text-center">
+         <div class="w-24 h-24 bg-[var(--color-bg-dark)] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <svg class="w-10 h-10 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+         </div>
+         <h3 class="text-xl font-bold text-[var(--color-white)] mb-2">Aún no hay clientes</h3>
+         <p class="text-[var(--color-text-secondary)] max-w-sm mx-auto mb-8">
+            Comienza a construir tu base de datos agregando tu primer cliente.
+         </p>
+         <button @click="openModal" class="btn btn-primary">
+            Agregar Primer Cliente
+         </button>
     </div>
 
     <!-- Modal -->
-    <div v-if="showModal" class="fixed z-10 inset-0 overflow-y-auto">
-      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75" @click="closeModal"></div>
-         <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Agregar Cliente</h3>
-          <div class="space-y-4">
-            <input v-model="newClient.name" type="text" placeholder="Nombre" class="block w-full border border-gray-300 rounded-md shadow-sm p-2">
-            <input v-model="newClient.email" type="email" placeholder="Email" class="block w-full border border-gray-300 rounded-md shadow-sm p-2">
-            <input v-model="newClient.phone" type="text" placeholder="Teléfono" class="block w-full border border-gray-300 rounded-md shadow-sm p-2">
-          </div>
-          <div class="mt-5 sm:mt-6 flex gap-3">
-             <button @click="saveClient" type="button" class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:text-sm" :disabled="saving">Guardar</button>
-            <button @click="closeModal" type="button" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:text-sm">Cancelar</button>
-          </div>
+    <AppModal 
+      :show="showModal" 
+      title="Nuevo Cliente" 
+      description="Información de contacto." 
+      @close="closeModal"
+    >
+      <div class="space-y-4">
+        <div>
+           <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Nombre Completo</label>
+           <input v-model="newClient.name" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="Ej. Juan Pérez">
+        </div>
+        <div>
+           <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Email</label>
+           <input v-model="newClient.email" type="email" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="juan@empresa.com">
+        </div>
+         <div>
+           <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Teléfono</label>
+           <input v-model="newClient.phone" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="+56 9 1234 5678">
         </div>
       </div>
-    </div>
+
+      <template #actions>
+        <button @click="saveClient" type="button" class="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed" :disabled="saving">
+         {{ saving ? 'Guardando...' : 'Guardar Cliente' }}
+       </button>
+       <button @click="closeModal" type="button" class="px-6 py-2.5 text-sm font-bold text-[var(--color-text-secondary)] bg-transparent border border-[var(--color-border-subtle)] rounded-xl hover:bg-[var(--color-bg-dark)] focus:outline-none transition-colors">
+         Cancelar
+       </button>
+      </template>
+    </AppModal>
   </div>
 </template>
 
 <script setup>
-definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+definePageMeta({ layout: 'dashboard' })
+useAuthGuard()
 const supabase = useSupabaseClient()
-const { organization } = useOrganization()
+const { organization, fetchOrganization } = useOrganization()
 
 const clients = ref([])
 const showModal = ref(false)
@@ -85,5 +147,8 @@ const saveClient = async () => {
     }
 }
 
-onMounted(fetchClients)
+onMounted(async () => {
+  await fetchOrganization()
+  fetchClients()
+})
 </script>

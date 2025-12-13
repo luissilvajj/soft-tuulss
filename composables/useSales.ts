@@ -40,14 +40,23 @@ export const useSales = () => {
     }
 
     /**
-     * Create a new sale
+     * Create a new sale with advanced fields
      */
     const createSale = async (
         saleData: {
             clientId?: string
             status: 'paid' | 'pending'
             paymentMethod: string
+            paymentReference?: string
             date: string
+            currency: 'USD' | 'VES'
+            exchangeRate: number
+            isExempt: boolean
+            subtotal: number
+            taxIva: number
+            taxIgtf: number
+            total: number
+            itemsSnapshot: any[] // Store items JSON for history
         },
         items: { productId: string; quantity: number; price: number }[]
     ) => {
@@ -55,27 +64,33 @@ export const useSales = () => {
 
         loading.value = true
         try {
-            // 1. Calculate Total
-            const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-
-            // 2. Insert Transaction (Sale)
+            // 2. Insert Transaction (Sale) with new fields
             const { data: sale, error: saleError } = await client
                 .from('transactions')
                 .insert({
                     organization_id: organization.value.id,
                     type: 'sale',
-                    amount: totalAmount,
+                    amount: saleData.total, // Grand Total
                     client_id: saleData.clientId,
                     status: saleData.status,
                     payment_method: saleData.paymentMethod,
-                    date: saleData.date
+                    payment_reference: saleData.paymentReference,
+                    date: saleData.date,
+                    // New Fields
+                    currency: saleData.currency,
+                    exchange_rate: saleData.exchangeRate,
+                    subtotal: saleData.subtotal,
+                    tax_iva: saleData.taxIva,
+                    tax_igtf: saleData.taxIgtf,
+                    is_exempt: saleData.isExempt,
+                    items: saleData.itemsSnapshot
                 } as any)
                 .select()
                 .single()
 
             if (saleError) throw saleError
 
-            // 3. Insert Items
+            // 3. Insert Items (Legacy relation support + Stock deduction)
             const formattedItems = items.map(item => ({
                 organization_id: organization.value!.id,
                 transaction_id: sale.id,
@@ -90,9 +105,21 @@ export const useSales = () => {
 
             if (itemsError) throw itemsError
 
-            // 4. Update Local Stock (Optimistic UI or re-fetch products)
-            // The DB trigger (if implemented) handles the actual decrement, 
-            // but we might want to refresh products here.
+            // 4. Update Stock (Simple client-side iteration for MVP - ideally RPC or Edge Function)
+            for (const item of items) {
+                const { error: stockError } = await client.rpc('decrement_stock', {
+                    p_id: item.productId,
+                    q: item.quantity
+                })
+                // fallback if RPC doesn't exist
+                if (stockError) {
+                    // Manual update (racy but works for MVP)
+                    const { data: prod } = await client.from('products').select('stock').eq('id', item.productId).single()
+                    if (prod) {
+                        await client.from('products').update({ stock: prod.stock - item.quantity }).eq('id', item.productId)
+                    }
+                }
+            }
 
             return sale
         } catch (e) {

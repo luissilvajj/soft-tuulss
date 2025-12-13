@@ -34,8 +34,15 @@ export interface Sale {
     client?: Client // joined
     type: 'sale'
     status: 'paid' | 'pending' | 'cancelled'
-    payment_method: 'cash' | 'card' | 'transfer' | 'other'
+    payment_method: string
+    payment_reference?: string
     amount: number
     date: string
+    currency?: 'USD' | 'VES'
+    exchange_rate?: number
+    subtotal?: number
+    tax_iva?: number
+    tax_igtf?: number
+    is_exempt?: boolean
     items?: SaleItem[]
 }

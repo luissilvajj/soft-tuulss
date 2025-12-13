@@ -38,23 +38,24 @@
             <td class="p-4 text-[var(--color-text-primary)]">
               {{ sale.client?.name || 'Cliente Casual' }}
             </td>
-            <td class="p-4 text-[var(--color-text-secondary)] capitalize">
-              {{ sale.payment_method }}
+            <td class="p-4 text-[var(--color-text-secondary)]">
+              <span class="capitalize">{{ sale.payment_method?.replace('_', ' ') }}</span>
+              <span v-if="sale.payment_reference" class="block text-xs text-[var(--color-text-secondary)]/70 font-mono">Ref: {{ sale.payment_reference }}</span>
             </td>
             <td class="p-4">
               <span :class="[
                 'px-2 py-1 rounded-full text-xs font-medium',
-                sale.status === 'paid' ? 'bg-green-500/10 text-green-500' : 
+                sale.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 
                 sale.status === 'pending' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-red-500/10 text-red-500'
               ]">
                 {{ sale.status === 'paid' ? 'Pagado' : 'Pendiente' }}
               </span>
             </td>
             <td class="p-4 text-[var(--color-text-primary)] text-right font-medium">
-              ${{ sale.amount.toFixed(2) }}
+              {{ sale.currency === 'VES' ? 'Bs.' : '$' }}{{ (sale.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
             </td>
             <td class="p-4 text-right">
-              <button class="text-[var(--color-primary)] hover:underline text-sm">Ver</button>
+              <button class="text-[var(--color-primary)] hover:underline text-sm">Ver Detalle</button>
             </td>
           </tr>
         </tbody>

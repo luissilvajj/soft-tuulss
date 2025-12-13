@@ -147,7 +147,7 @@
                 <!-- Client -->
                 <div>
                      <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Cliente</label>
-                     <ClientSelector v-model="form.clientId" @create-client="showClientModal = true" />
+                     <ClientSelector :key="clientSelectorKey" v-model="form.clientId" @create-client="showClientModal = true" />
                 </div>
 
                 <!-- Payment Method -->
@@ -221,6 +221,38 @@
             </div>
         </div>
     </div>
+
+    <!-- Client Creation Modal -->
+    <AppModal 
+      :show="showClientModal" 
+      title="Nuevo Cliente" 
+      description="Información de contacto para la venta." 
+      @close="showClientModal = false"
+    >
+      <div class="space-y-4">
+        <div>
+           <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Nombre Completo</label>
+           <input v-model="newClient.name" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="Ej. Juan Pérez">
+        </div>
+        <div>
+           <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Email</label>
+           <input v-model="newClient.email" type="email" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="juan@empresa.com">
+        </div>
+         <div>
+           <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Teléfono</label>
+           <input v-model="newClient.phone" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="+56 9 1234 5678">
+        </div>
+      </div>
+
+      <template #actions>
+        <button @click="saveClient" type="button" class="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed" :disabled="savingClient">
+         {{ savingClient ? 'Guardando...' : 'Guardar Cliente' }}
+       </button>
+       <button @click="showClientModal = false" type="button" class="px-6 py-2.5 text-sm font-bold text-[var(--color-text-secondary)] bg-transparent border border-[var(--color-border-subtle)] rounded-xl hover:bg-[var(--color-bg-dark)] focus:outline-none transition-colors">
+         Cancelar
+       </button>
+      </template>
+    </AppModal>
   </div>
 </template>
 
@@ -242,7 +274,11 @@ const exchangeRate = ref(60.00)
 const searchQuery = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
 const focusedResultIndex = ref(0)
+const focusedResultIndex = ref(0)
 const showClientModal = ref(false)
+const clientSelectorKey = ref(0)
+const savingClient = ref(false)
+const newClient = ref({ name: '', email: '', phone: '' })
 const allProducts = ref<Product[]>([])
 const loadingProducts = ref(true)
 
@@ -394,6 +430,31 @@ const handleCheckout = async () => {
         router.push('/app/sales')
     } catch (e: any) {
         alert(e.message)
+    }
+}
+
+const saveClient = async () => {
+    if (!newClient.value.name || !organization.value?.id) return
+    savingClient.value = true
+    try {
+        const { data, error } = await client.from('clients').insert({
+            organization_id: organization.value.id,
+            ...newClient.value
+        }).select('id').single()
+
+        if (error) throw error
+        
+        // Success: Close modal, refresh selector, and select new client
+        alert('Cliente creado exitosamente')
+        showClientModal.value = false
+        newClient.value = { name: '', email: '', phone: '' }
+        clientSelectorKey.value++ // Force refresh of ClientSelector
+        if (data) form.clientId = data.id
+
+    } catch (e: any) {
+        alert('Error creando cliente: ' + e.message)
+    } finally {
+        savingClient.value = false
     }
 }
 </script>

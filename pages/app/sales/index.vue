@@ -72,6 +72,7 @@
 
 <script setup lang="ts">
 import { useSales } from '~/composables/useSales'
+import { useOrganization } from '~/composables/useOrganization'
 import type { Sale } from '~/types/models'
 
 definePageMeta({
@@ -79,6 +80,7 @@ definePageMeta({
 })
 
 const { sales, fetchSales, loading } = useSales()
+const { organization } = useOrganization()
 
 const showDetailModal = ref(false)
 const selectedSale = ref<Sale | null>(null)
@@ -94,6 +96,10 @@ const closeDetailModal = () => {
 }
 
 onMounted(() => {
-  fetchSales()
+  if (organization.value?.id) fetchSales()
 })
+
+watch(() => organization.value, (newOrg) => {
+    if (newOrg?.id) fetchSales()
+}, { immediate: true })
 </script>

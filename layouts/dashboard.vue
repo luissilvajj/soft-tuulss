@@ -75,7 +75,9 @@ onMounted(async () => {
 
   const org = await fetchOrganization()
   if (!org) {
-    router.push('/onboarding')
+    // DISABLE REDIRECT FOR DIAGNOSIS
+    // router.push('/onboarding')
+    console.warn('Dashboard: No organization found, staying put for diagnosis.')
   }
 })
 

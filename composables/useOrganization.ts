@@ -7,7 +7,7 @@ export const useOrganization = () => {
     const loading = useState('org_loading', () => false)
 
     const fetchOrganization = async () => {
-        if (!user.value) return null
+        if (!user.value?.id) return null
 
         // Return if already loaded
         if (organization.value) return organization.value
@@ -27,7 +27,7 @@ export const useOrganization = () => {
           role
         `)
                 .eq('user_id', user.value.id)
-                .single()
+                .single() as any
 
             if (error && error.code !== 'PGRST116') throw error // PGRST116 is no rows found
 

@@ -27,8 +27,15 @@
     <!-- Results Dropdown -->
     <div v-if="isOpen && (searchQuery || filteredClients.length > 0)" class="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto ring-1 ring-black/5 divide-y divide-gray-50">
         
-        <div v-if="filteredClients.length === 0" class="p-4 text-center text-gray-400 text-sm">
+        <div v-if="filteredClients.length === 0" class="p-4 text-center text-gray-500 text-sm flex flex-col items-center gap-2">
             <p>No encontrado.</p>
+            <button 
+                type="button"
+                class="px-4 py-2 bg-[var(--color-bg-subtle)] text-[var(--color-text-primary)] rounded-lg font-bold hover:bg-[var(--color-bg-hover)] transition-colors w-full"
+                @click="$emit('create-client')"
+            >
+                + Crear "{{ searchQuery }}"
+            </button>
         </div>
 
         <div 
@@ -113,16 +120,26 @@ const iconClick = () => {
 
 
 const fetchClients = async () => {
-    if (!organization.value?.id) return
+    if (!organization.value?.id) {
+        console.warn('ClientSelector: No Organization ID yet.')
+        return
+    }
     loading.value = true
     try {
-        const { data } = await client
+        console.log('ClientSelector: Fetching clients for org', organization.value.id)
+        const { data, error } = await client
             .from('clients')
             .select('*')
             .eq('organization_id', organization.value.id)
             .order('created_at', { ascending: false })
         
-        if (data) clients.value = data as any
+        if (error) throw error
+        if (data) {
+            clients.value = data as any
+            console.log('ClientSelector: Loaded', data.length, 'clients')
+        }
+    } catch (e) {
+        console.error('ClientSelector Error:', e)
     } finally { loading.value = false }
 }
 

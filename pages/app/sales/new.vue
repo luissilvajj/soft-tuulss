@@ -241,6 +241,10 @@
            <input v-model="newClient.name" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="Ej. Juan Pérez">
         </div>
         <div>
+           <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Cédula / RIF</label>
+           <input v-model="newClient.identity_document" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="V-12345678">
+        </div>
+        <div>
            <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Email</label>
            <input v-model="newClient.email" type="email" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="juan@empresa.com">
         </div>
@@ -283,7 +287,9 @@ const focusedResultIndex = ref(0)
 const showClientModal = ref(false)
 const clientSelectorKey = ref(0)
 const savingClient = ref(false)
-const newClient = ref({ name: '', email: '', phone: '' })
+const savingClient = ref(false)
+const newClient = ref({ name: '', email: '', phone: '', identity_document: '' })
+const allProducts = ref<Product[]>([])
 const allProducts = ref<Product[]>([])
 const loadingProducts = ref(true)
 
@@ -493,7 +499,10 @@ const saveClient = async () => {
         // Success: Close modal, refresh selector, and select new client
         alert('Cliente creado exitosamente')
         showClientModal.value = false
-        newClient.value = { name: '', email: '', phone: '' }
+        alert('Cliente creado exitosamente')
+        showClientModal.value = false
+        newClient.value = { name: '', email: '', phone: '', identity_document: '' }
+        clientSelectorKey.value++ // Force refresh of ClientSelector
         clientSelectorKey.value++ // Force refresh of ClientSelector
         if (data) form.clientId = data.id
 

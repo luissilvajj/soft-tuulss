@@ -65,10 +65,60 @@ const { organization, fetchOrganization } = useOrganization()
 const client = useSupabaseClient()
 const router = useRouter()
 
-const orgName = computed(() => organization.value?.name || 'Mi Organización')
-const userRole = computed(() => organization.value?.role || 'Usuario')
+const orgName = ref(organization.value?.name || 'Mi Organización')
+const userRole = ref(organization.value?.role || 'Usuario')
+const userName = ref('') // New State for Hello message
 
-// Ensure org is loaded
+// Watch for changes if standard hydration works
+watch(() => organization.value, (newOrg) => {
+    if (newOrg) {
+        orgName.value = newOrg.name
+        userRole.value = newOrg.role
+    }
+})
+
+// RECOVERY LOGIC
+const ensureGlobalState = async (userId) => {
+    console.log('Dashboard: Attempting Global State Recovery...')
+    
+    // 1. Recover Organization
+    if (!organization.value) {
+        const { data: orgData } = await client
+            .from('organization_members')
+            .select(`
+                organization:organizations ( id, name ),
+                role
+            `)
+            .eq('user_id', userId)
+            .limit(1)
+            .maybeSingle()
+        
+        if (orgData && orgData.organization) {
+            console.log('Dashboard: Organization Recovered', orgData.organization)
+            orgName.value = orgData.organization.name
+            userRole.value = orgData.role || 'Usuario'
+            // Hydrate global state for others
+            organization.value = {
+                ...orgData.organization,
+                role: orgData.role
+            }
+        }
+    }
+
+    // 2. Recover User Profile (Name)
+    const { data: profile } = await client
+        .from('profiles')
+        .select('full_name')
+        .eq('id', userId)
+        .single()
+    
+    if (profile) {
+        console.log('Dashboard: Profile Recovered', profile)
+        userName.value = profile.full_name || 'Usuario'
+        // We could hydrate a global user profile state here if we had one
+    }
+}
+
 // Ensure org is loaded
 onMounted(async () => {
   // Wait for user to be available to avoid race conditions
@@ -88,14 +138,12 @@ onMounted(async () => {
       return router.push('/login')
   }
 
-  // 3. Org Check
-  const org = await fetchOrganization()
-  
-  // 4. Safe Mode: Do not auto-redirect to onboarding. 
-  // Let the UI handle the Empty State (which we already have in inventory.vue, and we can add here if needed).
-  if (!org) {
-      console.warn('Dashboard: User logged in but no Organization found.')
-      // logic handles empty state in the template
+  // 3. EXECUTE RECOVERY (Ipso Facto)
+  await ensureGlobalState(user.value.id)
+
+  // 4. Standard Fetch (for redundancy)
+  if (!organization.value) {
+     await fetchOrganization()
   }
 })
 

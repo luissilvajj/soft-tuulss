@@ -1,12 +1,20 @@
 export const useAuthGuard = () => {
     const user = useSupabaseUser()
+    const client = useSupabaseClient()
     const router = useRouter()
 
-    watchEffect(() => {
-        if (!user.value) {
-            // Check if we are potentially hydrating?
-            // Actually, for client-side only (ssr: false), useSupabaseUser should sync with local storage.
-            // But we can add a small delay or check session explicitly.
+    onMounted(async () => {
+        // Wait for potential session restoration
+        const { data: { session } } = await client.auth.getSession()
+
+        if (!session && !user.value) {
+            router.push('/login')
+        }
+    })
+
+    // Watch for explicit sign out
+    watch(user, (curr) => {
+        if (!curr) {
             router.push('/login')
         }
     })

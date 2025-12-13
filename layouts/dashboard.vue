@@ -68,6 +68,7 @@ const userRole = computed(() => organization.value?.role || 'Admin')
 // Ensure org is loaded
 onMounted(async () => {
   // Wait for user to be available to avoid race conditions
+  // 1. Wait for User Hydration
   const user = useSupabaseUser()
   if (!user.value) {
      let attempts = 0
@@ -77,9 +78,20 @@ onMounted(async () => {
      }
   }
 
+  // 2. Auth Check: If still no user, Session is invalid -> Go to Login
+  if (!user.value) {
+      console.warn('Dashboard: No user session found. Redirecting to login.')
+      return router.push('/login')
+  }
+
+  // 3. Org Check
   const org = await fetchOrganization()
+  
+  // 4. Safe Mode: Do not auto-redirect to onboarding. 
+  // Let the UI handle the Empty State (which we already have in inventory.vue, and we can add here if needed).
   if (!org) {
-    router.push('/onboarding')
+      console.warn('Dashboard: User logged in but no Organization found.')
+      // logic handles empty state in the template
   }
 })
 

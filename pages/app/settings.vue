@@ -160,6 +160,12 @@ watch(() => organization.value, (newOrg) => {
 const updateOrgName = async () => {
    loadingGeneral.value = true
    try {
+      if (!organization.value) {
+          // Attempt to fetch if missing
+          await fetchOrganization(true)
+          if (!organization.value) throw new Error("No se ha podido cargar la organización. Recarga la página.")
+      }
+      
       const { error } = await client.from('organizations')
          .update({ name: generalForm.name })
          .eq('id', organization.value.id)

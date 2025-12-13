@@ -64,15 +64,22 @@
                     v-model="searchQuery"
                     type="text" 
                     class="w-full bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl py-4 pl-12 pr-4 text-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent transition-shadow shadow-sm"
-                    placeholder="Buscar producto por nombre, código o SKU..."
+                    :placeholder="allProducts.length > 0 ? 'Buscar producto por nombre, código o SKU...' : 'Cargando catálogo de productos...'"
                     @keydown.down.prevent="selectNextResult"
                     @keydown.up.prevent="selectPrevResult"
                     @keydown.enter.prevent="addSelectedResult"
                 />
                 
                 <!-- Autocomplete Dropdown -->
-                <div v-if="searchQuery && searchResults.length > 0" class="absolute top-full left-0 right-0 mt-2 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl shadow-2xl overflow-hidden max-h-80 overflow-y-auto">
+                <div v-if="searchQuery" class="absolute top-full left-0 right-0 mt-2 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl shadow-2xl overflow-hidden max-h-80 overflow-y-auto z-50">
+                    <div v-if="allProducts.length === 0" class="p-4 text-center text-[var(--color-text-secondary)]">
+                        <span class="animate-pulse">Cargando productos...</span>
+                    </div>
+                    <div v-else-if="searchResults.length === 0" class="p-4 text-center text-[var(--color-text-secondary)]">
+                         No se encontraron productos para "{{ searchQuery }}"
+                    </div>
                     <div 
+                        v-else
                         v-for="(product, index) in searchResults" 
                         :key="product.id"
                         @click="addProductToCart(product)"
@@ -293,17 +300,17 @@ const form = reactive({
 const availableMethods = computed(() => {
     if (currency.value === 'VES') {
         return [
-            { id: 'mobile_pay', label: 'Pago Móvil', icon: '📱' },
-            { id: 'transfer', label: 'Transferencia', icon: '🏦' },
-            { id: 'cash', label: 'Efectivo Bs', icon: '💵' },
-            { id: 'card', label: 'Tarjeta', icon: '💳' }
+            { id: 'mobile_pay', label: 'Pago Móvil', icon: '' },
+            { id: 'transfer', label: 'Transferencia', icon: '' },
+            { id: 'cash', label: 'Efectivo Bs', icon: '' },
+            { id: 'card', label: 'Tarjeta', icon: '' }
         ]
     } else {
         return [
-            { id: 'cash', label: 'Efectivo $', icon: '💵' },
-            { id: 'zelle', label: 'Zelle', icon: '🟣' },
-            { id: 'transfer', label: 'Transf. Intl', icon: '🌎' },
-            { id: 'other', label: 'Otro', icon: '⚙️' }
+            { id: 'cash', label: 'Efectivo $', icon: '' },
+            { id: 'zelle', label: 'Zelle', icon: '' },
+            { id: 'transfer', label: 'Transf. Intl', icon: '' },
+            { id: 'other', label: 'Otro', icon: '' }
         ]
     }
 })

@@ -313,13 +313,19 @@ const needsReference = computed(() => {
 })
 
 // --- Products & Search ---
-onMounted(async () => {
-    if (organization.value?.id) {
-        const { data } = await client.from('products').select('*').eq('organization_id', organization.value.id)
-        if (data) allProducts.value = data as any
-    }
-    // Auto-focus search for speed
+const fetchProducts = async () => {
+    if (!organization.value?.id) return
+    const { data } = await client.from('products').select('*').eq('organization_id', organization.value.id)
+    if (data) allProducts.value = data as any
+}
+
+onMounted(() => {
+    fetchProducts()
     searchInput.value?.focus()
+})
+
+watch(() => organization.value, (newOrg) => {
+    if (newOrg?.id) fetchProducts()
 })
 
 const searchResults = computed(() => {

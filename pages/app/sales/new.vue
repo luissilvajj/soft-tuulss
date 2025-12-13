@@ -261,6 +261,14 @@
              </div>
         </div>
     </div>
+     
+     <!-- DEBUG: Remove before final production -->
+     <div class="mt-8 p-4 bg-black/50 rounded text-xs font-mono text-gray-400">
+        <p>Debug Info:</p>
+        <p>Org ID: {{ organization?.id || 'Wait...' }}</p>
+        <p>Products Loaded: {{ allProducts.length }}</p>
+        <button @click="fetchProducts" class="mt-2 underline text-blue-400">Forzar Recarga</button>
+     </div>
   </div>
 </template>
 
@@ -344,7 +352,7 @@ onMounted(() => {
 
 watch(() => organization.value, (newOrg) => {
     if (newOrg?.id) fetchProducts()
-})
+}, { immediate: true })
 
 const searchResults = computed(() => {
     if (!searchQuery.value) return []

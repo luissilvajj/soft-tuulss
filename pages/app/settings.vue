@@ -256,12 +256,31 @@ const inviteUser = async () => {
          if (orgId) currentOrgId.value = orgId
       }
 
+      // LAST RESORT: Direct Query bypassing useOrganization composable
+      if (!orgId && user.value?.id) {
+          console.warn('State failed. Attempting RAW query...')
+          const { data: rawData, error: rawError } = await client
+              .from('organization_members')
+              .select('organization_id')
+              .eq('user_id', user.value.id)
+              .limit(1)
+              .maybeSingle()
+          
+          if (!rawError && rawData) {
+              console.log('RAW Query Success:', rawData)
+              orgId = rawData.organization_id
+              currentOrgId.value = orgId // Cache it
+          } else {
+              console.error('RAW Query Failed:', rawError)
+          }
+      }
+
       if (!orgId) {
          const u = useSupabaseUser()
-         console.error('CRITICAL: Organization still missing after fetch.')
+         console.error('CRITICAL: Organization still missing after ALL attempts.')
          console.error('User:', u.value)
          console.error('Org State:', organization.value)
-         throw new Error('No se pudo detectar la organización. Por favor recarga la página completamente.')
+         throw new Error('No se pudo detectar la organización (Error DB). Por favor contacta soporte.')
       }
 
       console.log('Sending RPC to p_org_id:', orgId)

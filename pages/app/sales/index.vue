@@ -55,23 +55,43 @@
               {{ sale.currency === 'VES' ? 'Bs.' : '$' }}{{ (sale.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
             </td>
             <td class="p-4 text-right">
-              <button class="text-[var(--color-primary)] hover:underline text-sm">Ver Detalle</button>
+              <button @click="openDetailModal(sale)" class="text-[var(--color-primary)] hover:underline text-sm">Ver Detalle</button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
+    <!-- Detail Modal -->
+    <SaleDetailModal 
+        v-if="showDetailModal && selectedSale" 
+        :sale="selectedSale" 
+        @close="closeDetailModal" 
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useSales } from '~/composables/useSales'
+import type { Sale } from '~/types/models'
 
 definePageMeta({
   layout: 'dashboard'
 })
 
 const { sales, fetchSales, loading } = useSales()
+
+const showDetailModal = ref(false)
+const selectedSale = ref<Sale | null>(null)
+
+const openDetailModal = (sale: Sale) => {
+    selectedSale.value = sale
+    showDetailModal.value = true
+}
+
+const closeDetailModal = () => {
+    showDetailModal.value = false
+    selectedSale.value = null
+}
 
 onMounted(() => {
   fetchSales()

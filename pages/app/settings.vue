@@ -36,10 +36,14 @@
               <input v-model="generalForm.name" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] outline-none" placeholder="Velo Code">
             </div>
             
-            <div class="pt-4">
-               <button @click="updateOrgName" :disabled="loadingGeneral" class="btn btn-primary">
+            <div class="pt-4 flex items-center gap-4">
+               <button @click="updateOrgName" :disabled="loadingGeneral || !currentOrgId" class="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
                  {{ loadingGeneral ? 'Guardando...' : 'Guardar Cambios' }}
                </button>
+               <span v-if="!currentOrgId" class="text-xs text-yellow-500 flex items-center gap-1">
+                  <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  Cargando ID...
+               </span>
             </div>
           </div>
         </div>
@@ -162,12 +166,19 @@ watch(() => organization.value, (newOrg) => {
 }, { immediate: true })
 
 const updateOrgName = async () => {
+   // Robust check: If we don't have the ID, try to fetch it one last time
    if (!currentOrgId.value) {
-      // Try to get it from current state one last time
-      if (organization.value?.id) currentOrgId.value = organization.value.id
-      else {
-          alert('Error: No se ha detectado el ID de la organización. Intenta recargar la página.')
-          return
+      if (organization.value?.id) {
+          currentOrgId.value = organization.value.id
+      } else {
+          // Attempt Force Fetch
+          await fetchOrganization(true)
+          if (organization.value?.id) {
+             currentOrgId.value = organization.value.id
+          } else {
+             alert('Error: No se ha detectado el ID de la organización. Por favor recarga la página.')
+             return
+          }
       }
    }
 

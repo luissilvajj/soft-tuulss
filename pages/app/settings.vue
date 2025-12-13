@@ -225,7 +225,9 @@ const fetchMembers = async () => {
          role,
          profile:profiles ( email, full_name )
       `)
-      .eq('organization_id', organization.value.id)
+      .eq('organization_id', currentOrgId.value || organization.value?.id)
+   
+   if (!currentOrgId.value && !organization.value?.id) return
    
    if (data) {
       members.value = data.map(m => ({
@@ -239,8 +241,11 @@ const fetchMembers = async () => {
 const inviteUser = async () => {
    inviting.value = true
    try {
+      const orgId = currentOrgId.value || organization.value?.id
+      if (!orgId) throw new Error('ID de organización no detectado')
+
       const { data, error } = await client.rpc('add_team_member', {
-         p_org_id: organization.value.id,
+         p_org_id: orgId,
          p_email: inviteEmail.value
       })
       if (error) throw error
@@ -262,7 +267,7 @@ const promoteUser = async (member) => {
    try {
         const { error } = await client.from('organization_members')
             .update({ role: newRole })
-            .eq('organization_id', organization.value.id)
+            .eq('organization_id', currentOrgId.value || organization.value?.id)
             .eq('user_id', member.user_id)
 
         if (error) throw error

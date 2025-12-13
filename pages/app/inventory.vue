@@ -200,7 +200,11 @@ const openModal = () => showModal.value = true
 const closeModal = () => showModal.value = false
 
 const addProduct = async () => {
-  if (!newProduct.value.name || !organization.value) return
+  if (!organization.value) {
+    alert('Error: No se ha detectado una organización activa. Por favor recarga la página o contacta soporte.')
+    return
+  }
+  if (!newProduct.value.name) return
 
   saving.value = true
   try {

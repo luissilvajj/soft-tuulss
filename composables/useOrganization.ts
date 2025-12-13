@@ -3,7 +3,7 @@ export const useOrganization = () => {
     const client = useSupabaseClient()
 
     // Clean state for current organization
-    const organization = useState('current_org', () => null)
+    const organization = useState<any>('current_org', () => null)
     const loading = useState('org_loading', () => false)
 
     const fetchOrganization = async (force = false) => {

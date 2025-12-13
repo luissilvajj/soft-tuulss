@@ -124,6 +124,25 @@
            </div>
         </div>
     </AppModal>
+
+    <!-- CRITICAL DIAGNOSTIC PANEL -->
+    <div class="mt-8 p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-xs font-mono text-red-200">
+       <h3 class="font-bold text-red-400 mb-2">🔧 Diagnóstico de Conexión</h3>
+       <div class="grid grid-cols-2 gap-4">
+          <div>
+             <p><strong>User ID:</strong> {{ user?.id || 'No Detectado' }}</p>
+             <p><strong>Org State:</strong> {{ organization ? 'Cargada' : 'NULL' }}</p>
+             <p><strong>Org ID:</strong> {{ currentOrgId || 'Esperando...' }}</p>
+             <p><strong>Loading:</strong> {{ loadingGeneral }}</p>
+          </div>
+          <div>
+              <button @click="runRawDiagnostics" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded mb-2">
+                 Ejecutar Diagnóstico RAW
+              </button>
+              <pre v-if="diagnosticResult" class="bg-black/50 p-2 rounded overflow-x-auto max-h-40">{{ diagnosticResult }}</pre>
+          </div>
+       </div>
+    </div>
   </div>
 </template>
 
@@ -275,4 +294,42 @@ onMounted(() => {
     fetchOrganization()
     fetchMembers()
 })
+
+// DIAGNOSTICS
+const diagnosticResult = ref('')
+const runRawDiagnostics = async () => {
+   diagnosticResult.value = 'Ejecutando...'
+   try {
+      const u = useSupabaseUser()
+      if (!u.value) {
+         diagnosticResult.value = 'Error: No User in Session'
+         return
+      }
+      
+      // 1. Check Raw Members Table
+      const { data: members, error: memberError } = await client
+         .from('organization_members')
+         .select('*, organization:organizations(*)')
+         .eq('user_id', u.value.id)
+      
+      let report = `Found ${members?.length || 0} memberships.\n`
+      if (memberError) report += `Error: ${memberError.message}\n`
+      
+      if (members && members.length > 0) {
+         report += JSON.stringify(members[0], null, 2)
+         // Attempt to auto-fix state if we found something
+         if (!currentOrgId.value) {
+            currentOrgId.value = members[0].organization_id
+            organization.value = { ...members[0].organization, role: members[0].role }
+            report += '\n\n✅ AUTO-FIX APPLIED: State updated manually.'
+         }
+      } else {
+         report += 'User has no organization linked.'
+      }
+
+      diagnosticResult.value = report
+   } catch (e) {
+      diagnosticResult.value = 'Ex: ' + e.message
+   }
+}
 </script>

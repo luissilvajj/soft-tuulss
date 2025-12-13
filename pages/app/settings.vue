@@ -241,22 +241,34 @@ const fetchMembers = async () => {
 const inviteUser = async () => {
    inviting.value = true
    try {
+      console.log('--- INVITE START ---')
       const orgId = currentOrgId.value || organization.value?.id
+      console.log('Org ID:', orgId)
+      
       if (!orgId) throw new Error('ID de organización no detectado')
 
+      console.log('Sending RPC to p_org_id:', orgId)
       const { data, error } = await client.rpc('add_team_member', {
          p_org_id: orgId,
          p_email: inviteEmail.value
       })
-      if (error) throw error
+      
+      if (error) {
+         console.error('RPC Error:', error)
+         throw error
+      }
+      
+      console.log('Invite Success')
       alert('Usuario agregado correctamente!')
       showInviteModal.value = false
       inviteEmail.value = ''
-      fetchMembers()
+      await fetchMembers()
    } catch (e) {
+      console.error('Invite Exception:', e)
       alert('Error: ' + e.message)
    } finally {
       inviting.value = false
+      console.log('--- INVITE END ---')
    }
 }
 

@@ -212,12 +212,14 @@ const inviteEmail = ref('')
 const inviting = ref(false)
 
 const fetchMembers = async () => {
-   if (!organization.value) return
-   // We need to join with profiles or auth.users?
-   // Since auth.users is not accessible directly from client easily without a view, 
-   // we heavily rely on the fact that if we use the 'profiles' table it would work
-   // BUT earlier in `db/schema.sql` I saw `profiles` table. Let's use it.
-   // Wait, `organization_members` has `user_id`.
+   const orgId = currentOrgId.value || organization.value?.id
+   
+   if (!orgId) {
+       console.warn('fetchMembers: No ID available yet.')
+       return
+   }
+
+   console.log('Fetching members for Org:', orgId)
    
    const { data, error } = await client.from('organization_members')
       .select(`
@@ -225,15 +227,18 @@ const fetchMembers = async () => {
          role,
          profile:profiles ( email, full_name )
       `)
-      .eq('organization_id', currentOrgId.value || organization.value?.id)
+      .eq('organization_id', orgId)
    
-   if (!currentOrgId.value && !organization.value?.id) return
+   if (error) {
+       console.error('Error fetching members:', error)
+       return
+   }
    
    if (data) {
       members.value = data.map(m => ({
          user_id: m.user_id,
          role: m.role,
-         email: m.profile?.email || 'Unknown' // Assuming profiles has email synced or we use a view
+         email: m.profile?.email || 'Unknown' 
       }))
    }
 }

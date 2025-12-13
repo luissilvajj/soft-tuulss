@@ -5,8 +5,14 @@
       <div>
         <h1 class="text-3xl font-bold tracking-tight text-gradient">Inventario</h1>
         <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Gestiona tus productos y existencias desde aquí.</p>
+        
+        <!-- DEBUG ALERT: View Permissions State -->
+        <div v-if="!canEditInventory && !loading" class="mt-2 text-xs bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded inline-block border border-yellow-500/20">
+            <span class="font-bold">⚠️ Modo Visualización:</span> No tienes permisos de Admin o no cargó la empresa.
+            <button @click="fetchOrganization(true)" class="underline ml-2 hover:text-yellow-400">Reintentar</button>
+        </div>
       </div>
-      <button @click="openModal" class="btn btn-primary shadow-lg hover:shadow-xl transform transition-all duration-300">
+      <button v-if="canEditInventory" @click="openModal" class="btn btn-primary shadow-lg hover:shadow-xl transform transition-all duration-300">
         <span class="relative flex items-center gap-2">
            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
            Nuevo Producto

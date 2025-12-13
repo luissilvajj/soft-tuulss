@@ -61,8 +61,8 @@ const { organization, fetchOrganization } = useOrganization()
 const client = useSupabaseClient()
 const router = useRouter()
 
-const orgName = computed(() => organization.value?.name || 'Velo Code')
-const userRole = computed(() => organization.value?.role || 'Admin')
+const orgName = computed(() => organization.value?.name || 'Mi Organización')
+const userRole = computed(() => organization.value?.role || 'Usuario')
 
 // Ensure org is loaded
 // Ensure org is loaded

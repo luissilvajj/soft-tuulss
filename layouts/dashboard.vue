@@ -61,7 +61,18 @@ const orgName = computed(() => organization.value?.name || 'Velo Code')
 const userRole = computed(() => organization.value?.role || 'Admin')
 
 // Ensure org is loaded
+// Ensure org is loaded
 onMounted(async () => {
+  // Wait for user to be available to avoid race conditions
+  const user = useSupabaseUser()
+  if (!user.value) {
+     let attempts = 0
+     while (!user.value && attempts < 20) {
+        await new Promise(r => setTimeout(r, 100))
+        attempts++
+     }
+  }
+
   const org = await fetchOrganization()
   if (!org) {
     router.push('/onboarding')

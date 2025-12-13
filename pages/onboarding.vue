@@ -88,9 +88,10 @@ const createOrganization = async () => {
 
     // Success - Redirect to Dashboard
     // Force fetch to ensure state is updated before redirecting
-    // This prevents the dashboard from thinking no org exists and redirecting back
     const { fetchOrganization, organization } = useOrganization()
-    await fetchOrganization()
+    // Small delay to ensure DB propagation (just in case)
+    await new Promise(r => setTimeout(r, 500))
+    await fetchOrganization(true)
 
     if (organization.value) {
         router.push('/app')

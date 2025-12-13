@@ -298,33 +298,51 @@ onMounted(() => {
 // DIAGNOSTICS
 const diagnosticResult = ref('')
 const runRawDiagnostics = async () => {
-   diagnosticResult.value = 'Ejecutando...'
+   diagnosticResult.value = 'Ejecutando diagnóstico profundo...'
    try {
-      const u = useSupabaseUser()
-      if (!u.value) {
-         diagnosticResult.value = 'Error: No User in Session'
-         return
-      }
+      // 1. Check Session directly (bypassing Nuxt state)
+      const { data: { session }, error: sessionError } = await client.auth.getSession()
       
-      // 1. Check Raw Members Table
-      const { data: members, error: memberError } = await client
-         .from('organization_members')
-         .select('*, organization:organizations(*)')
-         .eq('user_id', u.value.id)
+      let report = ''
       
-      let report = `Found ${members?.length || 0} memberships.\n`
-      if (memberError) report += `Error: ${memberError.message}\n`
-      
-      if (members && members.length > 0) {
-         report += JSON.stringify(members[0], null, 2)
-         // Attempt to auto-fix state if we found something
-         if (!currentOrgId.value) {
-            currentOrgId.value = members[0].organization_id
-            organization.value = { ...members[0].organization, role: members[0].role }
-            report += '\n\n✅ AUTO-FIX APPLIED: State updated manually.'
-         }
+      if (sessionError) {
+         report += `⚠️ Session Error: ${sessionError.message}\n`
+      } else if (!session) {
+         report += `⚠️ No active session found in Supabase Client.\n`
+         report += `User should be redirected to login.\n`
       } else {
-         report += 'User has no organization linked.'
+         report += `✅ Session Active for: ${session.user.email}\n`
+         report += `User ID: ${session.user.id}\n`
+         
+         // 2. Try to Sync Nuxt State
+         const u = useSupabaseUser()
+         if (!u.value) {
+            report += `⚠️ Nuxt useSupabaseUser() is NULL. State Desync detected.\n`
+         }
+         
+         // 3. Check Memberships using the Session ID
+         const { data: members, error: memberError } = await client
+             .from('organization_members')
+             .select('*, organization:organizations(*)')
+             .eq('user_id', session.user.id) // Use session ID directly
+             
+         report += `\nChecking memberships for ${session.user.id}...\n`
+         
+         if (memberError) {
+             report += `❌ Database Error: ${memberError.message}\n`
+         } else if (members && members.length > 0) {
+             report += `✅ Found ${members.length} organizations.\n`
+             report += `Org 1: ${members[0].organization?.name} (${members[0].role})\n`
+             
+             // Auto-fix attempts
+             if (!currentOrgId.value) {
+                currentOrgId.value = members[0].organization_id
+                organization.value = { ...members[0].organization, role: members[0].role }
+                report += `\n✨ MAGIC FIX: Reconnected app to ${members[0].organization?.name}`
+             }
+         } else {
+             report += `⚠️ No memberships found. Table is empty for this user.\n`
+         }
       }
 
       diagnosticResult.value = report

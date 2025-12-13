@@ -87,7 +87,16 @@ const createOrganization = async () => {
     if (error) throw error
 
     // Success - Redirect to Dashboard
-    router.push('/app')
+    // Force fetch to ensure state is updated before redirecting
+    // This prevents the dashboard from thinking no org exists and redirecting back
+    const { fetchOrganization, organization } = useOrganization()
+    await fetchOrganization()
+
+    if (organization.value) {
+        router.push('/app')
+    } else {
+        throw new Error('La organización se creó pero no se pudo cargar. Intenta recargar.')
+    }
   } catch (error) {
     console.error(error)
     errorMsg.value = error.message || 'Error al crear la organización'

@@ -205,6 +205,45 @@ const updateOrgName = async () => {
    }
 }
 
+const ensureOrgId = async () => {
+    // 1. Try Local State
+    if (currentOrgId.value) return
+
+    // 2. Try Global State
+    if (organization.value?.id) {
+        currentOrgId.value = organization.value.id
+        generalForm.name = organization.value.name
+        return
+    }
+
+    // 3. RAW DB FALLBACK (The "Ipso Facto" fix)
+    console.log('Orphaned State detected. Executing RAW recovery...')
+    const { data, error } = await client
+        .from('organization_members')
+        .select(`
+            organization:organizations ( id, name, subscription_status ),
+            role
+        `)
+        .eq('user_id', user.value?.id)
+        .limit(1)
+        .maybeSingle()
+    
+    if (data && data.organization) {
+        console.log('Recovery Successful:', data.organization)
+        // Update Local
+        currentOrgId.value = data.organization.id
+        generalForm.name = data.organization.name
+        
+        // Update Global (optimistic)
+        organization.value = {
+            ...data.organization,
+            role: data.role
+        }
+    } else {
+        console.error('Recovery Failed:', error)
+    }
+}
+
 // TEAM
 const members = ref([])
 const showInviteModal = ref(false)
@@ -330,8 +369,9 @@ const promoteUser = async (member) => {
    }
 }
 
-onMounted(() => {
-    fetchOrganization()
+onMounted(async () => {
+    await ensureOrgId()
+    await fetchOrganization()
     fetchMembers()
 })
 

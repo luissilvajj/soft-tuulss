@@ -143,6 +143,7 @@ definePageMeta({
 })
 
 const client = useSupabaseClient()
+const user = useSupabaseUser()
 const { organization, fetchOrganization } = useOrganization()
 const { canManageTeam } = usePermissions()
 
@@ -157,6 +158,11 @@ const tabs = [
 const generalForm = reactive({ name: '' })
 const currentOrgId = ref(null) // Cache ID to avoid null errors if state flickers
 const loadingGeneral = ref(false)
+
+// Ensure we fetch org when user is ready (fixes hard reload issue)
+watch(user, async (u) => {
+    if (u) await fetchOrganization()
+}, { immediate: true })
 
 watch(() => organization.value, (newOrg) => {
    if (newOrg) {

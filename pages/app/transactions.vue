@@ -83,7 +83,39 @@
     <!-- Transactions Table -->
     <div class="glass-panel overflow-hidden">
         <div v-if="transactions.length > 0">
-           <div class="overflow-x-auto">
+           <!-- Mobile Card View -->
+           <div class="block md:hidden space-y-4">
+              <div v-for="trx in transactions" :key="trx.id" class="bg-[var(--color-bg-subtle)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3">
+                  <div class="flex justify-between items-start">
+                      <div class="flex items-center gap-3">
+                           <div :class="[
+                                'w-8 h-8 rounded-full flex items-center justify-center',
+                                trx.type === 'income' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+                            ]">
+                                <svg v-if="trx.type === 'income'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                            </div>
+                            <div>
+                                <p class="font-bold text-[var(--color-white)]">{{ trx.description }}</p>
+                                <p class="text-xs text-[var(--color-text-secondary)] font-mono">{{ new Date(trx.created_at).toLocaleDateString() }}</p>
+                            </div>
+                      </div>
+                      <div :class="[
+                            'font-bold font-mono text-lg',
+                            trx.type === 'income' ? 'text-emerald-500' : 'text-red-500'
+                        ]">
+                            {{ trx.type === 'income' ? '+' : '-' }} ${{ trx.amount.toFixed(2) }}
+                      </div>
+                  </div>
+                  <div class="flex justify-between items-center border-t border-[var(--color-border-subtle)] pt-3 text-sm">
+                       <span class="text-[var(--color-text-secondary)]">{{ trx.client_name || 'General' }}</span>
+                       <span class="text-[var(--color-text-secondary)] capitalize">{{ trx.payment_method }}</span>
+                  </div>
+              </div>
+           </div>
+
+           <!-- Desktop Table View -->
+           <div class="hidden md:block overflow-x-auto">
             <table class="min-w-full divide-y divide-[var(--color-border-subtle)] text-left align-middle">
                 <thead class="bg-[var(--color-bg-dark)]/50">
                     <tr>
@@ -121,8 +153,20 @@
                                 'font-bold font-mono text-lg',
                                 trx.type === 'income' ? 'text-emerald-500' : 'text-red-500'
                             ]">
-            </tbody>
-        </table>
+                                {{ trx.type === 'income' ? '+' : '-' }} ${{ trx.amount.toFixed(2) }}
+                            </div>
+                           <div v-if="trx.exchange_rate" class="text-xs text-[var(--color-text-secondary)] font-mono opacity-70">
+                               Tasa: {{ trx.exchange_rate }}
+                           </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+           </div>
+        </div>
+        <div v-else class="p-6 text-center text-[var(--color-text-secondary)]">
+            <p>No hay movimientos para mostrar con los filtros actuales.</p>
+        </div>
     </div>
 
   </div>
@@ -138,8 +182,8 @@ definePageMeta({ layout: 'dashboard' })
 const { transactions, fetchTransactions, loading } = useTransactions()
 const { organization } = useOrganization()
 
-const filterMode = ref('this_month')
-const filterType = ref('all')
+const dateFilter = ref('this_month') // Renamed from filterMode for clarity
+const typeFilter = ref('all') // Renamed from filterType for clarity
 
 // Custom Date Range
 const customFrom = ref('')

@@ -24,7 +24,7 @@
       </div>
 
       <!-- Content -->
-      <div class="flex-1 p-8">
+      <div class="flex-1 p-4 md:p-8">
         <!-- GENERAL TAB -->
         <div v-if="currentTab === 'general'" class="max-w-xl">
           <h2 class="text-xl font-bold text-[var(--color-white)] mb-1">General</h2>
@@ -37,7 +37,7 @@
             </div>
             
             <div class="pt-4 flex items-center gap-4">
-               <button @click="updateOrgName" :disabled="loadingGeneral || !currentOrgId" class="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+               <button @click="updateOrgName" :disabled="loadingGeneral || !currentOrgId" class="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto justify-center">
                  {{ loadingGeneral ? 'Guardando...' : 'Guardar Cambios' }}
                </button>
                <span v-if="!currentOrgId" class="text-xs text-yellow-500 flex items-center gap-1">
@@ -50,17 +50,48 @@
 
         <!-- TEAM TAB -->
         <div v-if="currentTab === 'team'">
-           <div class="flex items-center justify-between mb-6">
+           <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
               <div>
                 <h2 class="text-xl font-bold text-[var(--color-white)] mb-1">Equipo</h2>
                 <p class="text-sm text-[var(--color-text-secondary)]">Gestiona quien tiene acceso.</p>
               </div>
-              <button @click="showInviteModal = true" class="btn btn-secondary text-xs px-3 py-2">
+              <button @click="showInviteModal = true" class="btn btn-secondary text-xs px-3 py-2 w-full md:w-auto justify-center">
                  + Invitar Miembro
               </button>
            </div>
 
-           <div class="overflow-hidden rounded-xl border border-[var(--color-border-subtle)]">
+           <!-- Mobile Card View -->
+           <div class="block md:hidden space-y-4">
+              <div v-for="member in members" :key="member.user_id" class="bg-[var(--color-bg-subtle)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3">
+                  <div class="flex items-center gap-3">
+                     <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-sm font-bold text-white uppercase shadow-md">
+                        {{ member.email?.charAt(0) || 'U' }}
+                     </div>
+                     <div class="flex-1 overflow-hidden">
+                        <p class="text-sm font-medium text-[var(--color-white)] truncate">{{ member.email }}</p>
+                        <span :class="[
+                             member.role === 'owner' ? 'bg-purple-500/10 text-purple-400' : 
+                             member.role === 'admin' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400',
+                             'text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded'
+                          ]">
+                             {{ member.role }}
+                        </span>
+                     </div>
+                  </div>
+                  
+                  <div v-if="canManageTeam && member.role !== 'owner'" class="pt-3 border-t border-[var(--color-border-subtle)] flex justify-end">
+                      <button 
+                         @click="promoteUser(member)"
+                         class="text-[var(--color-accent-blue)] text-xs font-bold px-3 py-1.5 bg-[var(--color-accent-blue)]/10 rounded-lg hover:bg-[var(--color-accent-blue)]/20 transition-colors"
+                      >
+                         {{ member.role === 'admin' ? 'Degradar a Miembro' : 'Promover a Admin' }}
+                      </button>
+                  </div>
+              </div>
+           </div>
+
+           <!-- Desktop Table View -->
+           <div class="hidden md:block overflow-hidden rounded-xl border border-[var(--color-border-subtle)]">
               <table class="min-w-full divide-y divide-[var(--color-border-subtle)]">
                 <thead class="bg-[var(--color-bg-dark)]">
                    <tr>

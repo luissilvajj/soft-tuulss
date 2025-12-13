@@ -64,8 +64,11 @@
 
                 <!-- Results Dropdown -->
                 <div v-if="searchQuery" class="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-lg shadow-xl overflow-hidden max-h-96 overflow-y-auto z-50 ring-1 ring-black/5">
-                    <div v-if="allProducts.length === 0" class="p-4 text-center text-sm text-gray-400">
+                    <div v-if="loadingProducts" class="p-4 text-center text-sm text-gray-400">
                         <span class="inline-block animate-spin mr-2">⟳</span> Cargando inventario...
+                    </div>
+                    <div v-else-if="allProducts.length === 0" class="p-4 text-center text-sm text-red-400">
+                         Tu inventario está vacío. Ve a "Inventario" para crear productos.
                     </div>
                     <div v-else-if="searchResults.length === 0" class="p-4 text-center text-sm text-gray-500">
                          No encontrado.
@@ -241,6 +244,7 @@ const searchInput = ref<HTMLInputElement | null>(null)
 const focusedResultIndex = ref(0)
 const showClientModal = ref(false)
 const allProducts = ref<Product[]>([])
+const loadingProducts = ref(true)
 
 const cart = ref<{ product: Product, quantity: number }[]>([])
 
@@ -265,8 +269,20 @@ const needsReference = computed(() => ['mobile_pay', 'transfer', 'zelle', 'card'
 // --- Data Loading ---
 const fetchProducts = async () => {
     if (!organization.value?.id) return
-    const { data } = await client.from('products').select('*').eq('organization_id', organization.value.id)
-    if (data) allProducts.value = data as any
+    loadingProducts.value = true
+    try {
+        const { data, error } = await client.from('products').select('*').eq('organization_id', organization.value.id)
+        if (error) {
+            console.error('Error fetching products:', error)
+            alert('Error cargando inventario: ' + error.message)
+            return
+        }
+        if (data) allProducts.value = data as any
+    } catch (e) {
+        console.error('Exception fetching products:', e)
+    } finally {
+        loadingProducts.value = false
+    }
 }
 
 let pollingInterval: any = null

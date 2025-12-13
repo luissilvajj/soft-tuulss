@@ -150,7 +150,18 @@ const selectCurrent = () => {
     else if (filteredClients.value[activeIndex.value]) selectClient(filteredClients.value[activeIndex.value])
 }
 
-onMounted(fetchClients)
+const selectCurrent = () => {
+    if (activeIndex.value === -1) selectClient(null)
+    else if (filteredClients.value[activeIndex.value]) selectClient(filteredClients.value[activeIndex.value])
+}
+
+onMounted(() => {
+    if (organization.value?.id) fetchClients()
+})
+
+watch(() => organization.value, (newOrg) => {
+    if (newOrg?.id) fetchClients()
+}, { immediate: true })
 
 // If modelValue matches a client, ensure it's loaded (fetchClients handles initial load)
 </script>

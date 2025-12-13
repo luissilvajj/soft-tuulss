@@ -314,9 +314,20 @@ const needsReference = computed(() => {
 
 // --- Products & Search ---
 const fetchProducts = async () => {
-    if (!organization.value?.id) return
-    const { data } = await client.from('products').select('*').eq('organization_id', organization.value.id)
-    if (data) allProducts.value = data as any
+    if (!organization.value?.id) {
+        console.warn('FetchProducts: No Organization ID yet')
+        return
+    }
+    console.log('FetchProducts: Fetching for org', organization.value.id)
+    const { data, error } = await client.from('products').select('*').eq('organization_id', organization.value.id)
+    if (error) {
+        console.error('FetchProducts Error:', error)
+        return
+    }
+    if (data) {
+        console.log(`FetchProducts: Loaded ${data.length} products`)
+        allProducts.value = data as any
+    }
 }
 
 onMounted(() => {
@@ -331,10 +342,11 @@ watch(() => organization.value, (newOrg) => {
 const searchResults = computed(() => {
     if (!searchQuery.value) return []
     const q = searchQuery.value.toLowerCase()
-    return allProducts.value.filter(p => 
-        p.name.toLowerCase().includes(q) || 
-        (p.sku && p.sku.toLowerCase().includes(q))
-    ).slice(0, 8)
+    return allProducts.value.filter(p => {
+        const nameMatch = p.name?.toLowerCase().includes(q)
+        const skuMatch = p.sku?.toString().toLowerCase().includes(q)
+        return nameMatch || skuMatch
+    }).slice(0, 8)
 })
 
 const selectNextResult = () => {

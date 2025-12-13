@@ -15,11 +15,22 @@
     <div class="bg-[var(--color-bg-card)] p-4 rounded-xl border border-[var(--color-border)] shadow-sm flex flex-col sm:flex-row gap-4 items-end">
         <div class="flex-1 w-full">
             <label class="block text-xs font-bold text-[var(--color-text-secondary)] uppercase mb-1">Rango de Fechas</label>
-             <select v-model="filterMode" class="w-full bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] block p-2.5">
-                <option value="this_month">Este Mes</option>
-                <option value="last_month">Mes Pasado</option>
-                <option value="all_time">Todo el historial</option>
-            </select>
+            <div class="flex gap-2">
+                <select v-model="filterMode" class="flex-1 w-full bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] block p-2.5">
+                    <option value="today">Hoy</option>
+                    <option value="yesterday">Ayer</option>
+                    <option value="this_week">Esta Semana</option>
+                    <option value="this_month">Este Mes</option>
+                    <option value="last_month">Mes Pasado</option>
+                    <option value="custom">Personalizado (Rango)</option>
+                    <option value="all_time">Todo el historial</option>
+                </select>
+                
+                <div v-if="isCustom" class="flex gap-2 animate-fade-in-left">
+                    <input type="date" v-model="customFrom" class="bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] block p-2.5">
+                    <input type="date" v-model="customTo" class="bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] block p-2.5">
+                </div>
+            </div>
         </div>
         <div class="flex-1 w-full">
             <label class="block text-xs font-bold text-[var(--color-text-secondary)] uppercase mb-1">Tipo</label>
@@ -104,7 +115,7 @@
 <script setup lang="ts">
 import { useTransactions } from '~/composables/useTransactions'
 import { useOrganization } from '~/composables/useOrganization'
-import { watch, ref, onMounted } from 'vue'
+import { watch, ref, onMounted, computed } from 'vue'
 
 definePageMeta({ layout: 'dashboard' })
 
@@ -114,17 +125,54 @@ const { organization } = useOrganization()
 const filterMode = ref('this_month')
 const filterType = ref('all')
 
+// Custom Date Range
+const customFrom = ref('')
+const customTo = ref('')
+
+const isCustom = computed(() => filterMode.value === 'custom')
+
 const applyFilters = () => {
     const now = new Date()
     let from, to
 
-    if (filterMode.value === 'this_month') {
-        from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
-        to = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
-    } else if (filterMode.value === 'last_month') {
-        from = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0]
-        to = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0]
+    switch (filterMode.value) {
+        case 'today':
+            from = now.toISOString().split('T')[0]
+            to = from
+            break
+        case 'yesterday':
+            const y = new Date(now)
+            y.setDate(now.getDate() - 1)
+            from = y.toISOString().split('T')[0]
+            to = from
+            break
+        case 'this_week':
+            const firstDay = new Date(now.setDate(now.getDate() - now.getDay()))
+            const lastDay = new Date(now.setDate(now.getDate() - now.getDay() + 6))
+            from = firstDay.toISOString().split('T')[0]
+            to = lastDay.toISOString().split('T')[0]
+            break
+        case 'this_month':
+            from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+            to = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0]
+            break
+         case 'last_month':
+            from = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0]
+            to = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0]
+            break
+        case 'custom':
+            from = customFrom.value
+            to = customTo.value
+            break
+        case 'all_time':
+        default:
+            from = undefined
+            to = undefined
+            break
     }
+
+    // Don't fetch if custom is selected but dates are empty
+    if (filterMode.value === 'custom' && (!from || !to)) return
 
     fetchTransactions({
         dateFrom: from,
@@ -133,9 +181,18 @@ const applyFilters = () => {
     })
 }
 
+// Watchers
 watch([filterMode, filterType, organization], () => {
-    if (organization.value?.id) applyFilters()
+    if (filterMode.value !== 'custom') {
+         if (organization.value?.id) applyFilters()
+    }
 }, { immediate: true })
+
+watch([customFrom, customTo], () => {
+    if (filterMode.value === 'custom' && customFrom.value && customTo.value) {
+        if (organization.value?.id) applyFilters()
+    }
+})
 
 onMounted(() => {
     if (organization.value?.id) applyFilters()

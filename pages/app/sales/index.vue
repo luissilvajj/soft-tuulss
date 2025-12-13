@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-[var(--color-heading)]">Ventas</h1>
+      <h1 class="text-2xl font-bold text-[var(--color-heading)]">Ventas 🛍️</h1>
       <NuxtLink to="/app/sales/new" class="btn btn-primary">
         + Nueva Venta
       </NuxtLink>

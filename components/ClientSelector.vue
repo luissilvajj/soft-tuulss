@@ -105,8 +105,7 @@ const handleInput = (e: Event) => {
 
 const handleFocus = () => {
     isOpen.value = true
-    // Optional: if focused and has selection, maybe clear query to allow search? 
-    // Current behavior: keeps name, user must delete to search. acceptable.
+    if (clients.value.length === 0) fetchClients()
 }
 
 const iconClick = () => {

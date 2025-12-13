@@ -24,43 +24,40 @@
 
        <!-- Filters Area (Spans 3 columns on large screens) -->
        <div class="lg:col-span-3 glass-panel p-6 flex flex-col justify-center">
-          <div class="flex flex-col md:flex-row gap-4">
+          <div class="flex flex-col md:flex-row gap-4 items-end">
               <!-- Date Filter -->
-              <div class="flex-1 space-y-2">
+              <div class="flex-1 space-y-2 w-full">
                   <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Rango de Fechas</label>
-                  <div class="relative">
-                      <select 
-                          v-model="dateFilter" 
-                          class="w-full appearance-none bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent transition-all"
-                      >
-                          <option value="today">Hoy</option>
-                          <option value="yesterday">Ayer</option>
-                          <option value="this_week">Esta Semana</option>
-                          <option value="this_month">Este Mes</option>
-                          <option value="last_month">Mes Pasado</option>
-                          <option value="all">Todo el historial</option>
-                          <option value="custom">Personalizado (Rango)</option>
-                      </select>
-                      <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[var(--color-text-secondary)]">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                      </div>
-                  </div>
-              </div>
-
-               <!-- Custom Date Inputs -->
-              <div v-if="dateFilter === 'custom'" class="flex flex-col sm:flex-row gap-2 items-end animate-fade-in-up w-full md:w-auto">
-                  <div class="space-y-2 w-full sm:w-auto">
-                      <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Desde</label>
-                      <input type="date" v-model="customDateStart" class="w-full bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
-                  </div>
-                  <div class="space-y-2 w-full sm:w-auto">
-                      <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Hasta</label>
-                      <input type="date" v-model="customDateEnd" class="w-full bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
+                  <div class="flex flex-col md:flex-row gap-2">
+                       <div class="relative flex-1">
+                           <select 
+                               v-model="dateFilter" 
+                               class="w-full appearance-none bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent transition-all"
+                           >
+                               <option value="today">Hoy</option>
+                               <option value="yesterday">Ayer</option>
+                               <option value="this_week">Esta Semana</option>
+                               <option value="this_month">Este Mes</option>
+                               <option value="last_month">Mes Pasado</option>
+                               <option value="custom">Personalizado</option>
+                               <option value="all">Todo el historial</option>
+                           </select>
+                           <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[var(--color-text-secondary)]">
+                               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                           </div>
+                       </div>
+                       
+                       <!-- Custom Date Inputs -->
+                       <div v-if="dateFilter === 'custom'" class="flex items-center gap-2 animate-fade-in-right">
+                            <input v-model="customFrom" type="date" class="bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] rounded-xl px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
+                            <span class="text-[var(--color-text-secondary)]">-</span>
+                            <input v-model="customTo" type="date" class="bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] rounded-xl px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
+                       </div>
                   </div>
               </div>
 
               <!-- Type Filter -->
-              <div class="flex-1 space-y-2">
+              <div class="w-full md:w-48 space-y-2">
                   <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Tipo</label>
                   <div class="relative">
                       <select 
@@ -68,8 +65,8 @@
                           class="w-full appearance-none bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent transition-all"
                       >
                           <option value="all">Todos</option>
-                          <option value="income">Ingresos (Ventas)</option>
-                          <option value="expense">Egresos (Gastos)</option>
+                          <option value="income">Ingresos</option>
+                          <option value="expense">Egresos</option>
                       </select>
                       <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[var(--color-text-secondary)]">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -104,7 +101,7 @@
                             'font-bold font-mono text-lg',
                             trx.type === 'income' ? 'text-emerald-500' : 'text-red-500'
                         ]">
-                            {{ trx.type === 'income' ? '+' : '-' }} ${{ trx.amount.toFixed(2) }}
+                            {{ trx.type === 'income' ? '+' : '-' }} ${{ (trx.amount || 0).toFixed(2) }}
                       </div>
                   </div>
                   <div class="flex justify-between items-center border-t border-[var(--color-border-subtle)] pt-3 text-sm">
@@ -153,7 +150,7 @@
                                 'font-bold font-mono text-lg',
                                 trx.type === 'income' ? 'text-emerald-500' : 'text-red-500'
                             ]">
-                                {{ trx.type === 'income' ? '+' : '-' }} ${{ trx.amount.toFixed(2) }}
+                                {{ trx.type === 'income' ? '+' : '-' }} ${{ (trx.amount || 0).toFixed(2) }}
                             </div>
                            <div v-if="trx.exchange_rate" class="text-xs text-[var(--color-text-secondary)] font-mono opacity-70">
                                Tasa: {{ trx.exchange_rate }}
@@ -189,13 +186,13 @@ const typeFilter = ref('all') // Renamed from filterType for clarity
 const customFrom = ref('')
 const customTo = ref('')
 
-const isCustom = computed(() => filterMode.value === 'custom')
+const isCustom = computed(() => dateFilter.value === 'custom')
 
 const applyFilters = () => {
     const now = new Date()
     let from, to
 
-    switch (filterMode.value) {
+    switch (dateFilter.value) {
         case 'today':
             from = now.toISOString().split('T')[0]
             to = from
@@ -224,7 +221,13 @@ const applyFilters = () => {
             from = customFrom.value
             to = customTo.value
             break
-        case 'all_time':
+        case 'all_time': // Changed from default to case to matches logic if needed, but 'all' in template maps to 'all_time'? No 'all' maps to 'all'.
+        // Wait, template has value="all". Let's check template.
+        // Template line 41: <option value="all">Todo el historial</option>
+        case 'all': 
+            from = undefined
+            to = undefined
+            break
         default:
             from = undefined
             to = undefined
@@ -232,24 +235,24 @@ const applyFilters = () => {
     }
 
     // Don't fetch if custom is selected but dates are empty
-    if (filterMode.value === 'custom' && (!from || !to)) return
+    if (dateFilter.value === 'custom' && (!from || !to)) return
 
     fetchTransactions({
         dateFrom: from,
         dateTo: to,
-        type: filterType.value === 'all' ? undefined : filterType.value as any
+        type: typeFilter.value === 'all' ? undefined : typeFilter.value as any
     })
 }
 
 // Watchers
-watch([filterMode, filterType, organization], () => {
-    if (filterMode.value !== 'custom') {
+watch([dateFilter, typeFilter, organization], () => {
+    if (dateFilter.value !== 'custom') {
          if (organization.value?.id) applyFilters()
     }
 }, { immediate: true })
 
 watch([customFrom, customTo], () => {
-    if (filterMode.value === 'custom' && customFrom.value && customTo.value) {
+    if (dateFilter.value === 'custom' && customFrom.value && customTo.value) {
         if (organization.value?.id) applyFilters()
     }
 })

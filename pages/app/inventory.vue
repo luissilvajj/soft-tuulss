@@ -114,7 +114,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 text-right text-sm font-medium text-[var(--color-white)]">
-                            ${{ product.price.toFixed(2) }}
+                            ${{ (product.price || 0).toFixed(2) }}
                         </td>
                          <td class="px-6 py-4 text-right text-sm text-[var(--color-text-secondary)]">
                             ${{ (product.cost || 0).toFixed(2) }}

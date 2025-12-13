@@ -29,12 +29,12 @@
                            Pagado
                        </span>
                   </div>
-                  <div class="flex justify-between items-center border-t border-[var(--color-border-subtle)] pt-3">
+                   <div class="flex justify-between items-center border-t border-[var(--color-border-subtle)] pt-3">
                       <div class="text-sm text-[var(--color-text-secondary)] capitalize">
                           {{ sale.payment_method }}
                       </div>
                       <div class="font-bold text-[var(--color-white)] text-lg">
-                          ${{ sale.total_amount.toFixed(2) }}
+                          ${{ (sale.total_amount || 0).toFixed(2) }}
                       </div>
                   </div>
                    <button @click="openDetailModal(sale)" class="w-full btn btn-sm bg-[var(--color-bg-dark)] hover:bg-[var(--color-border-subtle)] text-xs">
@@ -79,7 +79,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">
                              <div class="font-bold text-[var(--color-white)] text-lg">
-                                ${{ sale.total_amount.toFixed(2) }}
+                                ${{ (sale.total_amount || 0).toFixed(2) }}
                              </div>
                         </td>
                          <td class="px-6 py-4 whitespace-nowrap text-right">

@@ -154,15 +154,52 @@
 </template>
 
 <script setup>
+import { usePermissions } from '~/composables/usePermissions'
+import { useInventory } from '~/composables/useInventory'
+import AppModal from '~/components/AppModal.vue'
+
 definePageMeta({
   layout: 'dashboard'
 })
 useAuthGuard()
 
-const client = useSupabaseClient()
 const { organization, fetchOrganization } = useOrganization()
+const client = useSupabaseClient()
+const { canEditInventory } = usePermissions() // Check Perms
+const { restockProduct } = useInventory()
 
 const products = ref([])
+const loading = ref(true)
+
+// Restock Logic
+const showRestockModal = ref(false)
+const selectedProduct = ref(null)
+const restockLoading = ref(false)
+const restockForm = reactive({ quantity: 1, cost: 0 })
+
+const openRestockModal = (product) => {
+   selectedProduct.value = product
+   restockForm.quantity = 1
+   restockForm.cost = 0
+   showRestockModal.value = true
+}
+
+const handleRestock = async () => {
+   if (!selectedProduct.value) return
+   restockLoading.value = true
+   try {
+      const unitCost = restockForm.cost / restockForm.quantity
+      await restockProduct(selectedProduct.value.id, restockForm.quantity, unitCost)
+      alert('Stock actualizado correctamente')
+      showRestockModal.value = false
+      fetchProducts() // Refresh list
+   } catch (e) {
+      alert('Error: ' + e.message)
+   } finally {
+      restockLoading.value = false
+   }
+}
+
 const showModal = ref(false)
 
 // ... (omitting lines for brevity in search matching if possible, but replace_file_content requires exact block) 

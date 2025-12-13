@@ -6,12 +6,38 @@
         <h1 class="text-3xl font-bold tracking-tight text-gradient">Clientes</h1>
         <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Gestiona tu base de datos de clientes.</p>
       </div>
-      <button @click="openModal" class="btn btn-primary shadow-lg hover:shadow-xl transform transition-all duration-300">
-        <span class="relative flex items-center gap-2">
-           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-           Nuevo Cliente
-        </span>
-      </button>
+      <div class="flex items-center gap-3">
+        <!-- View Toggle -->
+        <div class="flex bg-[var(--color-bg-subtle)] p-1 rounded-lg border border-[var(--color-border-subtle)]">
+            <button 
+                @click="viewMode = 'grid'"
+                :class="[
+                    'p-2 rounded-md transition-all',
+                    viewMode === 'grid' ? 'bg-[var(--color-bg-dark)] shadow text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                ]"
+                title="Vista Cuadrícula"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            </button>
+            <button 
+                @click="viewMode = 'list'"
+                :class="[
+                    'p-2 rounded-md transition-all',
+                    viewMode === 'list' ? 'bg-[var(--color-bg-dark)] shadow text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                ]"
+                title="Vista Lista"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </div>
+
+        <button @click="openModal" class="btn btn-primary shadow-lg hover:shadow-xl transform transition-all duration-300">
+            <span class="relative flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+            Nuevo Cliente
+            </span>
+        </button>
+      </div>
     </div>
 
     <!-- Stats Review -->
@@ -27,40 +53,83 @@
        </div>
     </div>
 
-    <!-- Clients Grid -->
-    <div v-if="clients.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-       <div v-for="client in clients" :key="client.id" class="glass-panel p-6 hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-            <svg class="w-24 h-24 text-[var(--color-accent-blue)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-          </div>
+    <!-- View Content -->
+    <div v-if="clients.length > 0">
+        <!-- Grid View -->
+        <div v-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div v-for="client in clients" :key="client.id" class="glass-panel p-6 hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <svg class="w-24 h-24 text-[var(--color-accent-blue)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
 
-          <div class="flex items-center gap-4 mb-4 relative z-10">
-             <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-indigo-500/20">
-                {{ client.name.charAt(0).toUpperCase() }}
-             </div>
-             <div>
-                <h3 class="text-lg font-bold text-[var(--color-white)] truncate">{{ client.name }}</h3>
-                <p class="text-xs text-[var(--color-accent-blue)] font-bold uppercase tracking-wider">Cliente</p>
-             </div>
-          </div>
-          
-          <div class="space-y-3 relative z-10">
-             <div class="flex items-center gap-3 text-sm text-[var(--color-text-secondary)]">
-                <div class="w-8 h-8 rounded-lg bg-[var(--color-bg-dark)] flex items-center justify-center flex-shrink-0 border border-[var(--color-border-subtle)]">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                <div class="flex items-center gap-4 mb-4 relative z-10">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-indigo-500/20">
+                        {{ client.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-[var(--color-white)] truncate">{{ client.name }}</h3>
+                        <p class="text-xs text-[var(--color-accent-blue)] font-bold uppercase tracking-wider">Cliente</p>
+                    </div>
                 </div>
-                <span class="truncate">{{ client.email || 'Sin email' }}</span>
-             </div>
-             <div class="flex items-center gap-3 text-sm text-[var(--color-text-secondary)]">
-                <div class="w-8 h-8 rounded-lg bg-[var(--color-bg-dark)] flex items-center justify-center flex-shrink-0 border border-[var(--color-border-subtle)]">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                
+                <div class="space-y-3 relative z-10">
+                    <div class="flex items-center gap-3 text-sm text-[var(--color-text-secondary)]">
+                        <div class="w-8 h-8 rounded-lg bg-[var(--color-bg-dark)] flex items-center justify-center flex-shrink-0 border border-[var(--color-border-subtle)]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <span class="truncate">{{ client.email || 'Sin email' }}</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm text-[var(--color-text-secondary)]">
+                        <div class="w-8 h-8 rounded-lg bg-[var(--color-bg-dark)] flex items-center justify-center flex-shrink-0 border border-[var(--color-border-subtle)]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                        </div>
+                        <span class="truncate">{{ client.phone || 'Sin teléfono' }}</span>
+                    </div>
                 </div>
-                <span class="truncate">{{ client.phone || 'Sin teléfono' }}</span>
-             </div>
-          </div>
-       </div>
+            </div>
+        </div>
+
+        <!-- List View -->
+        <div v-else class="glass-panel overflow-hidden">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-[var(--color-bg-subtle)] border-b border-[var(--color-border-subtle)]">
+                    <tr>
+                        <th class="p-4 font-semibold text-[var(--color-text-secondary)] text-xs uppercase">Cliente</th>
+                        <th class="p-4 font-semibold text-[var(--color-text-secondary)] text-xs uppercase">Documento</th>
+                        <th class="p-4 font-semibold text-[var(--color-text-secondary)] text-xs uppercase">Contacto</th>
+                        <th class="p-4 font-semibold text-[var(--color-text-secondary)] text-xs uppercase text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--color-border-subtle)]">
+                    <tr v-for="client in clients" :key="client.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors">
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                                    {{ client.name.charAt(0).toUpperCase() }}
+                                </div>
+                                <span class="font-medium text-[var(--color-text-primary)]">{{ client.name }}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 font-mono text-[var(--color-text-secondary)]">
+                            {{ client.identity_document || '-' }}
+                        </td>
+                         <td class="p-4 text-[var(--color-text-secondary)]">
+                            <div class="flex flex-col gap-0.5">
+                                <span>{{ client.email }}</span>
+                                <span class="text-xs opacity-70">{{ client.phone }}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-right">
+                            <button class="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-blue)]">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    
+
     <!-- Empty State -->
     <div v-else class="glass-panel p-12 text-center">
          <div class="w-24 h-24 bg-[var(--color-bg-dark)] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
@@ -122,6 +191,7 @@ const { organization, fetchOrganization } = useOrganization()
 const clients = ref([])
 const showModal = ref(false)
 const saving = ref(false)
+const viewMode = ref('grid')
 const newClient = ref({ name: '', email: '', phone: '', identity_document: '' })
 
 const fetchClients = async () => {

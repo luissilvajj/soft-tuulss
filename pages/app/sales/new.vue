@@ -348,7 +348,7 @@ const fetchExchangeRate = async () => {
             .eq('date', new Date().toISOString().split('T')[0])
             .eq('currency_from', 'USD')
             .eq('currency_to', 'VES')
-            .single()
+            .maybeSingle()
         
         if (data) exchangeRate.value = data.rate
     } catch (e) { console.error('Error loading rate', e) }

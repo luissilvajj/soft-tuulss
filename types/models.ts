@@ -14,6 +14,7 @@ export interface Client {
     name: string
     email?: string
     phone?: string
+    identity_document?: string // Added Cédula/RIF
     created_at: string
 }
 

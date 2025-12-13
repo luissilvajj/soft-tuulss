@@ -97,6 +97,7 @@ onMounted(async () => {
 
 const logout = async () => {
   await client.auth.signOut()
-  router.push('/login')
+  // Force full reload to avoid "MIME type" errors if assets changed during deployment
+  window.location.href = '/login'
 }
 </script>

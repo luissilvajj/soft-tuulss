@@ -271,13 +271,21 @@ const fetchProducts = async () => {
     if (!organization.value?.id) return
     loadingProducts.value = true
     try {
-        const { data, error } = await client.from('products').select('*').eq('organization_id', organization.value.id)
-        if (error) {
-            console.error('Error fetching products:', error)
-            alert('Error cargando inventario: ' + error.message)
+        // Use our own server API to avoid CORS/Browser blocking on Safari
+        const { data, error } = await useFetch('/api/products', {
+            params: { organization_id: organization.value.id },
+            retry: 1
+        })
+
+        if (error.value) {
+            console.error('Error fetching products:', error.value)
+            alert('Error cargando inventario: ' + error.value.message)
             return
         }
-        if (data) allProducts.value = data as any
+        
+        if (data.value) {
+            allProducts.value = data.value as any
+        }
     } catch (e) {
         console.error('Exception fetching products:', e)
     } finally {

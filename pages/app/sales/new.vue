@@ -274,7 +274,6 @@ const exchangeRate = ref(60.00)
 const searchQuery = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
 const focusedResultIndex = ref(0)
-const focusedResultIndex = ref(0)
 const showClientModal = ref(false)
 const clientSelectorKey = ref(0)
 const savingClient = ref(false)
@@ -329,10 +328,44 @@ const fetchProducts = async () => {
     }
 }
 
+// --- Exchange Rate Persistence ---
+const fetchExchangeRate = async () => {
+    if (!organization.value?.id) return
+    try {
+        const { data } = await client.from('exchange_rates')
+            .select('rate')
+            .eq('organization_id', organization.value.id)
+            .eq('date', new Date().toISOString().split('T')[0])
+            .eq('currency_from', 'USD')
+            .eq('currency_to', 'VES')
+            .single()
+        
+        if (data) exchangeRate.value = data.rate
+    } catch (e) { console.error('Error loading rate', e) }
+}
+
+let rateTimeout: any = null
+watch(exchangeRate, (newVal) => {
+   if (!newVal || !organization.value?.id) return
+   clearTimeout(rateTimeout)
+   rateTimeout = setTimeout(async () => {
+      try {
+        await client.from('exchange_rates').upsert({
+            organization_id: organization.value.id,
+            date: new Date().toISOString().split('T')[0],
+            currency_from: 'USD',
+            currency_to: 'VES',
+            rate: newVal
+        }, { onConflict: 'organization_id,date,currency_from,currency_to' })
+      } catch (e) { console.error('Error saving rate', e) }
+   }, 1000)
+})
+
 let pollingInterval: any = null
 
 onMounted(() => {
     fetchProducts()
+    fetchExchangeRate()
     searchInput.value?.focus()
     
     // Polling fallback to ensure products load if watcher misses
@@ -350,7 +383,10 @@ onUnmounted(() => {
 })
 
 watch(() => organization.value, (newOrg) => {
-    if (newOrg?.id) fetchProducts()
+    if (newOrg?.id) {
+        fetchProducts()
+        fetchExchangeRate()
+    }
 }, { immediate: true })
 
 const searchResults = computed(() => {

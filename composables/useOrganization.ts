@@ -7,7 +7,7 @@ export const useOrganization = () => {
     const loading = useState('org_loading', () => false)
 
     const fetchOrganization = async (force = false) => {
-        if (!user.value?.id) return null
+        if (!user.value || !user.value.id) return null
 
         // Return if already loaded and not forced
         if (organization.value && !force) return organization.value

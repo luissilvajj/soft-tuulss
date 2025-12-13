@@ -172,11 +172,11 @@ const lowStockCount = ref(0)
 const clientCount = ref(0)
 const recentTransactions = ref([])
 const loading = ref(true)
-const userName = ref('')
+const userName = ref('Empresario')
 
 // Computed property to ensure we always show something
 const displayName = computed(() => {
-    if (userName.value && userName.value.trim().length > 0) return userName.value
+    if (userName.value && userName.value !== 'Empresario') return userName.value
     return 'Empresario'
 })
 
@@ -191,10 +191,10 @@ onMounted(async () => {
           const userId = session.user.id
           
           // Attempt to get name from metadata first
-          userName.value = session.user.user_metadata?.full_name?.split(' ')[0] 
+          let name = session.user.user_metadata?.full_name
           
           // If not in metadata, fetch profile (fallback)
-          if (!userName.value) {
+          if (!name) {
               const { data: profile } = await supabase
                 .from('profiles')
                 .select('full_name')
@@ -202,8 +202,12 @@ onMounted(async () => {
                 .single()
               
               if (profile?.full_name) {
-                  userName.value = profile.full_name.split(' ')[0]
+                  name = profile.full_name
               }
+          }
+
+          if (name) {
+             userName.value = name.split(' ')[0]
           }
       }
 

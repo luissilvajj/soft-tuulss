@@ -156,6 +156,10 @@
         </button>
       </template>
     </AppModal>
+    <!-- Debug Footer -->
+    <div class="fixed bottom-0 right-0 p-2 bg-black/80 text-[10px] text-white pointer-events-none opacity-50 z-50">
+        Role: {{ organization?.role || 'None' }} | ID: {{ organization?.id || 'None' }}
+    </div>
   </div>
 </template>
 

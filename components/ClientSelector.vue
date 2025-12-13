@@ -166,10 +166,7 @@ const selectCurrent = () => {
     else if (filteredClients.value[activeIndex.value]) selectClient(filteredClients.value[activeIndex.value])
 }
 
-const selectCurrent = () => {
-    if (activeIndex.value === -1) selectClient(null)
-    else if (filteredClients.value[activeIndex.value]) selectClient(filteredClients.value[activeIndex.value])
-}
+
 
 onMounted(() => {
     if (organization.value?.id) fetchClients()

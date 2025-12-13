@@ -22,10 +22,6 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           Ventas
         </NuxtLink>
-        <NuxtLink to="/app/sales" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('sales') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          Movimientos
-        </NuxtLink>
         <NuxtLink to="/app/clients" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('clients') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
           Clientes
@@ -39,11 +35,11 @@
       <div class="p-4 border-t border-[var(--color-border-subtle)]">
         <div class="flex items-center gap-3 mb-4 px-2">
           <div class="w-8 h-8 rounded-full bg-[var(--color-bg-subtle)] flex items-center justify-center text-[var(--color-accent-blue)] font-bold text-xs border border-[var(--color-border-subtle)] shadow-sm">
-            {{ orgName.charAt(0).toUpperCase() }}
+            {{ (userName || orgName || 'U').charAt(0).toUpperCase() }}
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-bold text-[var(--color-white)] truncate">{{ orgName }}</p>
-            <p class="text-xs text-[var(--color-text-secondary)] font-medium truncate uppercase tracking-wider">{{ userRole }}</p>
+            <p class="text-sm font-bold text-[var(--color-white)] truncate">{{ userName || 'Usuario' }}</p>
+            <p class="text-xs text-[var(--color-text-secondary)] font-medium truncate tracking-wide">{{ orgName }}</p>
           </div>
         </div>
         <button @click="logout" class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-[var(--color-border-subtle)] text-sm font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)] transition-all">
@@ -63,11 +59,12 @@
 <script setup>
 const { organization, fetchOrganization } = useOrganization()
 const client = useSupabaseClient()
+const user = useSupabaseUser()
 const router = useRouter()
 
 const orgName = ref(organization.value?.name || 'Mi Organización')
 const userRole = ref(organization.value?.role || 'Usuario')
-const userName = ref('') // New State for Hello message
+const userName = ref(user.value?.user_metadata?.full_name || '')
 
 // Watch for changes if standard hydration works
 watch(() => organization.value, (newOrg) => {
@@ -79,6 +76,10 @@ watch(() => organization.value, (newOrg) => {
 
 // RECOVERY LOGIC
 const ensureGlobalState = async (userId) => {
+    if (!userId) {
+        console.error('RecoverGlobalState: Missing User ID')
+        return
+    }
     console.log('Dashboard: Attempting Global State Recovery...')
     
     // 1. Recover Organization
@@ -106,42 +107,43 @@ const ensureGlobalState = async (userId) => {
     }
 
     // 2. Recover User Profile (Name)
-    const { data: profile } = await client
-        .from('profiles')
-        .select('full_name')
-        .eq('id', userId)
-        .single()
-    
-    if (profile) {
-        console.log('Dashboard: Profile Recovered', profile)
-        userName.value = profile.full_name || 'Usuario'
-        // We could hydrate a global user profile state here if we had one
+    // First try metadata (fastest)
+    if (!userName.value && user.value?.user_metadata?.full_name) {
+       userName.value = user.value.user_metadata.full_name
+    }
+
+    // Then try DB if still empty
+    if (!userName.value) {
+      const { data: profile } = await client
+          .from('profiles')
+          .select('full_name')
+          .eq('id', userId)
+          .single()
+      
+      if (profile) {
+          console.log('Dashboard: Profile Recovered', profile)
+          userName.value = profile.full_name || 'Usuario'
+      }
     }
 }
 
 // Ensure org is loaded
 onMounted(async () => {
-  // Wait for user to be available to avoid race conditions
-  // 1. Wait for User Hydration
-  const user = useSupabaseUser()
-  if (!user.value) {
-     let attempts = 0
-     while (!user.value && attempts < 20) {
-        await new Promise(r => setTimeout(r, 100))
-        attempts++
-     }
-  }
-
-  // 2. Auth Check: If still no user, Session is invalid -> Go to Login
-  if (!user.value) {
-      console.warn('Dashboard: No user session found. Redirecting to login.')
+  // 1. Get Session directly (Most robust way)
+  const { data: { session } } = await client.auth.getSession()
+  
+  if (!session?.user) {
+      console.warn('Dashboard: No active session. Redirecting.')
       return router.push('/login')
   }
 
-  // 3. EXECUTE RECOVERY (Ipso Facto)
-  await ensureGlobalState(user.value.id)
+  const userId = session.user.id
+  console.log('Dashboard: Session confirmed for user', userId)
 
-  // 4. Standard Fetch (for redundancy)
+  // 2. EXECUTE RECOVERY (Ipso Facto) using confirmed ID
+  await ensureGlobalState(userId)
+
+  // 3. Standard Fetch (for redundancy)
   if (!organization.value) {
      await fetchOrganization()
   }
@@ -149,7 +151,6 @@ onMounted(async () => {
 
 const logout = async () => {
   await client.auth.signOut()
-  // Force full reload to avoid "MIME type" errors if assets changed during deployment
   window.location.href = '/login'
 }
 </script>

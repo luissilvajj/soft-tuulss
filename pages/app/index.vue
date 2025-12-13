@@ -4,7 +4,7 @@
     <div class="mb-10 relative z-10">
       <h1 class="text-4xl font-extrabold text-gradient tracking-tight">
         Hola, <span class="text-[var(--color-accent-blue)] relative inline-block">
-            {{ userName || 'Empresario' }}
+            {{ displayName }}
             <svg class="absolute -bottom-2 left-0 w-full h-2 text-[var(--color-accent-blue)]/30" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="4" fill="none"/></svg>
         </span>
       </h1>
@@ -172,38 +172,43 @@ const lowStockCount = ref(0)
 const clientCount = ref(0)
 const recentTransactions = ref([])
 const loading = ref(true)
-
 const userName = ref('')
+
+// Computed property to ensure we always show something
+const displayName = computed(() => {
+    if (userName.value && userName.value.trim().length > 0) return userName.value
+    return 'Empresario'
+})
 
 onMounted(async () => {
     try {
       // 0. Ensure Org is loaded for the title (and redirect check)
       await fetchOrganization()
       
-      const user = useSupabaseUser()
-      if (user.value) {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (session?.user?.id) { // Strict ID check
+          const userId = session.user.id
+          
           // Attempt to get name from metadata first
-          userName.value = user.value.user_metadata?.full_name?.split(' ')[0] 
+          userName.value = session.user.user_metadata?.full_name?.split(' ')[0] 
           
           // If not in metadata, fetch profile (fallback)
           if (!userName.value) {
               const { data: profile } = await supabase
                 .from('profiles')
                 .select('full_name')
-                .eq('id', user.value.id)
+                .eq('id', userId) 
                 .single()
               
               if (profile?.full_name) {
                   userName.value = profile.full_name.split(' ')[0]
-              } else {
-                  userName.value = 'Empresario'
               }
           }
       }
 
       // 1. Check Organization Membership (Onboarding Check) logic
       if (organization.value === null) { 
-          // double check via DB directly in case composable is slow or empty
           const { count: orgCount } = await supabase.from('organization_members')
             .select('*', { count: 'exact', head: true })
           

@@ -242,10 +242,27 @@ const inviteUser = async () => {
    inviting.value = true
    try {
       console.log('--- INVITE START ---')
-      const orgId = currentOrgId.value || organization.value?.id
-      console.log('Org ID:', orgId)
+      let orgId = currentOrgId.value || organization.value?.id
+      console.log('Initial Org ID check:', orgId)
       
-      if (!orgId) throw new Error('ID de organización no detectado')
+      // FALLBACK: If ID is missing, try to fetch it from server
+      if (!orgId) {
+         console.warn('ID missing. Attempting force fetch...')
+         await fetchOrganization(true)
+         orgId = organization.value?.id // Re-check global state
+         console.log('Org ID after fetch:', orgId)
+         
+         // Update local cache if found
+         if (orgId) currentOrgId.value = orgId
+      }
+
+      if (!orgId) {
+         const u = useSupabaseUser()
+         console.error('CRITICAL: Organization still missing after fetch.')
+         console.error('User:', u.value)
+         console.error('Org State:', organization.value)
+         throw new Error('No se pudo detectar la organización. Por favor recarga la página completamente.')
+      }
 
       console.log('Sending RPC to p_org_id:', orgId)
       const { data, error } = await client.rpc('add_team_member', {

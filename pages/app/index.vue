@@ -33,7 +33,9 @@
         <div class="relative z-10">
           <p class="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Ventas de Hoy</p>
           <div class="flex items-baseline mt-2">
-            <span class="text-4xl font-black text-[var(--color-white)] tracking-tight">${{ todaySales.toLocaleString() }}</span>
+            <span class="text-4xl font-black text-[var(--color-white)] tracking-tight">
+               {{ pending ? '...' : '$' + (dashboardData?.todaySales?.toLocaleString() || '0') }}
+            </span>
           </div>
           <div class="mt-4 flex items-center text-sm font-medium text-emerald-500">
              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
@@ -50,10 +52,12 @@
         <div class="relative z-10">
           <p class="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Stock Bajo</p>
           <div class="flex items-baseline mt-2">
-            <span class="text-4xl font-black text-[var(--color-white)] tracking-tight">{{ lowStockCount }}</span>
+            <span class="text-4xl font-black text-[var(--color-white)] tracking-tight">
+               {{ pending ? '...' : (dashboardData?.lowStockCount || '0') }}
+            </span>
             <span class="ml-2 text-lg text-[var(--color-text-secondary)] font-medium">productos</span>
           </div>
-           <div class="mt-4 flex items-center text-sm font-medium text-red-500" v-if="lowStockCount > 0">
+           <div class="mt-4 flex items-center text-sm font-medium text-red-500" v-if="!pending && dashboardData?.lowStockCount > 0">
              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
              <span>Requiere atención</span>
           </div>
@@ -71,7 +75,9 @@
         <div class="relative z-10">
           <p class="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Total Clientes</p>
           <div class="flex items-baseline mt-2">
-            <span class="text-4xl font-black text-[var(--color-white)] tracking-tight">{{ clientCount }}</span>
+            <span class="text-4xl font-black text-[var(--color-white)] tracking-tight">
+               {{ pending ? '...' : (dashboardData?.clientCount || '0') }}
+            </span>
           </div>
           <div class="mt-4 flex items-center text-sm font-medium text-[var(--color-text-secondary)]">
              <span>Base de datos activa</span>
@@ -89,12 +95,12 @@
              <NuxtLink to="/app/sales" class="text-sm font-bold text-[var(--color-accent-blue)] hover:text-white transition-colors">Ver todo</NuxtLink>
           </div>
           
-          <div v-if="loading" class="p-8 text-center text-[var(--color-text-secondary)]">
+          <div v-if="pending" class="p-8 text-center text-[var(--color-text-secondary)]">
              Cargando datos...
           </div>
           
-          <ul role="list" class="divide-y divide-[var(--color-border-subtle)]" v-else-if="recentTransactions.length > 0">
-            <li v-for="trx in recentTransactions" :key="trx.id" class="px-6 py-4 hover:bg-[var(--color-bg-subtle)]/50 transition-colors flex items-center justify-between group">
+          <ul role="list" class="divide-y divide-[var(--color-border-subtle)]" v-else-if="dashboardData?.recentTransactions?.length > 0">
+            <li v-for="trx in dashboardData.recentTransactions" :key="trx.id" class="px-6 py-4 hover:bg-[var(--color-bg-subtle)]/50 transition-colors flex items-center justify-between group">
                <div class="flex items-center gap-4">
                   <div :class="[
                      trx.type === 'sale' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600',
@@ -167,90 +173,81 @@ useAuthGuard()
 const router = useRouter()
 const { organization, fetchOrganization } = useOrganization()
 
-const todaySales = ref(0)
-const lowStockCount = ref(0)
-const clientCount = ref(0)
-const recentTransactions = ref([])
-const loading = ref(true)
 const userName = ref('Empresario')
+const userSession = useSupabaseUser()
 
 // Computed property to ensure we always show something
 const displayName = computed(() => {
+    // If we have a robust name, use it.
     if (userName.value && userName.value !== 'Empresario') return userName.value
+    // Fallback to metadata if available instantly
+    if (userSession.value?.user_metadata?.full_name) {
+       return userSession.value.user_metadata.full_name.split(' ')[0]
+    }
     return 'Empresario'
 })
 
+// Initialize name purely from session (Instant)
+if (userSession.value?.user_metadata?.full_name) {
+   userName.value = userSession.value.user_metadata.full_name.split(' ')[0]
+}
+
+// Ensure Org is loaded (in background if possible, but we need it for routing check)
+// usage of onMounted for redirect logic is acceptable, but let's try to verify early
 onMounted(async () => {
-    try {
-      // 0. Ensure Org is loaded for the title (and redirect check)
-      await fetchOrganization()
-      
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (session?.user?.id) { // Strict ID check
-          const userId = session.user.id
-          
-          // Attempt to get name from metadata first
-          let name = session.user.user_metadata?.full_name
-          
-          // If not in metadata, fetch profile (fallback)
-          if (!name) {
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('full_name')
-                .eq('id', userId) 
-                .single()
-              
-              if (profile?.full_name) {
-                  name = profile.full_name
-              }
-          }
-
-          if (name) {
-             userName.value = name.split(' ')[0]
-          }
-      }
-
-      // 1. Check Organization Membership (Onboarding Check) logic
-      if (organization.value === null) { 
-          const { count: orgCount } = await supabase.from('organization_members')
-            .select('*', { count: 'exact', head: true })
-          
-          if (orgCount === 0) {
-            return router.push('/onboarding')
-          }
-      }
-
-      // 2. Get Today Sales
-      const today = new Date().toISOString().split('T')[0]
-      const { data: sales } = await supabase.from('transactions')
-          .select('amount')
-          .eq('type', 'sale')
-          .gte('date', today)
-      
-      todaySales.value = sales?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0
-
-      // 3. Low Stock
-      const { count: stockCount } = await supabase.from('products')
-          .select('*', { count: 'exact', head: true })
-          .lt('stock', 10)
-      lowStockCount.value = stockCount || 0
-
-      // 4. Client Count
-      const { count: clCount } = await supabase.from('clients')
-          .select('*', { count: 'exact', head: true })
-      clientCount.value = clCount || 0
-
-      // 5. Recent Trx
-      const { data: recent } = await supabase.from('transactions')
-          .select('*')
-          .order('date', { ascending: false })
-          .limit(5)
-      recentTransactions.value = recent || []
-    } catch (e) {
-      console.error('Error loading dashboard:', e)
-    } finally {
-      loading.value = false
+    // Check missing name in DB if metadata failed
+    if (userName.value === 'Empresario' && userSession.value?.id) {
+        const { data } = await supabase.from('profiles').select('full_name').eq('id', userSession.value.id).single()
+        if (data?.full_name) userName.value = data.full_name.split(' ')[0]
     }
+    
+    // Check Org for redirection
+    if (!organization.value) {
+       await fetchOrganization()
+       if (!organization.value) {
+           // Double check count
+           const { count } = await supabase.from('organization_members').select('*', { count: 'exact', head: true })
+           if (count === 0) router.push('/onboarding')
+       }
+    }
+})
+
+// Use Async Data for Parallel Fetching of Dashboard Metrics
+const { data: dashboardData, pending } = await useAsyncData('dashboard-metrics', async () => {
+    const today = new Date().toISOString().split('T')[0]
+    
+    // Execute all independent queries in parallel
+    const [salesResult, stockResult, clientResult, trxResult] = await Promise.all([
+        // 1. Today Sales
+        supabase.from('transactions')
+          .select('amount').eq('type', 'sale').gte('date', today),
+          
+        // 2. Low Stock
+        supabase.from('products')
+          .select('*', { count: 'exact', head: true }).lt('stock', 10),
+          
+        // 3. Client Count
+        supabase.from('clients')
+          .select('*', { count: 'exact', head: true }),
+          
+        // 4. Recent Trx
+        supabase.from('transactions')
+          .select('*').order('date', { ascending: false }).limit(5)
+    ])
+
+    const todaySales = salesResult.data?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0
+    const lowStockCount = stockResult.count || 0
+    const clientCount = clientResult.count || 0
+    const recentTransactions = trxResult.data || []
+
+    return {
+        todaySales,
+        lowStockCount,
+        clientCount,
+        recentTransactions
+    }
+}, {
+    lazy: true, // Don't block navigation, show skeleton state if needed (or "...")
+    server: false // Supabase auth is client-side usually, so keep false unless sensitive to headers
 })
 </script>

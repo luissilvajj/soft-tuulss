@@ -72,6 +72,31 @@ const orgName = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
 
+onMounted(async () => {
+   // Check if user already has an organization (or pending invite)
+   loading.value = true
+   try {
+      // 1. Try to CLAIM invites
+      const { error: claimError } = await client.rpc('claim_invites')
+      if (claimError) console.error('Error claiming invites:', claimError)
+
+      // 2. Fetch Organization
+      // We force fetch true to get the latest data after claim
+      const { fetchOrganization, organization } = useOrganization()
+      await fetchOrganization(true)
+
+      // 3. If User has an Org, Redirect to App
+      if (organization.value) {
+         console.log('User already has org as ' + organization.value.role + '. Redirecting...')
+         router.push('/app')
+      }
+   } catch (e) {
+      console.error(e)
+   } finally {
+      loading.value = false
+   }
+})
+
 const createOrganization = async () => {
   if (!orgName.value.trim()) return
 

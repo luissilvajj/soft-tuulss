@@ -181,11 +181,17 @@
                     />
                 </div>
 
-                <!-- Tax Toggle -->
-                 <label class="flex items-center gap-2 cursor-pointer group">
-                    <input type="checkbox" v-model="form.isExempt" class="rounded border-gray-300 text-black focus:ring-black">
-                    <span class="text-sm text-gray-600 group-hover:text-black transition-colors">Venta Exenta de IVA</span>
-                 </label>
+                <!-- Tax Toggles -->
+                 <div class="flex flex-col gap-2">
+                     <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" v-model="form.isExempt" class="rounded border-gray-300 text-black focus:ring-black">
+                        <span class="text-sm text-gray-600 group-hover:text-black transition-colors">Venta Exenta de IVA</span>
+                     </label>
+                     <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" v-model="form.isIgtfExempt" class="rounded border-gray-300 text-black focus:ring-black">
+                        <span class="text-sm text-gray-600 group-hover:text-black transition-colors">Exenta de IGTF (3%)</span>
+                     </label>
+                 </div>
 
                 <!-- Totals -->
                 <div class="border-t border-gray-100 pt-4 space-y-2">
@@ -240,7 +246,7 @@
         </div>
          <div>
            <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Teléfono</label>
-           <input v-model="newClient.phone" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="+56 9 1234 5678">
+           <input v-model="newClient.phone" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="0414 1234567">
         </div>
       </div>
 
@@ -270,7 +276,7 @@ const router = useRouter()
 
 // --- State ---
 const currency = ref<'USD' | 'VES'>('USD')
-const exchangeRate = ref(60.00)
+const exchangeRate = ref(250.00) // Default requested by user
 const searchQuery = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
 const focusedResultIndex = ref(0)
@@ -289,7 +295,11 @@ const form = reactive({
     paymentReference: '',
     status: 'paid' as 'paid' | 'pending',
     date: new Date().toISOString().split('T')[0],
-    isExempt: false
+    paymentReference: '',
+    status: 'paid' as 'paid' | 'pending',
+    date: new Date().toISOString().split('T')[0],
+    isExempt: false,
+    isIgtfExempt: false
 })
 
 // --- Computed Config ---
@@ -432,7 +442,7 @@ const financials = computed(() => {
     let subtotal = currency.value === 'USD' ? rawSubtotalUSD : rawSubtotalUSD * exchangeRate.value
     
     let taxIva = !form.isExempt ? subtotal * 0.16 : 0
-    let taxIgtf = (currency.value === 'USD' && form.paymentMethod === 'cash') ? (subtotal + taxIva) * 0.03 : 0
+    let taxIgtf = (currency.value === 'USD' && form.paymentMethod === 'cash' && !form.isIgtfExempt) ? (subtotal + taxIva) * 0.03 : 0
     const total = subtotal + taxIva + taxIgtf
 
     return { subtotal, taxIva, taxIgtf, total }

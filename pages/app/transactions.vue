@@ -48,14 +48,14 @@
               </div>
 
                <!-- Custom Date Inputs -->
-              <div v-if="dateFilter === 'custom'" class="flex gap-2 items-end animate-fade-in-up">
-                  <div class="space-y-2">
+              <div v-if="dateFilter === 'custom'" class="flex flex-col sm:flex-row gap-2 items-end animate-fade-in-up w-full md:w-auto">
+                  <div class="space-y-2 w-full sm:w-auto">
                       <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Desde</label>
-                      <input type="date" v-model="customDateStart" class="bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
+                      <input type="date" v-model="customDateStart" class="w-full bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
                   </div>
-                  <div class="space-y-2">
+                  <div class="space-y-2 w-full sm:w-auto">
                       <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Hasta</label>
-                      <input type="date" v-model="customDateEnd" class="bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
+                      <input type="date" v-model="customDateEnd" class="w-full bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
                   </div>
               </div>
 

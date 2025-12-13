@@ -47,74 +47,110 @@
        </div>
     </div>
 
-    <!-- Product List Table -->
+    <!-- Product List -->
     <div class="glass-panel overflow-hidden">
-      <div v-if="products.length > 0">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-[var(--color-border-subtle)] text-left align-middle">
-            <thead class="bg-[var(--color-bg-dark)]/50">
-              <tr>
-                <th scope="col" class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Producto</th>
-                <th scope="col" class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">SKU</th>
-                <th scope="col" class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Precio</th>
-                <th scope="col" class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Stock</th>
-                <th scope="col" class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[var(--color-border-subtle)]">
-              <tr v-for="product in products" :key="product.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors duration-150 group">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="h-10 w-10 flex-shrink-0">
-                       <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 flex items-center justify-center text-[var(--color-accent-blue)] font-bold shadow-sm">
-                          {{ product.name.charAt(0).toUpperCase() }}
+        <div v-if="products.length > 0">
+           <!-- Mobile Card View -->
+           <div class="block md:hidden space-y-4">
+              <div v-for="product in products" :key="product.id" class="bg-[var(--color-bg-subtle)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3 relative group">
+                   <div class="flex justify-between items-start">
+                       <div>
+                          <p class="font-bold text-[var(--color-white)]">{{ product.name }}</p>
+                          <p class="text-xs text-[var(--color-text-secondary)]">{{ product.category || 'Sin categoría' }}</p>
                        </div>
-                    </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-bold text-[var(--color-white)] group-hover:text-[var(--color-accent-blue)] transition-colors">{{ product.name }}</div>
-                    </div>
+                       <div class="flex flex-col items-end">
+                           <span class="font-bold text-[var(--color-white)] text-lg">${{ product.price.toFixed(2) }}</span>
+                           <span v-if="product.cost" class="text-xs text-[var(--color-text-secondary)]">Costo: ${{ product.cost }}</span>
+                       </div>
                   </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-[var(--color-text-secondary)] font-mono bg-[var(--color-bg-dark)] px-2 py-1 rounded-md inline-block border border-[var(--color-border-subtle)]">{{ product.sku || 'N/A' }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-bold text-[var(--color-white)]">${{ product.price }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span :class="[
-                      product.stock > 10 
-                        ? 'bg-emerald-500/10 text-emerald-600' 
-                        : 'bg-red-500/10 text-red-600',
-                      'px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border border-current/20'
-                    ]">
-                    {{ product.stock }} un.
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button class="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-blue)] transition-colors p-2 hover:bg-[var(--color-accent-blue)]/10 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  <div class="flex justify-between items-center border-t border-[var(--color-border-subtle)] pt-3">
+                      <div class="flex items-center gap-2">
+                          <span :class="[
+                              'px-2 py-1 text-xs font-bold rounded-full border',
+                              product.quantity <= (product.min_stock || 0) ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                          ]">
+                              Stock: {{ product.quantity }}
+                          </span>
+                      </div>
+                      <div class="flex gap-2">
+                           <button @click="openEditModal(product)" class="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                           </button>
+                           <button @click="confirmDelete(product)" class="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                           </button>
+                      </div>
+                  </div>
+              </div>
+           </div>
+
+           <!-- Desktop Table View -->
+           <div class="hidden md:block overflow-x-auto">
+            <table class="min-w-full divide-y divide-[var(--color-border-subtle)] text-left align-middle">
+                <thead class="bg-[var(--color-bg-dark)]/50">
+                    <tr>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Producto</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-center">Stock</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Precio</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Costo</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Valor Total</th>
+                         <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--color-border-subtle)]">
+                    <tr v-for="product in products" :key="product.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors duration-150 group">
+                        <td class="px-6 py-4">
+                            <div>
+                                <div class="text-sm font-bold text-[var(--color-white)] group-hover:text-[var(--color-accent-blue)] transition-colors">{{ product.name }}</div>
+                                <div class="text-xs text-[var(--color-text-secondary)]">{{ product.category || 'General' }}</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span :class="[
+                                'px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full border',
+                                product.quantity <= (product.min_stock || 0) ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                            ]">
+                                {{ product.quantity }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right text-sm font-medium text-[var(--color-white)]">
+                            ${{ product.price.toFixed(2) }}
+                        </td>
+                         <td class="px-6 py-4 text-right text-sm text-[var(--color-text-secondary)]">
+                            ${{ (product.cost || 0).toFixed(2) }}
+                        </td>
+                        <td class="px-6 py-4 text-right text-sm text-[var(--color-text-secondary)] font-mono">
+                            ${{ (product.price * product.quantity).toFixed(2) }}
+                        </td>
+                         <td class="px-6 py-4 text-right text-sm font-medium">
+                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button @click="openEditModal(product)" class="text-[var(--color-accent-blue)] hover:text-blue-400 p-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </button>
+                                <button @click="confirmDelete(product)" class="text-red-400 hover:text-red-300 p-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+           </div>
         </div>
-      </div>
-      
-      <!-- Empty State -->
-      <div v-else class="flex flex-col items-center justify-center py-20 px-4 text-center">
-         <div class="w-24 h-24 bg-[var(--color-bg-dark)] rounded-full flex items-center justify-center mb-6 shadow-inner">
-            <svg class="w-10 h-10 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-         </div>
-         <h3 class="text-xl font-bold text-[var(--color-white)] mb-2">No tienes productos aún</h3>
-         <p class="text-[var(--color-text-secondary)] max-w-sm mb-8">
-            Comienza agregando los productos o servicios que ofreces para llevar el control de stock.
-         </p>
-         <button @click="openModal" class="btn btn-primary">
-            Agregar Primer Producto
-         </button>
-      </div>
+        
+        <!-- Empty State -->
+        <div v-else class="flex flex-col items-center justify-center py-20 px-4 text-center">
+            <div class="w-24 h-24 bg-[var(--color-bg-dark)] rounded-full flex items-center justify-center mb-6 shadow-inner">
+                 <svg class="w-10 h-10 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-[var(--color-white)] mb-2">Inventario Vacío</h3>
+            <p class="text-[var(--color-text-secondary)] max-w-sm mb-8">
+                Comienza agregando tus productos o servicios para controlarlos.
+            </p>
+             <button @click="openModal" class="btn btn-primary">
+                Agregar Primer Producto
+            </button>
+        </div>
     </div>
 
     <!-- Modern Modal -->

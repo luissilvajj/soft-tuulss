@@ -88,12 +88,16 @@
            <input v-model="newClient.name" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="Ej. Juan Pérez">
         </div>
         <div>
+           <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Cédula / RIF</label>
+           <input v-model="newClient.identity_document" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="V-12345678">
+        </div>
+        <div>
            <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Email</label>
            <input v-model="newClient.email" type="email" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="juan@empresa.com">
         </div>
          <div>
            <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Teléfono</label>
-           <input v-model="newClient.phone" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="+56 9 1234 5678">
+           <input v-model="newClient.phone" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="0414 1234567">
         </div>
       </div>
 
@@ -118,7 +122,7 @@ const { organization, fetchOrganization } = useOrganization()
 const clients = ref([])
 const showModal = ref(false)
 const saving = ref(false)
-const newClient = ref({ name: '', email: '', phone: '' })
+const newClient = ref({ name: '', email: '', phone: '', identity_document: '' })
 
 const fetchClients = async () => {
     const { data } = await supabase.from('clients').select('*')
@@ -139,7 +143,7 @@ const saveClient = async () => {
         if (error) throw error
         await fetchClients()
         closeModal()
-        newClient.value = { name: '', email: '', phone: '' }
+        newClient.value = { name: '', email: '', phone: '', identity_document: '' }
     } catch (e) {
         alert(e.message)
     } finally {

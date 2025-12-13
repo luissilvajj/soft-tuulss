@@ -151,27 +151,34 @@ const tabs = [
 
 // GENERAL
 const generalForm = reactive({ name: '' })
+const currentOrgId = ref(null) // Cache ID to avoid null errors if state flickers
 const loadingGeneral = ref(false)
 
 watch(() => organization.value, (newOrg) => {
-   if (newOrg) generalForm.name = newOrg.name
+   if (newOrg) {
+      generalForm.name = newOrg.name
+      currentOrgId.value = newOrg.id
+   }
 }, { immediate: true })
 
 const updateOrgName = async () => {
+   if (!currentOrgId.value) {
+      // Try to get it from current state one last time
+      if (organization.value?.id) currentOrgId.value = organization.value.id
+      else {
+          alert('Error: No se ha detectado el ID de la organización. Intenta recargar la página.')
+          return
+      }
+   }
+
    loadingGeneral.value = true
    try {
-      if (!organization.value) {
-          // Attempt to fetch if missing
-          await fetchOrganization(true)
-          if (!organization.value) throw new Error("No se ha podido cargar la organización. Recarga la página.")
-      }
-      
       const { error } = await client.from('organizations')
          .update({ name: generalForm.name })
-         .eq('id', organization.value.id)
+         .eq('id', currentOrgId.value)
       
       if (error) throw error
-      await fetchOrganization(true) // Force refresh
+      await fetchOrganization(true) // Force refresh to update UI
       alert('Información guardada')
    } catch (e) {
       alert(e.message)

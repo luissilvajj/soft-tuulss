@@ -87,11 +87,26 @@ const createOrganization = async () => {
     if (error) throw error
 
     // Success - Redirect to Dashboard
-    // Force fetch to ensure state is updated before redirecting
+    const newOrgId = data // RPC returns the UUID
+
+    // Force fetch to ensure state is updated
     const { fetchOrganization, organization } = useOrganization()
-    // Small delay to ensure DB propagation (just in case)
+    
+    // Small delay to ensure DB propagation
     await new Promise(r => setTimeout(r, 500))
     await fetchOrganization(true)
+
+    // Fallback: If fetch failed (RLS lag), manually set the state
+    // We trust the RPC was successful and we are the owner.
+    if (!organization.value && newOrgId) {
+       console.log('Doing optimistic set for org', newOrgId)
+       organization.value = {
+          id: newOrgId,
+          name: orgName.value,
+          role: 'owner',
+          subscription_status: 'active'
+       }
+    }
 
     if (organization.value) {
         router.push('/app')

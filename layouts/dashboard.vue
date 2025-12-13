@@ -1,36 +1,66 @@
 <template>
   <div class="min-h-screen bg-[var(--color-bg-dark)] flex font-sans transition-colors duration-300">
+    
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed top-0 w-full z-30 bg-[var(--glass-bg)] backdrop-blur-xl border-b border-[var(--color-border-subtle)] h-16 flex items-center justify-between px-4">
+        <span class="text-lg font-bold text-[var(--color-white)] flex items-center gap-2">
+          <div class="w-5 h-5 rounded bg-gradient-to-br from-[var(--color-accent-blue)] to-[var(--color-accent-violet)]"></div>
+          Soft Tuuls
+        </span>
+        <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="text-[var(--color-text-secondary)] hover:text-[var(--color-white)]">
+            <svg v-if="!isMobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div 
+        v-if="isMobileMenuOpen" 
+        class="fixed inset-0 bg-black/50 z-20 md:hidden backdrop-blur-sm"
+        @click="isMobileMenuOpen = false"
+    ></div>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-[var(--glass-bg)] backdrop-blur-xl border-r border-[var(--color-border-subtle)] flex flex-col fixed h-full z-20 transition-colors duration-300">
-      <div class="h-16 flex items-center px-6 border-b border-[var(--color-border-subtle)]">
+    <aside 
+        :class="[
+            'w-64 bg-[var(--glass-bg)] backdrop-blur-xl border-r border-[var(--color-border-subtle)] flex flex-col fixed h-full z-40 transition-transform duration-300 md:translate-x-0',
+            isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        ]"
+    >
+      <div class="h-16 flex items-center px-6 border-b border-[var(--color-border-subtle)] md:flex hidden">
         <span class="text-xl font-bold text-[var(--color-white)] flex items-center gap-2">
           <div class="w-6 h-6 rounded bg-gradient-to-br from-[var(--color-accent-blue)] to-[var(--color-accent-violet)]"></div>
           Soft Tuuls
         </span>
       </div>
+      
+      <!-- Mobile Logo in Menu (Optional or just spacer) -->
+       <div class="h-16 flex items-center px-6 border-b border-[var(--color-border-subtle)] md:hidden">
+         <span class="text-lg font-bold text-[var(--color-white)]">Menú</span>
+       </div>
 
-      <nav class="flex-1 px-4 py-6 space-y-2">
-        <NuxtLink to="/app" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path === '/app' ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
+      <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        <NuxtLink @click="isMobileMenuOpen = false" to="/app" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path === '/app' ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
           Dashboard
         </NuxtLink>
-        <NuxtLink to="/app/inventory" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('inventory') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
+        <NuxtLink @click="isMobileMenuOpen = false" to="/app/inventory" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('inventory') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
           Inventario
         </NuxtLink>
-        <NuxtLink to="/app/sales" class="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('sales') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
+        <NuxtLink @click="isMobileMenuOpen = false" to="/app/sales" class="flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('sales') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           Ventas
         </NuxtLink>
-        <NuxtLink to="/app/transactions" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('transactions') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
+        <NuxtLink @click="isMobileMenuOpen = false" to="/app/transactions" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('transactions') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
           Movimientos
         </NuxtLink>
-        <NuxtLink to="/app/clients" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('clients') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
+        <NuxtLink @click="isMobileMenuOpen = false" to="/app/clients" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('clients') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
           Clientes
         </NuxtLink>
-        <NuxtLink to="/app/settings" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('settings') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
+        <NuxtLink @click="isMobileMenuOpen = false" to="/app/settings" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('settings') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
            Configuración
         </NuxtLink>
@@ -54,7 +84,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 ml-64 p-8 transition-colors duration-300">
+    <main class="flex-1 md:ml-64 p-4 md:p-8 pt-20 md:pt-8 transition-colors duration-300">
       <slot />
     </main>
   </div>
@@ -69,6 +99,7 @@ const router = useRouter()
 const orgName = ref(organization.value?.name || 'Mi Organización')
 const userRole = ref(organization.value?.role || 'Usuario')
 const userName = ref(user.value?.user_metadata?.full_name || '')
+const isMobileMenuOpen = ref(false)
 
 // Watch for changes if standard hydration works
 watch(() => organization.value, (newOrg) => {

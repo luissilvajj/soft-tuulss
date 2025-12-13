@@ -130,10 +130,16 @@ export const useSales = () => {
         }
     }
 
+    const deleteSale = async (id: string) => {
+        const { error } = await client.from('transactions').delete().eq('id', id)
+        if (error) throw error
+    }
+
     return {
         sales,
         loading,
         fetchSales,
-        createSale
+        createSale,
+        deleteSale
     }
 }

@@ -61,8 +61,11 @@ const orgName = computed(() => organization.value?.name || 'Velo Code')
 const userRole = computed(() => organization.value?.role || 'Admin')
 
 // Ensure org is loaded
-onMounted(() => {
-  fetchOrganization()
+onMounted(async () => {
+  const org = await fetchOrganization()
+  if (!org) {
+    router.push('/onboarding')
+  }
 })
 
 const logout = async () => {

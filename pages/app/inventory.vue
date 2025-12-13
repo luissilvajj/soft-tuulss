@@ -96,18 +96,8 @@
         </div>
       </div>
       
-    <!-- Empty State / Debug State -->
+      <!-- Empty State -->
       <div v-else class="flex flex-col items-center justify-center py-20 px-4 text-center">
-         <!-- DIAGNOSTIC BLOCK -->
-         <div v-if="!loading && !organization" class="mb-8 p-4 bg-red-500/10 border border-red-500 rounded-lg max-w-lg text-left">
-            <h3 class="font-bold text-red-500 mb-2">Modo Diagnóstico (Bucle Detectado)</h3>
-            <p class="text-xs text-white mb-2">User ID: {{ user?.id || 'No User' }}</p>
-            <p class="text-xs text-white mb-2">Organization State: {{ organization ? 'Loaded' : 'NULL' }}</p>
-            <p class="text-xs text-white">Por favor toma una captura de pantalla de esto y envíala.</p>
-            <button @click="router.push('/onboarding')" class="mt-4 btn btn-secondary text-xs">Ir a Crear Org (Manual)</button>
-             <button @click="logout" class="mt-4 ml-2 btn btn-secondary text-xs">Cerrar Sesión</button>
-         </div>
-
          <div class="w-24 h-24 bg-[var(--color-bg-dark)] rounded-full flex items-center justify-center mb-6 shadow-inner">
             <svg class="w-10 h-10 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
          </div>

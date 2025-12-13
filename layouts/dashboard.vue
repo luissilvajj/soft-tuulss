@@ -151,6 +151,6 @@ onMounted(async () => {
 
 const logout = async () => {
   await client.auth.signOut()
-  window.location.href = '/login'
+  router.push('/login')
 }
 </script>

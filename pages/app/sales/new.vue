@@ -121,9 +121,12 @@
                                         <button @click="incrementQty(index)" class="px-2 py-1 text-gray-500 hover:text-black">+</button>
                                     </div>
                                 </td>
-                                <td class="text-right py-3 text-gray-600">{{ formatPrice(item.product.price) }}</td>
-                                <td class="text-right pr-4 py-3 font-semibold text-gray-900">{{ formatPrice(item.product.price * item.quantity) }}</td>
-                                <td class="py-3 text-center">
+                                <td class="py-4 text-right font-mono text-sm text-[var(--color-text-primary)]">
+                                {{ formatCurrency(item.product.price * (currency === 'VES' ? exchangeRate : 1)) }}
+                            </td>
+                            <td class="py-4 text-right font-bold font-mono text-sm text-[var(--color-text-primary)]">
+                                {{ formatCurrency((item.product.price * item.quantity) * (currency === 'VES' ? exchangeRate : 1)) }}
+                            </td>    <td class="py-3 text-center">
                                     <button @click="removeFromCart(index)" class="text-gray-400 hover:text-red-500 transition-colors">
                                         &times;
                                     </button>

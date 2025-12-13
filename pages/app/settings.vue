@@ -125,24 +125,6 @@
         </div>
     </AppModal>
 
-    <!-- CRITICAL DIAGNOSTIC PANEL -->
-    <div class="mt-8 p-4 bg-red-900/20 border border-red-500/30 rounded-xl text-xs font-mono text-red-200">
-       <h3 class="font-bold text-red-400 mb-2">🔧 Diagnóstico de Conexión</h3>
-       <div class="grid grid-cols-2 gap-4">
-          <div>
-             <p><strong>User ID:</strong> {{ user?.id || 'No Detectado' }}</p>
-             <p><strong>Org State:</strong> {{ organization ? 'Cargada' : 'NULL' }}</p>
-             <p><strong>Org ID:</strong> {{ currentOrgId || 'Esperando...' }}</p>
-             <p><strong>Loading:</strong> {{ loadingGeneral }}</p>
-          </div>
-          <div>
-              <button @click="runRawDiagnostics" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded mb-2">
-                 Ejecutar Diagnóstico RAW
-              </button>
-              <pre v-if="diagnosticResult" class="bg-black/50 p-2 rounded overflow-x-auto max-h-40">{{ diagnosticResult }}</pre>
-          </div>
-       </div>
-    </div>
   </div>
 </template>
 
@@ -295,59 +277,4 @@ onMounted(() => {
     fetchMembers()
 })
 
-// DIAGNOSTICS
-const diagnosticResult = ref('')
-const runRawDiagnostics = async () => {
-   diagnosticResult.value = 'Ejecutando diagnóstico profundo...'
-   try {
-      // 1. Check Session directly (bypassing Nuxt state)
-      const { data: { session }, error: sessionError } = await client.auth.getSession()
-      
-      let report = ''
-      
-      if (sessionError) {
-         report += `⚠️ Session Error: ${sessionError.message}\n`
-      } else if (!session) {
-         report += `⚠️ No active session found in Supabase Client.\n`
-         report += `User should be redirected to login.\n`
-      } else {
-         report += `✅ Session Active for: ${session.user.email}\n`
-         report += `User ID: ${session.user.id}\n`
-         
-         // 2. Try to Sync Nuxt State
-         const u = useSupabaseUser()
-         if (!u.value) {
-            report += `⚠️ Nuxt useSupabaseUser() is NULL. State Desync detected.\n`
-         }
-         
-         // 3. Check Memberships using the Session ID
-         const { data: members, error: memberError } = await client
-             .from('organization_members')
-             .select('*, organization:organizations(*)')
-             .eq('user_id', session.user.id) // Use session ID directly
-             
-         report += `\nChecking memberships for ${session.user.id}...\n`
-         
-         if (memberError) {
-             report += `❌ Database Error: ${memberError.message}\n`
-         } else if (members && members.length > 0) {
-             report += `✅ Found ${members.length} organizations.\n`
-             report += `Org 1: ${members[0].organization?.name} (${members[0].role})\n`
-             
-             // Auto-fix attempts
-             if (!currentOrgId.value) {
-                currentOrgId.value = members[0].organization_id
-                organization.value = { ...members[0].organization, role: members[0].role }
-                report += `\n✨ MAGIC FIX: Reconnected app to ${members[0].organization?.name}`
-             }
-         } else {
-             report += `⚠️ No memberships found. Table is empty for this user.\n`
-         }
-      }
-
-      diagnosticResult.value = report
-   } catch (e) {
-      diagnosticResult.value = 'Ex: ' + e.message
-   }
-}
 </script>

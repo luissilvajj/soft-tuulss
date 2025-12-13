@@ -1,110 +1,126 @@
 <template>
-  <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+  <div>
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-[var(--color-heading)]">Movimientos</h1>
-        <p class="text-[var(--color-text-secondary)] text-sm">Historial de todas las transacciones de la organización</p>
+        <h1 class="text-3xl font-bold tracking-tight text-gradient">Movimientos</h1>
+        <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Historial de todas las transacciones de la organización.</p>
       </div>
-      <div class="flex gap-2">
-           <!-- Placeholder for "Registrar Gasto" -->
+      <div v-if="loading" class="text-sm text-[var(--color-text-secondary)] animate-pulse">
+        Actualizando...
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-[var(--color-bg-card)] p-4 rounded-xl border border-[var(--color-border)] shadow-sm flex flex-col sm:flex-row gap-4 items-end">
-        <div class="flex-1 w-full">
-            <label class="block text-xs font-bold text-[var(--color-text-secondary)] uppercase mb-1">Rango de Fechas</label>
-            <div class="flex gap-2">
-                <select v-model="filterMode" class="flex-1 w-full bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] block p-2.5">
-                    <option value="today">Hoy</option>
-                    <option value="yesterday">Ayer</option>
-                    <option value="this_week">Esta Semana</option>
-                    <option value="this_month">Este Mes</option>
-                    <option value="last_month">Mes Pasado</option>
-                    <option value="custom">Personalizado (Rango)</option>
-                    <option value="all_time">Todo el historial</option>
-                </select>
-                
-                <div v-if="isCustom" class="flex gap-2 animate-fade-in-left">
-                    <input type="date" v-model="customFrom" class="bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] block p-2.5">
-                    <input type="date" v-model="customTo" class="bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] block p-2.5">
-                </div>
-            </div>
-        </div>
-        <div class="flex-1 w-full">
-            <label class="block text-xs font-bold text-[var(--color-text-secondary)] uppercase mb-1">Tipo</label>
-             <select v-model="filterType" class="w-full bg-[var(--color-bg-input)] border border-[var(--color-border)] text-[var(--color-text-primary)] text-sm rounded-lg focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] block p-2.5">
-                <option value="all">Todos</option>
-                <option value="sale">Ventas (Ingresos)</option>
-                <option value="expense">Gastos (Egresos)</option>
-            </select>
-        </div>
+    <!-- Stats/Filters Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+       <!-- KPI Card: Total Transactions -->
+       <div class="glass-panel p-6 flex flex-col justify-between relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-[var(--color-accent-blue)] opacity-10 rounded-full blur-2xl -mr-10 -mt-10 transition-opacity group-hover:opacity-20"></div>
+          <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Movimientos</p>
+          <div class="mt-4 flex items-baseline gap-2">
+            <p class="text-3xl font-extrabold text-[var(--color-white)]">{{ transactions.length }}</p>
+          </div>
+       </div>
+
+       <!-- Filters Area (Spans 3 columns on large screens) -->
+       <div class="lg:col-span-3 glass-panel p-6 flex flex-col justify-center">
+          <div class="flex flex-col md:flex-row gap-4">
+              <!-- Date Filter -->
+              <div class="flex-1 space-y-2">
+                  <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Rango de Fechas</label>
+                  <div class="relative">
+                      <select 
+                          v-model="dateFilter" 
+                          class="w-full appearance-none bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent transition-all"
+                      >
+                          <option value="today">Hoy</option>
+                          <option value="yesterday">Ayer</option>
+                          <option value="this_week">Esta Semana</option>
+                          <option value="this_month">Este Mes</option>
+                          <option value="last_month">Mes Pasado</option>
+                          <option value="all">Todo el historial</option>
+                          <option value="custom">Personalizado (Rango)</option>
+                      </select>
+                      <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[var(--color-text-secondary)]">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                      </div>
+                  </div>
+              </div>
+
+               <!-- Custom Date Inputs -->
+              <div v-if="dateFilter === 'custom'" class="flex gap-2 items-end animate-fade-in-up">
+                  <div class="space-y-2">
+                      <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Desde</label>
+                      <input type="date" v-model="customDateStart" class="bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
+                  </div>
+                  <div class="space-y-2">
+                      <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Hasta</label>
+                      <input type="date" v-model="customDateEnd" class="bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
+                  </div>
+              </div>
+
+              <!-- Type Filter -->
+              <div class="flex-1 space-y-2">
+                  <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Tipo</label>
+                  <div class="relative">
+                      <select 
+                          v-model="typeFilter" 
+                          class="w-full appearance-none bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent transition-all"
+                      >
+                          <option value="all">Todos</option>
+                          <option value="income">Ingresos (Ventas)</option>
+                          <option value="expense">Egresos (Gastos)</option>
+                      </select>
+                      <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[var(--color-text-secondary)]">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                      </div>
+                  </div>
+              </div>
+          </div>
+       </div>
     </div>
 
-    <!-- Transactions List -->
-    <div class="bg-[var(--color-bg-card)] rounded-xl border border-[var(--color-border)] overflow-hidden shadow-sm">
-        <div v-if="loading" class="p-8 text-center text-[var(--color-text-secondary)]">
-            <span class="inline-block animate-spin mr-2">⟳</span> Cargando movimientos...
-        </div>
-        
-        <div v-else-if="transactions.length === 0" class="p-12 text-center text-[var(--color-text-secondary)] flex flex-col items-center">
-            <svg class="w-16 h-16 text-[var(--color-border-subtle)] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-            <p class="text-lg font-medium text-[var(--color-text-primary)]">Sin movimientos</p>
-            <p class="text-sm">No hay transacciones registradas en este periodo.</p>
-        </div>
-
-        <table v-else class="w-full text-left text-sm">
-            <thead class="bg-[var(--color-bg-dark)] border-b border-[var(--color-border)] uppercase text-xs font-semibold text-[var(--color-text-secondary)] tracking-wider">
-                <tr>
-                    <th class="p-4">Fecha</th>
-                    <th class="p-4">Descripción</th>
-                    <th class="p-4">Método</th>
-                    <th class="p-4 text-right">Monto</th>
-                    <th class="p-4"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-[var(--color-border-subtle)]">
-                <tr v-for="tx in transactions" :key="tx.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors group">
-                    <td class="p-4 text-[var(--color-text-primary)] whitespace-nowrap">
-                        {{ new Date(tx.date).toLocaleDateString() }}
-                    </td>
-                    <td class="p-4">
-                        <div class="flex items-center gap-3">
+    <!-- Transactions Table -->
+    <div class="glass-panel overflow-hidden">
+        <div v-if="transactions.length > 0">
+           <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-[var(--color-border-subtle)] text-left align-middle">
+                <thead class="bg-[var(--color-bg-dark)]/50">
+                    <tr>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Fecha</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Descripción</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Método</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Monto</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--color-border-subtle)]">
+                    <tr v-for="trx in transactions" :key="trx.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors duration-150">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)] font-mono">
+                            {{ new Date(trx.created_at).toLocaleDateString() }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div :class="[
+                                    'w-8 h-8 rounded-full flex items-center justify-center',
+                                    trx.type === 'income' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+                                ]">
+                                    <svg v-if="trx.type === 'income'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-[var(--color-white)]">{{ trx.description }}</p>
+                                    <p class="text-xs text-[var(--color-text-secondary)]">{{ trx.client_name || 'General' }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-[var(--color-text-secondary)] capitalize">
+                            {{ trx.payment_method }}
+                        </td>
+                        <td class="px-6 py-4 text-right">
                             <div :class="[
-                                'w-8 h-8 rounded-full flex items-center justify-center shrink-0',
-                                tx.type === 'sale' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+                                'font-bold font-mono text-lg',
+                                trx.type === 'income' ? 'text-emerald-500' : 'text-red-500'
                             ]">
-                                <svg v-if="tx.type === 'sale'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-                                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
-                            </div>
-                            <div>
-                                <p class="font-bold text-[var(--color-text-primary)]">
-                                    {{ tx.type === 'sale' ? 'Venta' : (tx.type === 'expense' ? 'Gasto' : 'Ajuste') }}
-                                </p>
-                                <p class="text-xs text-[var(--color-text-secondary)]">
-                                    {{ tx.client?.name || (tx.type === 'sale' ? 'Cliente Casual' : 'Sin descripción') }}
-                                </p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="p-4 text-[var(--color-text-secondary)] capitalize">
-                        {{ tx.payment_method?.replace('_', ' ') }}
-                        <span v-if="tx.payment_reference" class="block text-[10px] font-mono opacity-70">Ref: {{ tx.payment_reference }}</span>
-                    </td>
-                    <td class="p-4 text-right font-medium font-mono">
-                        <span :class="tx.type === 'sale' ? 'text-emerald-500' : 'text-red-500'">
-                            {{ tx.type === 'sale' ? '+' : '-' }}
-                            {{ tx.currency === 'VES' ? 'Bs.' : '$' }}{{ (tx.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
-                        </span>
-                        <p class="text-[10px] text-[var(--color-text-secondary)]" v-if="tx.exchange_rate > 1">
-                             Tasa: {{ tx.exchange_rate }}
-                        </p>
-                    </td>
-                    <td class="p-4 text-right">
-                        <!-- Future: Open Detail -->
-                    </td>
-                </tr>
             </tbody>
         </table>
     </div>

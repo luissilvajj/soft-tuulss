@@ -27,7 +27,8 @@ export const useOrganization = () => {
           role
         `)
                 .eq('user_id', user.value.id)
-                .single() as any
+                .limit(1)
+                .maybeSingle() as any
 
             if (error && error.code !== 'PGRST116') throw error // PGRST116 is no rows found
 

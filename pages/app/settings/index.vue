@@ -194,6 +194,7 @@ definePageMeta({
 
 const client = useSupabaseClient()
 const user = useSupabaseUser()
+const { organization, fetchOrganization } = useOrganization()
 const { canManageTeam } = usePermissions()
 
 const route = useRoute()

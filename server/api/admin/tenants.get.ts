@@ -2,9 +2,9 @@ import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
-    // Retrieve Service Key from runtime config or process.env
+    // Retrieve Service Key from runtime config
     // Ensure you added SUPABASE_SERVICE_KEY to .env and Vercel
-    const serviceKey = process.env.SUPABASE_SERVICE_KEY
+    const serviceKey = config.supabaseServiceKey
 
     if (!serviceKey) {
         throw createError({

@@ -18,5 +18,8 @@ export default defineNuxtConfig({
       secure: true // Always secure for modern browsers/vercel
     }
   },
+  runtimeConfig: {
+    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY
+  },
   ssr: false
 })

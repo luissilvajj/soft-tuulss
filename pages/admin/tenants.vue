@@ -77,12 +77,32 @@ const getDaysLeft = (dateStr) => {
 }
 
 const extendTrial = async (org) => {
-    // TODO: Implement API Action
-    alert(`Extendiendo trial para ${org.name}... (Falta implementar endpoint)`)
+    if (!confirm(`¿Extender trial de ${org.name} por 14 días?`)) return
+    
+    try {
+        await $fetch('/api/admin/manage-tenant', {
+            method: 'POST',
+            body: { orgId: org.id, action: 'extend_trial' }
+        })
+        alert('Trial extendido exitosamente')
+        refresh() // Refresh list
+    } catch (e) {
+        alert('Error: ' + e.message)
+    }
 }
 
 const activatePlan = async (org) => {
-    // TODO: Implement API Action
-    alert(`Activando plan para ${org.name}... (Falta implementar endpoint)`)
+    if (!confirm(`¿Activar Plan PRO para ${org.name}? (Sin cobro automático)`)) return
+
+    try {
+        await $fetch('/api/admin/manage-tenant', {
+            method: 'POST',
+            body: { orgId: org.id, action: 'activate_pro' }
+        })
+        alert('Plan activado exitosamente')
+        refresh() // Refresh list
+    } catch (e) {
+        alert('Error: ' + e.message)
+    }
 }
 </script>

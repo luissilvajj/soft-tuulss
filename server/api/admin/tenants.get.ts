@@ -19,32 +19,48 @@ export default defineEventHandler(async (event) => {
     // Create a Supabase client with the SERVICE ROLE key (Bypasses RLS)
     const supabase = createClient(process.env.SUPABASE_URL!, serviceKey)
 
-    // Fetch all organizations with their owner's email
-    // We join organization_members -> profiles
-    const { data, error } = await supabase
+    // 1. Fetch organizations and their members (to find owner ID)
+    const { data: orgs, error: dbError } = await supabase
         .from('organizations')
         .select(`
             *,
             members:organization_members (
-                role,
-                profile:profiles ( email )
+                user_id,
+                role
             )
         `)
         .order('created_at', { ascending: false })
 
-    if (error) {
+    if (dbError) {
         throw createError({
             statusCode: 500,
-            statusMessage: error.message
+            statusMessage: 'DB Error: ' + dbError.message
         })
     }
 
-    // Process data to flatter structure (get owner email)
-    const tenants = data.map(org => {
-        const owner = org.members.find((m: any) => m.role === 'owner')
+    // 2. Fetch Users from Supabase Auth (Service Key Required)
+    // We fetch a batch of users to map IDs to Emails.
+    // NOTE: For large scale, we should paginate or filter, but for <1000 users this is fine.
+    const { data: { users }, error: authError } = await supabase.auth.admin.listUsers({
+        perPage: 1000
+    })
+
+    if (authError) {
+        throw createError({
+            statusCode: 500,
+            statusMessage: 'Auth Error: ' + authError.message
+        })
+    }
+
+    // 3. Merge Data (Map Owner ID -> Email)
+    const tenants = orgs.map(org => {
+        const ownerMember = org.members.find((m: any) => m.role === 'owner')
+        const ownerUser = users.find(u => u.id === ownerMember?.user_id)
+
         return {
             ...org,
-            owner_email: owner?.profile?.email || 'No Owner'
+            owner_email: ownerUser?.email || 'No Owner (Orphaned)',
+            owner_id: ownerMember?.user_id
         }
     })
 

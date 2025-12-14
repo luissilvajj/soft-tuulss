@@ -78,7 +78,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">
-                             <div class="font-bold text-[var(--color-white)] text-lg">
+                             <div class="font-bold font-mono text-lg text-emerald-400">
                                 ${{ (sale.total_amount || 0).toFixed(2) }}
                              </div>
                         </td>

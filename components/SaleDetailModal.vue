@@ -1,39 +1,39 @@
 <template>
   <div v-if="sale" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" @click.self="$emit('close')">
-    <div class="bg-[var(--color-bg-card)] border border-[var(--color-border)] w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up max-h-[90vh] flex flex-col relative">
+    <div class="bg-[var(--color-bg-subtle)] border border-[var(--color-border-subtle)] w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up max-h-[90vh] flex flex-col relative">
       
       <!-- Header -->
-      <div class="px-6 py-4 border-b border-[var(--color-border)] flex justify-between items-center bg-[var(--color-bg-dark)]/50">
+      <div class="px-6 py-4 border-b border-[var(--color-border-subtle)] flex justify-between items-center bg-[var(--color-bg-dark)]/50">
         <div>
-            <h2 class="text-xl font-bold text-[var(--color-heading)]">Detalle de Venta</h2>
+            <h2 class="text-xl font-bold text-[var(--color-white)]">Detalle de Venta</h2>
             <p class="text-xs text-[var(--color-text-secondary)] font-mono opacity-70">ID: {{ sale.id.split('-')[0] }}... • {{ new Date(sale.date).toLocaleDateString() }}</p>
         </div>
-        <button @click="$emit('close')" class="p-2 hover:bg-[var(--color-bg-subtle)] rounded-full transition-colors">
+        <button @click="$emit('close')" class="p-2 hover:bg-[var(--color-bg-dark)] rounded-full transition-colors">
             <svg class="w-6 h-6 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
 
       <!-- Content (Scrollable) -->
-      <div class="p-6 overflow-y-auto space-y-8 flex-1 bg-[var(--color-bg-card)]">
+      <div class="p-6 overflow-y-auto space-y-8 flex-1 bg-[var(--color-bg-subtle)]">
         
         <!-- Top Info Grid -->
         <div class="grid grid-cols-2 gap-4">
-            <div class="p-4 rounded-xl bg-[var(--color-bg-subtle)]/30 border border-[var(--color-border-subtle)]">
+            <div class="p-4 rounded-xl bg-[var(--color-bg-dark)]/30 border border-[var(--color-border-subtle)]">
                 <p class="text-xs font-bold text-[var(--color-text-secondary)] uppercase mb-1">Cliente</p>
                 <div class="flex items-center gap-2">
                      <div class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold text-xs">
                         {{ (sale.client?.name?.[0] || 'C').toUpperCase() }}
                      </div>
                      <div>
-                        <p class="font-bold text-[var(--color-text-primary)] leading-tight">{{ sale.client?.name || 'Cliente Casual' }}</p>
+                        <p class="font-bold text-[var(--color-white)] leading-tight">{{ sale.client?.name || 'Cliente Casual' }}</p>
                         <p v-if="sale.client?.email" class="text-xs text-[var(--color-text-secondary)]">{{ sale.client.email }}</p>
                      </div>
                 </div>
             </div>
-            <div class="p-4 rounded-xl bg-[var(--color-bg-subtle)]/30 border border-[var(--color-border-subtle)]">
+            <div class="p-4 rounded-xl bg-[var(--color-bg-dark)]/30 border border-[var(--color-border-subtle)]">
                 <p class="text-xs font-bold text-[var(--color-text-secondary)] uppercase mb-1">Estado & Pago</p>
                 <div class="flex flex-col gap-1">
-                     <span class="text-sm font-medium text-[var(--color-text-primary)] capitalize flex items-center gap-2">
+                     <span class="text-sm font-medium text-[var(--color-white)] capitalize flex items-center gap-2">
                         <svg class="w-4 h-4 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                         {{ sale.payment_method?.replace('_', ' ') }}
                      </span>
@@ -54,17 +54,17 @@
         <div>
             <h3 class="text-xs font-bold text-[var(--color-text-secondary)] mb-3 uppercase tracking-wider flex items-center gap-2">
                 Items Vendidos
-                <span class="bg-[var(--color-bg-subtle)] text-[var(--color-text-primary)] px-1.5 py-0.5 rounded text-[10px]">{{ (sale.items || []).length }}</span>
+                <span class="bg-[var(--color-bg-dark)] text-[var(--color-white)] px-1.5 py-0.5 rounded text-[10px]">{{ (sale.items || []).length }}</span>
             </h3>
             
-            <div v-if="!sale.items || sale.items.length === 0" class="border-2 border-dashed border-[var(--color-border)] rounded-xl p-8 text-center bg-[var(--color-bg-subtle)]/30">
+            <div v-if="!sale.items || sale.items.length === 0" class="border-2 border-dashed border-[var(--color-border-subtle)] rounded-xl p-8 text-center bg-[var(--color-bg-dark)]/30">
                 <p class="text-[var(--color-text-secondary)] text-sm font-medium">No hay items registrados en esta venta.</p>
                 <p class="text-xs text-[var(--color-text-secondary)] opacity-70 mt-1">Es posible que ocurriera un error al guardarla.</p>
             </div>
 
-            <div v-else class="border border-[var(--color-border)] rounded-xl overflow-hidden shadow-sm">
+            <div v-else class="border border-[var(--color-border-subtle)] rounded-xl overflow-hidden shadow-sm">
                 <table class="w-full text-left text-sm">
-                    <thead class="bg-[var(--color-bg-dark)] border-b border-[var(--color-border)]">
+                    <thead class="bg-[var(--color-bg-dark)] border-b border-[var(--color-border-subtle)]">
                         <tr>
                             <th class="p-3 font-semibold text-[var(--color-text-secondary)] text-xs uppercase">Producto</th>
                             <th class="p-3 font-semibold text-[var(--color-text-secondary)] text-xs uppercase text-right">Cant.</th>
@@ -72,12 +72,12 @@
                             <th class="p-3 font-semibold text-[var(--color-text-secondary)] text-xs uppercase text-right">Total</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-[var(--color-border-subtle)] bg-[var(--color-bg-card)]">
-                        <tr v-for="item in sale.items" :key="item.id" class="hover:bg-[var(--color-bg-subtle)]/50">
-                            <td class="p-3 text-[var(--color-text-primary)] font-medium">{{ item.product?.name || 'Producto eliminado' }}</td>
+                    <tbody class="divide-y divide-[var(--color-border-subtle)] bg-[var(--color-bg-subtle)]">
+                        <tr v-for="item in sale.items" :key="item.id" class="hover:bg-[var(--color-bg-dark)]/50">
+                            <td class="p-3 text-[var(--color-white)] font-medium">{{ item.product?.name || 'Producto eliminado' }}</td>
                             <td class="p-3 text-[var(--color-text-secondary)] text-right font-mono">{{ item.quantity }}</td>
                              <td class="p-3 text-[var(--color-text-secondary)] text-right font-mono">{{ formatCurrency(item.price_at_transaction, 'USD') }}</td>
-                            <td class="p-3 text-[var(--color-text-primary)] font-bold text-right font-mono">{{ formatCurrency(item.price_at_transaction * item.quantity, 'USD') }}</td>
+                            <td class="p-3 text-[var(--color-white)] font-bold text-right font-mono">{{ formatCurrency(item.price_at_transaction * item.quantity, 'USD') }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -85,23 +85,23 @@
         </div>
 
         <!-- Financial Summary -->
-        <div class="flex justify-end pt-4 border-t border-[var(--color-border)]">
+        <div class="flex justify-end pt-4 border-t border-[var(--color-border-subtle)]">
             <div class="w-full sm:w-1/2 space-y-2">
                 <div class="flex justify-between text-sm">
                     <span class="text-[var(--color-text-secondary)]">Subtotal</span>
-                    <span class="font-medium text-[var(--color-text-primary)]">{{ formatCurrency(sale.subtotal || sale.amount, sale.currency) }}</span>
+                    <span class="font-medium text-[var(--color-white)]">{{ formatCurrency(sale.subtotal || sale.amount, sale.currency) }}</span>
                 </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-[var(--color-text-secondary)]">IVA (16%)</span>
-                    <span class="font-medium text-[var(--color-text-primary)]">{{ formatCurrency(sale.tax_iva || 0, sale.currency) }}</span>
+                    <span class="font-medium text-[var(--color-white)]">{{ formatCurrency(sale.tax_iva || 0, sale.currency) }}</span>
                 </div>
                 <div v-if="(sale.tax_igtf || 0) > 0" class="flex justify-between text-sm">
                     <span class="text-[var(--color-text-secondary)]">IGTF (3%)</span>
-                    <span class="font-medium text-[var(--color-text-primary)]">{{ formatCurrency(sale.tax_igtf || 0, sale.currency) }}</span>
+                    <span class="font-medium text-[var(--color-white)]">{{ formatCurrency(sale.tax_igtf || 0, sale.currency) }}</span>
                 </div>
                 
-                <div class="flex justify-between items-center pt-3 mt-1 border-t border-[var(--color-border)]">
-                    <span class="font-bold text-base text-[var(--color-text-primary)]">Total Pagado</span>
+                <div class="flex justify-between items-center pt-3 mt-1 border-t border-[var(--color-border-subtle)]">
+                    <span class="font-bold text-base text-[var(--color-white)]">Total Pagado</span>
                     <span class="font-black text-2xl text-[var(--color-accent-blue)]">{{ formatCurrency(sale.amount, sale.currency) }}</span>
                 </div>
                  <p class="text-right text-xs text-[var(--color-text-secondary)] mt-1">
@@ -113,7 +113,7 @@
       </div>
       
       <!-- Footer -->
-      <div class="p-4 border-t border-[var(--color-border)] bg-[var(--color-bg-dark)]/50 flex justify-between items-center">
+      <div class="p-4 border-t border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)]/50 flex justify-between items-center">
           <button 
             @click="deleteSale" 
             :disabled="deleting"
@@ -125,8 +125,8 @@
           </button>
 
           <div class="flex gap-3">
-            <button class="px-4 py-2 rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-medium text-sm transition-colors">Imprimir Recibo</button>
-            <button @click="$emit('close')" class="px-6 py-2 rounded-lg bg-[var(--color-text-primary)] text-[var(--color-bg-card)] font-bold text-sm hover:opacity-90 transition-opacity shadow-lg">Cerrar</button>
+            <button class="px-4 py-2 rounded-lg border border-[var(--color-border-subtle)] text-[var(--color-text-secondary)] hover:text-[var(--color-white)] font-medium text-sm transition-colors">Imprimir Recibo</button>
+            <button @click="$emit('close')" class="px-6 py-2 rounded-lg bg-[var(--color-white)] text-[var(--color-bg-subtle)] font-bold text-sm hover:opacity-90 transition-opacity shadow-lg">Cerrar</button>
           </div>
       </div>
     </div>

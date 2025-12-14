@@ -44,10 +44,10 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Current Plan -->
-                <div class="border border-[var(--color-border-subtle)] rounded-xl p-6 bg-[var(--color-bg-dark)] flex flex-col justify-between">
+                <div class="border border-[var(--color-border-subtle)] rounded-xl p-6 bg-[var(--color-bg-subtle)] flex flex-col justify-between">
                    <div>
                        <span class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Plan Actual</span>
-                       <h2 class="text-2xl font-bold text-white mt-2 capitalize">{{ currentPlanName }}</h2>
+                       <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mt-2 capitalize">{{ currentPlanName }}</h2>
                        <p class="text-sm text-[var(--color-text-secondary)] mt-2">
                          {{ organization?.subscription_status === 'active' ? 'Renovación automática' : 'Modo Prueba' }}
                        </p>
@@ -56,7 +56,7 @@
                        <span class="text-xs text-[var(--color-text-secondary)]">Estado: </span>
                        <span :class="[
                           'px-2 py-0.5 rounded text-xs font-bold uppercase',
-                          organization?.subscription_status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                          organization?.subscription_status === 'active' ? 'bg-green-500/20 text-green-600 dark:text-green-400' : 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
                        ]">
                           {{ organization?.subscription_status || 'Trial' }}
                        </span>
@@ -64,32 +64,32 @@
                 </div>
 
                 <!-- Upgrade Card -->
-                <div class="relative border border-[var(--color-accent-blue)] rounded-xl p-6 bg-gradient-to-br from-[var(--color-bg-dark)] to-blue-900/20 flex flex-col justify-between overflow-hidden group">
-                   <div class="absolute -right-10 -top-10 w-32 h-32 bg-[var(--color-accent-blue)]/20 blur-3xl group-hover:bg-[var(--color-accent-blue)]/30 transition-all"></div>
+                <div class="relative border border-[var(--color-accent-blue)] rounded-xl p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-[var(--color-bg-dark)] dark:to-blue-900/20 flex flex-col justify-between overflow-hidden group shadow-lg dark:shadow-none">
+                   <div class="absolute -right-10 -top-10 w-32 h-32 bg-[var(--color-accent-blue)]/10 blur-3xl group-hover:bg-[var(--color-accent-blue)]/20 transition-all"></div>
                    
-                   <div>
+                   <div class="relative z-10">
                        <div class="flex justify-between items-start">
                            <span class="text-xs font-bold text-[var(--color-accent-blue)] uppercase tracking-wider">Recomendado</span>
-                           <span class="text-2xl font-bold text-white">$29<span class="text-sm text-[var(--color-text-secondary)] font-medium">/mes</span></span>
+                           <span class="text-2xl font-bold text-[var(--color-text-primary)]">$29<span class="text-sm text-[var(--color-text-secondary)] font-medium">/mes</span></span>
                        </div>
-                       <h2 class="text-xl font-bold text-white mt-2">Plan Pro</h2>
+                       <h2 class="text-xl font-bold text-[var(--color-text-primary)] mt-2">Plan Pro</h2>
                        <ul class="mt-4 space-y-2">
                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                             <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                              Usuarios Ilimitados
                           </li>
                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                             <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                              Facturación PDF
                           </li>
                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                             <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                              Soporte Prioritario
                           </li>
                        </ul>
                    </div>
 
-                   <button disabled class="mt-6 w-full btn btn-primary justify-center opacity-50 cursor-not-allowed">
+                   <button disabled class="relative z-10 mt-6 w-full btn btn-primary justify-center opacity-70 cursor-not-allowed">
                        Conectar Stripe (Pronto)
                    </button>
                 </div>
@@ -97,7 +97,7 @@
 
             <!-- Invoice History (Placeholder) -->
             <div class="mt-12">
-                <h3 class="text-lg font-bold text-white mb-4">Historial de Pagos</h3>
+                <h3 class="text-lg font-bold text-[var(--color-text-primary)] mb-4">Historial de Pagos</h3>
                 <div class="text-center py-8 border border-dashed border-[var(--color-border-subtle)] rounded-xl text-[var(--color-text-secondary)]">
                     No hay facturas disponibles aún.
                 </div>

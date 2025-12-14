@@ -2,14 +2,17 @@ import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
-    // Retrieve Service Key from runtime config
-    // Ensure you added SUPABASE_SERVICE_KEY to .env and Vercel
-    const serviceKey = config.supabaseServiceKey
+    // Retrieve Service Key from runtime config OR process.env directly (Vercel fallback)
+    const serviceKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY
 
     if (!serviceKey) {
+        console.error('DEBUG: Service Key missing.')
+        console.error('Config:', config.supabaseServiceKey ? 'Present' : 'Missing')
+        console.error('Env:', process.env.SUPABASE_SERVICE_KEY ? 'Present' : 'Missing')
+
         throw createError({
             statusCode: 500,
-            statusMessage: 'Configuration Error: Missing SUPABASE_SERVICE_KEY'
+            statusMessage: 'Config Error: Missing SUPABASE_SERVICE_KEY. Check Vercel Env Vars.'
         })
     }
 

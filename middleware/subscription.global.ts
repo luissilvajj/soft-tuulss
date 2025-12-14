@@ -1,0 +1,37 @@
+export default defineNuxtRouteMiddleware(async (to) => {
+    // 1. Only enforce on /app routes
+    if (!to.path.startsWith('/app')) return
+
+    // 2. Allow access to Billing Settings even if expired (to prevent lockout loop)
+    if (to.path === '/app/settings/billing') return
+
+    const { organization, fetchOrganization } = useOrganization()
+
+    // 3. Ensure organization data is loaded
+    if (!organization.value) {
+        await fetchOrganization()
+    }
+
+    // If still no organization, auth guard will likely handle it, or user has no org
+    if (!organization.value) return
+
+    const org = organization.value
+    const now = new Date()
+
+    // 4. Trial Logic
+    // If trial_ends_at is in the future, ACCESS GRANTED
+    if (org.trial_ends_at && new Date(org.trial_ends_at) > now) {
+        return
+    }
+
+    // 5. Subscription Logic
+    // If status is active or trialing (stripe status), ACCESS GRANTED
+    const validStatuses = ['active', 'trialing']
+    if (validStatuses.includes(org.subscription_status)) {
+        return
+    }
+
+    // 6. Access Denied -> Redirect to Billing
+    // Force redirect to billing page if trial expired and no active sub
+    return navigateTo('/app/settings/billing')
+})

@@ -1,3 +1,16 @@
+export interface Organization {
+    id: string
+    name: string
+    logo_url?: string
+    subscription_status?: 'active' | 'inactive' | 'past_due' | 'trialing' | 'canceled'
+    subscription_plan?: string
+    trial_ends_at?: string
+    current_period_end?: string
+    stripe_customer_id?: string
+    stripe_subscription_id?: string
+    created_at: string
+}
+
 export interface Product {
     id: string
     organization_id: string

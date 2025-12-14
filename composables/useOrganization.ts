@@ -22,7 +22,11 @@ export const useOrganization = () => {
             id,
             name,
             logo_url,
-            subscription_status
+            subscription_status,
+            subscription_plan,
+            trial_ends_at,
+            current_period_end,
+            stripe_customer_id
           ),
           role
         `)

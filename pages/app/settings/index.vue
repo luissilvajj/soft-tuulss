@@ -6,20 +6,38 @@
       <!-- Sidebar / Tabs -->
       <div class="w-full md:w-64 border-r border-[var(--color-border-subtle)] bg-[var(--color-bg-subtle)]/30 p-4">
         <nav class="space-y-1">
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            @click="currentTab = tab.id"
+          <NuxtLink 
+            to="/app/settings"
             :class="[
-              currentTab === tab.id
+              (!route.path.includes('/billing') && (!route.query.tab || route.query.tab === 'general'))
                 ? 'bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] font-bold'
                 : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)]',
               'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all'
             ]"
           >
-            <component :is="tab.icon" class="w-5 h-5" />
-            {{ tab.name }}
+            <component :is="tabs[0].icon" class="w-5 h-5" />
+            General
+          </NuxtLink>
+           <button 
+             @click="router.push('/app/settings?tab=team')"
+             :class="[
+               route.query.tab === 'team'
+                ? 'bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] font-bold'
+                : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)]',
+               'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all'
+             ]"
+           >
+            <component :is="tabs[1].icon" class="w-5 h-5" />
+            Equipo
           </button>
+          <NuxtLink 
+            to="/app/settings/billing"
+            class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)] transition-all"
+            active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] font-bold !text-[var(--color-accent-blue)]"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+            Facturación
+          </NuxtLink>
         </nav>
       </div>
 
@@ -176,11 +194,20 @@ definePageMeta({
 
 const client = useSupabaseClient()
 const user = useSupabaseUser()
-const { organization, fetchOrganization } = useOrganization()
 const { canManageTeam } = usePermissions()
 
-// TABS
+const route = useRoute()
+const router = useRouter()
+
+// TABS 
+// Sync Query Param to Tab state
 const currentTab = ref('general')
+
+watch(() => route.query.tab, (newTab) => {
+    if (newTab === 'team') currentTab.value = 'team'
+    else currentTab.value = 'general'
+}, { immediate: true })
+
 const tabs = [
   { id: 'general', name: 'General', icon: BuildingOfficeIcon },
   { id: 'team', name: 'Equipo', icon: UsersIcon }

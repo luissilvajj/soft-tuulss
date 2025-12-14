@@ -1,0 +1,136 @@
+<template>
+  <div>
+    <h1 class="text-3xl font-bold tracking-tight text-gradient mb-8">Facturación & Plan</h1>
+
+    <div class="glass-panel p-0 overflow-hidden min-h-[500px] flex flex-col md:flex-row">
+      <!-- Sidebar / Tabs (Reused Style) -->
+      <div class="w-full md:w-64 border-r border-[var(--color-border-subtle)] bg-[var(--color-bg-subtle)]/30 p-4">
+        <nav class="space-y-1">
+          <NuxtLink to="/app/settings" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)] transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011 1v4a1 1 0 01-1 1h-3a1 1 0 01-1-1v-4a1 1 0 011-1h2"></path></svg>
+            General
+          </NuxtLink>
+           <NuxtLink to="/app/settings?tab=team" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)] transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            Equipo
+          </NuxtLink>
+          <div class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)]">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+            Facturación
+          </div>
+        </nav>
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 p-4 md:p-8">
+         <div class="max-w-2xl">
+            <!-- Alert: Trial Status -->
+            <div v-if="trialDaysLeft >= 0 && trialDaysLeft <= 14" class="mb-8 p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 flex items-start gap-3">
+               <svg class="w-5 h-5 text-yellow-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+               <div>
+                 <h3 class="text-sm font-bold text-yellow-500">Prueba Gratuita Activa</h3>
+                 <p class="text-sm text-yellow-200/80">Te quedan <span class="font-bold text-white">{{ trialDaysLeft }} días</span> de prueba. Actualiza a Pro para no perder acceso.</p>
+               </div>
+            </div>
+
+            <!-- Blocked Status -->
+            <div v-if="trialDaysLeft < 0 && organization?.subscription_status !== 'active'" class="mb-8 p-4 rounded-xl border border-red-500/30 bg-red-500/10 flex items-start gap-3">
+               <svg class="w-5 h-5 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+               <div>
+                 <h3 class="text-sm font-bold text-red-500">Suscripción Vencida</h3>
+                 <p class="text-sm text-red-200/80">Tu periodo de prueba ha terminado. Por favor suscríbete para continuar usando el sistema.</p>
+               </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Current Plan -->
+                <div class="border border-[var(--color-border-subtle)] rounded-xl p-6 bg-[var(--color-bg-dark)] flex flex-col justify-between">
+                   <div>
+                       <span class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Plan Actual</span>
+                       <h2 class="text-2xl font-bold text-white mt-2 capitalize">{{ currentPlanName }}</h2>
+                       <p class="text-sm text-[var(--color-text-secondary)] mt-2">
+                         {{ organization?.subscription_status === 'active' ? 'Renovación automática' : 'Modo Prueba' }}
+                       </p>
+                   </div>
+                   <div class="mt-6 pt-6 border-t border-[var(--color-border-subtle)]">
+                       <span class="text-xs text-[var(--color-text-secondary)]">Estado: </span>
+                       <span :class="[
+                          'px-2 py-0.5 rounded text-xs font-bold uppercase',
+                          organization?.subscription_status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                       ]">
+                          {{ organization?.subscription_status || 'Trial' }}
+                       </span>
+                   </div>
+                </div>
+
+                <!-- Upgrade Card -->
+                <div class="relative border border-[var(--color-accent-blue)] rounded-xl p-6 bg-gradient-to-br from-[var(--color-bg-dark)] to-blue-900/20 flex flex-col justify-between overflow-hidden group">
+                   <div class="absolute -right-10 -top-10 w-32 h-32 bg-[var(--color-accent-blue)]/20 blur-3xl group-hover:bg-[var(--color-accent-blue)]/30 transition-all"></div>
+                   
+                   <div>
+                       <div class="flex justify-between items-start">
+                           <span class="text-xs font-bold text-[var(--color-accent-blue)] uppercase tracking-wider">Recomendado</span>
+                           <span class="text-2xl font-bold text-white">$29<span class="text-sm text-[var(--color-text-secondary)] font-medium">/mes</span></span>
+                       </div>
+                       <h2 class="text-xl font-bold text-white mt-2">Plan Pro</h2>
+                       <ul class="mt-4 space-y-2">
+                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                             <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             Usuarios Ilimitados
+                          </li>
+                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                             <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             Facturación PDF
+                          </li>
+                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                             <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             Soporte Prioritario
+                          </li>
+                       </ul>
+                   </div>
+
+                   <button disabled class="mt-6 w-full btn btn-primary justify-center opacity-50 cursor-not-allowed">
+                       Conectar Stripe (Pronto)
+                   </button>
+                </div>
+            </div>
+
+            <!-- Invoice History (Placeholder) -->
+            <div class="mt-12">
+                <h3 class="text-lg font-bold text-white mb-4">Historial de Pagos</h3>
+                <div class="text-center py-8 border border-dashed border-[var(--color-border-subtle)] rounded-xl text-[var(--color-text-secondary)]">
+                    No hay facturas disponibles aún.
+                </div>
+            </div>
+         </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useOrganization } from '~/composables/useOrganization'
+
+definePageMeta({ layout: 'dashboard' })
+
+const { organization, fetchOrganization } = useOrganization()
+
+onMounted(() => {
+    fetchOrganization()
+})
+
+const trialDaysLeft = computed(() => {
+    if (!organization.value?.trial_ends_at) return 0
+    const end = new Date(organization.value.trial_ends_at)
+    const now = new Date()
+    const diffTime = end.getTime() - now.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+})
+
+const currentPlanName = computed(() => {
+    if (organization.value?.subscription_status === 'active') return organization.value.subscription_plan || 'Pro'
+    if (trialDaysLeft.value > 0) return 'Prueba Gratuita'
+    return 'Vencido'
+})
+</script>

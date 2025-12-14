@@ -148,9 +148,9 @@
                         <td class="px-6 py-4 text-right">
                             <div :class="[
                                 'font-bold font-mono text-lg',
-                                trx.type === 'income' ? 'text-emerald-500' : 'text-red-500'
+                                ['income', 'sale'].includes(trx.type) ? 'text-emerald-500' : 'text-red-500'
                             ]">
-                                {{ trx.type === 'income' ? '+' : '-' }} ${{ (trx.amount || 0).toFixed(2) }}
+                                {{ ['income', 'sale'].includes(trx.type) ? '+' : '-' }} ${{ (trx.amount || 0).toFixed(2) }}
                             </div>
                            <div v-if="trx.exchange_rate" class="text-xs text-[var(--color-text-secondary)] font-mono opacity-70">
                                Tasa: {{ trx.exchange_rate }}

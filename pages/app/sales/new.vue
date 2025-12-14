@@ -302,9 +302,6 @@ const form = reactive({
     paymentReference: '',
     status: 'paid' as 'paid' | 'pending',
     date: new Date().toISOString().split('T')[0],
-    paymentReference: '',
-    status: 'paid' as 'paid' | 'pending',
-    date: new Date().toISOString().split('T')[0],
     isExempt: false,
     isIgtfExempt: false
 })

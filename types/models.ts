@@ -39,6 +39,8 @@ export interface Sale {
     payment_reference?: string
     amount: number
     date: string
+    created_at?: string // Added
+    client_name?: string // Added for UI helper
     currency?: 'USD' | 'VES'
     exchange_rate?: number
     subtotal?: number

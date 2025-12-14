@@ -16,6 +16,10 @@
 
 <!-- Sales Table -->
     <div class="glass-panel overflow-hidden">
+        <!-- DEBUG DATA -->
+        <div v-if="sales.length > 0" class="p-2 bg-black text-xs font-mono text-green-400 overflow-x-auto">
+             DEBUG: {{ JSON.stringify(sales[0]) }}
+        </div>
         <div v-if="sales.length > 0">
            <!-- Mobile Card View (Visible only on small screens) -->
            <div class="block md:hidden space-y-4">
@@ -34,7 +38,7 @@
                           {{ sale.payment_method }}
                       </div>
                       <div class="font-bold text-[var(--color-white)] text-lg">
-                          ${{ (sale.total_amount || 0).toFixed(2) }}
+                          ${{ (Number(sale.amount) || 0).toFixed(2) }}
                       </div>
                   </div>
                    <button @click="openDetailModal(sale)" class="w-full btn btn-sm bg-[var(--color-bg-dark)] hover:bg-[var(--color-border-subtle)] text-xs">
@@ -78,9 +82,9 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">
-                             <div class="font-bold font-mono text-lg text-emerald-400">
-                                ${{ (sale.total_amount || 0).toFixed(2) }}
-                             </div>
+                            <div class="font-bold font-mono text-lg text-emerald-400">
+                                ${{ (Number(sale.amount) || 0).toFixed(2) }}
+                            </div>
                         </td>
                          <td class="px-6 py-4 whitespace-nowrap text-right">
                             <button @click="openDetailModal(sale)" class="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-blue)] text-sm font-medium hover:underline">

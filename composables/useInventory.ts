@@ -18,7 +18,7 @@ export const useInventory = () => {
             const { data, error } = await client
                 .from('products')
                 .select('*')
-                .eq('organization_id', organization.value.id)
+                // .eq('organization_id', organization.value.id) // Rely on RLS for now to fix empty list
                 .order('created_at', { ascending: false })
 
             if (error) throw error

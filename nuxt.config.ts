@@ -11,7 +11,12 @@ export default defineNuxtConfig({
     '~/assets/css/velo-theme.css'
   ],
   supabase: {
-    redirect: false
+    redirect: false,
+    cookieOptions: {
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      sameSite: 'lax',
+      secure: true // Always secure for modern browsers/vercel
+    }
   },
   ssr: false
 })

@@ -18,7 +18,15 @@ export const useTransactions = () => {
     const fetchTransactions = async (filters: TransactionFilter = {}) => {
         if (!organization.value?.id) return
 
-        loading.value = true
+        // If applying filters, we generally WANT to show loading to indicate filtering is happening
+        // But for initial load (no filters or default), we can cache.
+        // Simplified: Use current length check. Use a refined strategy if needed.
+        const isFiltering = Object.keys(filters).length > 0
+
+        if (transactions.value.length === 0 || isFiltering) {
+            loading.value = true
+        }
+
         try {
             let query = client
                 .from('transactions')

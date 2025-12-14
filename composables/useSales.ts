@@ -11,10 +11,14 @@ export const useSales = () => {
     /**
      * Fetch recent sales
      */
-    const fetchSales = async () => {
+    const fetchSales = async (force = false) => {
         if (!organization.value?.id) return
 
-        loading.value = true
+        // Stale-while-revalidate: Only show loading if no data or forced
+        if (sales.value.length === 0 || force) {
+            loading.value = true
+        }
+
         try {
             const { data, error } = await client
                 .from('transactions')

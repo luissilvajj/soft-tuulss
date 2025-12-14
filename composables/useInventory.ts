@@ -4,7 +4,48 @@ export const useInventory = () => {
     const client = useSupabaseClient()
     const { organization } = useOrganization()
 
-    // Check usePermissions inside the component usage, not here to keep it pure logic
+    const loading = useState('inventory_loading', () => false)
+    const products = useState<Product[]>('inventory_products', () => [])
+
+    const fetchProducts = async (force = false) => {
+        if (!organization.value?.id) return
+
+        if (products.value.length === 0 || force) {
+            loading.value = true
+        }
+
+        try {
+            const { data, error } = await client
+                .from('products')
+                .select('*')
+                .eq('organization_id', organization.value.id)
+                .order('created_at', { ascending: false })
+
+            if (error) throw error
+            products.value = data as unknown as Product[]
+        } catch (e) {
+            console.error("Error fetching products", e)
+        } finally {
+            loading.value = false
+        }
+    }
+
+    const addProduct = async (productData: Partial<Product>) => {
+        if (!organization.value?.id) throw new Error('No Organization')
+
+        // Optimistic update or just wait for fetch? 
+        // Let's simplified wait pattern but could push to local state.
+
+        const { error } = await client.from('products').insert({
+            organization_id: organization.value.id,
+            ...productData
+        })
+
+        if (error) throw error
+
+        // Refresh list
+        await fetchProducts(true)
+    }
 
     const restockProduct = async (productId: string, quantity: number, costPerUnit: number) => {
         if (!organization.value?.id) throw new Error('No Organization')
@@ -18,8 +59,8 @@ export const useInventory = () => {
                 organization_id: organization.value.id,
                 type: 'expense',
                 amount: totalCost,
-                status: 'paid', // Assuming manual restock is already paid or credit logic handled elsewhere
-                payment_method: 'other', // Could clarify this in UI later
+                status: 'paid', // Assuming manual restock is already paid
+                payment_method: 'other',
                 date: new Date().toISOString()
             } as any)
             .select()
@@ -40,22 +81,9 @@ export const useInventory = () => {
 
         if (itemError) throw itemError
 
-        // 3. Update Product Stock (Atomic increment ideally, but simplified here)
-        // We will fetch the current stock first or use an RPC if concurrency is heavy.
-        // For MVP, read-modify-write is acceptable or use a separate SQL function.
-        // Let's rely on a fresh fetch for now, but ideally we'd use:
-        // update products set stock = stock + X where id = Y
-
-        // Let's do the RPC approach if we had one, or a direct raw update.
-        // Supabase allows .rpc() but we haven't defined 'increment_stock'.
-        // We'll trust the caller to refresh the UI.
-
-        // Actually, let's just do a direct increment update.
-        // We need the current product to do this safely? No, we can just do a view refresh.
-        // But to actually update the DB:
-
-        const { data: product } = await client.from('products').select('stock').eq('id', productId).single() as any
-        const currentStock = product?.stock || 0
+        // 3. Update Product Stock (Direct update as previously analyzed)
+        const product = products.value.find(p => p.id === productId)
+        const currentStock = product?.stock || 0 // Use local state if mostly fresh
 
         const { error: updateError } = await client
             .from('products')
@@ -64,10 +92,15 @@ export const useInventory = () => {
 
         if (updateError) throw updateError
 
+        await fetchProducts(true) // Updates UI
         return true
     }
 
     return {
+        products,
+        loading,
+        fetchProducts,
+        addProduct,
         restockProduct
     }
 }

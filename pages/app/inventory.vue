@@ -210,12 +210,9 @@ definePageMeta({
 useAuthGuard()
 
 const { organization, fetchOrganization } = useOrganization()
-const client = useSupabaseClient()
 const { canEditInventory } = usePermissions() // Check Perms
-const { restockProduct } = useInventory()
-
-const products = ref([])
-const loading = ref(true)
+// Use Destructured State & Methods from Composable
+const { products, loading, fetchProducts, addProduct: createProduct, restockProduct } = useInventory()
 
 // Restock Logic
 const showRestockModal = ref(false)
@@ -238,7 +235,7 @@ const handleRestock = async () => {
       await restockProduct(selectedProduct.value.id, restockForm.quantity, unitCost)
       alert('Stock actualizado correctamente')
       showRestockModal.value = false
-      fetchProducts() // Refresh list
+      // List already refreshed by composable
    } catch (e) {
       alert('Error: ' + e.message)
    } finally {
@@ -248,8 +245,18 @@ const handleRestock = async () => {
 
 const showModal = ref(false)
 
-// ... (omitting lines for brevity in search matching if possible, but replace_file_content requires exact block) 
-// Actually I'll match the top and bottom block to be safe.
+const openEditModal = (product) => {
+    // Implement edit if needed, or reuse add modal with prefill
+    // For now standard add modal
+    // ToDo: Edit Logic
+    alert('Edición pendiente de implementación') 
+}
+
+const confirmDelete = async (product) => {
+    if(!confirm('¿Eliminar producto?')) return
+    // ToDo: Delete Logic in Composable
+    alert('Borrado pendiente de implementación')
+}
 
 const saving = ref(false)
 
@@ -269,16 +276,6 @@ const lowStockCount = computed(() => {
    return products.value.filter(p => p.stock < 10).length
 })
 
-const fetchProducts = async () => {
-    try {
-        const { data, error } = await client.from('products').select('*').order('created_at', { ascending: false })
-        if (error) console.error(error)
-        else products.value = data || []
-    } catch (e) {
-        console.error("Error fetching products", e)
-    }
-}
-
 const openModal = () => showModal.value = true
 const closeModal = () => showModal.value = false
 
@@ -291,17 +288,13 @@ const addProduct = async () => {
 
   saving.value = true
   try {
-    const { error } = await client.from('products').insert({
-      organization_id: organization.value.id,
+    await createProduct({
       name: newProduct.value.name,
       sku: newProduct.value.sku,
       price: parseFloat(newProduct.value.price) || 0,
       stock: parseInt(newProduct.value.stock) || 0
     })
-
-    if (error) throw error
     
-    await fetchProducts()
     closeModal()
     newProduct.value = { name: '', sku: '', price: '', stock: '' }
   } catch (e) {
@@ -311,8 +304,14 @@ const addProduct = async () => {
   }
 }
 
+// Global watcher to ensure data loads on org change
+watch(() => organization.value?.id, (newId) => {
+    if (newId) fetchProducts()
+}, { immediate: true })
+
 onMounted(async () => {
-  await fetchOrganization()
-  fetchProducts()
+  if (!organization.value?.id) await fetchOrganization()
+  // Fetch is triggered by watcher or here if org already exists
+  if (organization.value?.id) fetchProducts()
 })
 </script>

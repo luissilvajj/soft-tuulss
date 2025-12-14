@@ -7,10 +7,13 @@
 
     <!-- Error State -->
     <div v-else-if="error" class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-400 mb-6">
-        <p class="font-bold">Error cargando datos:</p>
-        <p class="text-sm">{{ error.message }}</p>
+        <p class="font-bold">Error cargando datos: ({{ error.statusCode }})</p>
+        <p class="font-mono text-xs mt-2 bg-black/20 p-2 rounded">{{ error.message }}</p>
+        <p class="font-mono text-xs mt-2 bg-black/20 p-2 rounded text-yellow-300" v-if="error.data">
+            Server Msg: {{ error.data.statusMessage || error.data }}
+        </p>
         <p v-if="error.statusCode === 500" class="text-xs mt-2 text-white/50">
-            (Posible causa: Falta la SUPABASE_SERVICE_KEY en las variables de entorno)
+            (Si dice "Missing SUPABASE_SERVICE_KEY", verifica Vercel Env Vars)
         </p>
     </div>
 

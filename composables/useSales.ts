@@ -1,12 +1,98 @@
 import type { Sale, SaleItem, Product, Client } from '~/types/models'
 
+export interface CartItem {
+    product: Product
+    quantity: number
+    discount: number // Amount, not percentage, for simplicity to start (or handle both in UI)
+}
+
 export const useSales = () => {
     const client = useSupabaseClient()
-    const user = useSupabaseUser()
     const { organization } = useOrganization()
 
     const loading = useState('sales_loading', () => false)
     const sales = useState<Sale[]>('sales_list', () => [])
+
+    // --- Persistent State for "Active Sale" ---
+    // This allows navigating away to Inventory and coming back without losing data
+    const currentSale = useState('current_sale_state', () => ({
+        cart: [] as CartItem[],
+        clientId: '' as string,
+        paymentMethod: 'cash' as string,
+        paymentReference: '' as string,
+        status: 'paid' as 'paid' | 'pending',
+        date: new Date().toISOString().split('T')[0],
+        isExempt: false,
+        includeIgtf: false, // Renamed from isIgtfExempt (logic inverted)
+        globalDiscount: 0,
+        currency: 'USD' as 'USD' | 'VES',
+        exchangeRate: 0,
+        isMixedPayment: false,
+        mixedPayment: {
+            usdAmount: 0,
+            vesAmount: 0
+        }
+    }))
+
+    // --- Actions for Active Sale ---
+    const addToCart = (product: Product) => {
+        const existing = currentSale.value.cart.find(i => i.product.id === product.id)
+        if (existing) {
+            // Check stock limit
+            if (existing.quantity < product.stock) {
+                existing.quantity++
+            } else {
+                // Should show error, but return false to let UI handle it
+                return false
+            }
+        } else {
+            if (product.stock > 0) {
+                currentSale.value.cart.push({ product, quantity: 1, discount: 0 })
+            } else {
+                return false
+            }
+        }
+        return true
+    }
+
+    const removeFromCart = (index: number) => {
+        currentSale.value.cart.splice(index, 1)
+    }
+
+    const updateCartItemQty = (index: number, qty: number) => {
+        const item = currentSale.value.cart[index]
+        if (!item) return
+
+        // Stock Validation
+        if (qty > item.product.stock) {
+            item.quantity = item.product.stock
+            return false // Cap at stock
+        }
+        if (qty < 1) {
+            item.quantity = 1
+            return
+        }
+        item.quantity = qty
+        return true
+    }
+
+    const clearCurrentSale = () => {
+        currentSale.value = {
+            cart: [],
+            clientId: '',
+            paymentMethod: 'cash',
+            paymentReference: '',
+            status: 'paid',
+            date: new Date().toISOString().split('T')[0],
+            isExempt: false,
+            includeIgtf: false,
+            globalDiscount: 0,
+            currency: 'USD',
+            exchangeRate: currentSale.value.exchangeRate, // Keep rate
+            isMixedPayment: false,
+            mixedPayment: { usdAmount: 0, vesAmount: 0 }
+        }
+    }
 
     /**
      * Fetch recent sales
@@ -14,7 +100,6 @@ export const useSales = () => {
     const fetchSales = async (force = false) => {
         if (!organization.value?.id) return
 
-        // Stale-while-revalidate: Only show loading if no data or forced
         if (sales.value.length === 0 || force) {
             loading.value = true
         }
@@ -35,13 +120,11 @@ export const useSales = () => {
                 .order('date', { ascending: false })
 
             if (error) throw error
-            if (error) throw error
 
-            // Map data to match Sale interface (flatten client_name)
             sales.value = (data || []).map((s: any) => ({
                 ...s,
                 client_name: s.client?.name || 'Cliente Casual',
-                amount: s.amount || 0 // Ensure numeric
+                amount: s.amount || 0
             })) as unknown as Sale[]
         } catch (e) {
             console.error('Error fetching sales:', e)
@@ -51,26 +134,9 @@ export const useSales = () => {
     }
 
     /**
-     * Create a new sale with advanced fields
+     * Create a new sale
      */
-    const createSale = async (
-        saleData: {
-            clientId?: string
-            status: 'paid' | 'pending'
-            paymentMethod: string
-            paymentReference?: string
-            date: string
-            currency: 'USD' | 'VES'
-            exchangeRate: number
-            isExempt: boolean
-            subtotal: number
-            taxIva: number
-            taxIgtf: number
-            total: number
-            itemsSnapshot: any[] // Store items JSON for history
-        },
-        items: { productId: string; quantity: number; price: number }[]
-    ) => {
+    const createSale = async (payload: any) => {
         if (!organization.value?.id) throw new Error('Organization not found')
 
         loading.value = true
@@ -81,34 +147,35 @@ export const useSales = () => {
                 .insert({
                     organization_id: organization.value.id,
                     type: 'sale',
-                    amount: saleData.total, // Grand Total
-                    client_id: saleData.clientId,
-                    status: saleData.status,
-                    payment_method: saleData.paymentMethod,
-                    payment_reference: saleData.paymentReference,
-                    date: saleData.date,
-                    // New Fields
-                    currency: saleData.currency,
-                    exchange_rate: saleData.exchangeRate,
-                    subtotal: saleData.subtotal,
-                    tax_iva: saleData.taxIva,
-                    tax_igtf: saleData.taxIgtf,
-                    is_exempt: saleData.isExempt,
-                    items: saleData.itemsSnapshot,
-                    payment_details: saleData.paymentDetails // Pass JSONB
+                    amount: payload.total,
+                    client_id: payload.clientId,
+                    status: payload.status,
+                    payment_method: payload.paymentMethod,
+                    payment_reference: payload.paymentReference,
+                    date: payload.date,
+                    currency: payload.currency,
+                    exchange_rate: payload.exchangeRate,
+                    subtotal: payload.subtotal,
+                    tax_iva: payload.taxIva,
+                    tax_igtf: payload.taxIgtf,
+                    is_exempt: payload.isExempt,
+                    discount: payload.discount, // Global Discount
+                    items: payload.itemsSnapshot,
+                    payment_details: payload.paymentDetails
                 } as any)
                 .select()
                 .single()
 
             if (saleError) throw saleError
 
-            // 3. Insert Items (Legacy relation support + Stock deduction)
-            const formattedItems = items.map(item => ({
+            // 3. Insert Items
+            const formattedItems = payload.rawItems.map((item: any) => ({
                 organization_id: organization.value!.id,
                 transaction_id: sale.id,
                 product_id: item.productId,
                 quantity: item.quantity,
-                price_at_transaction: item.price
+                price_at_transaction: item.price,
+                discount: item.discount // Save item discount
             }))
 
             const { error: itemsError } = await client
@@ -117,21 +184,27 @@ export const useSales = () => {
 
             if (itemsError) throw itemsError
 
-            // 4. Update Stock (Simple client-side iteration for MVP - ideally RPC or Edge Function)
-            for (const item of items) {
+            // 4. Update Stock
+            for (const item of payload.rawItems) {
+                // Try RPC
                 const { error: stockError } = await client.rpc('decrement_stock', {
                     p_id: item.productId,
                     q: item.quantity
                 })
-                // fallback if RPC doesn't exist
+                // Fallback
                 if (stockError) {
-                    // Manual update (racy but works for MVP)
                     const { data: prod } = await client.from('products').select('stock').eq('id', item.productId).single()
                     if (prod) {
                         await client.from('products').update({ stock: prod.stock - item.quantity }).eq('id', item.productId)
                     }
                 }
             }
+
+            // Clear state after success
+            clearCurrentSale()
+
+            // Refresh List
+            await fetchSales(true)
 
             return sale
         } catch (e) {
@@ -145,13 +218,19 @@ export const useSales = () => {
     const deleteSale = async (id: string) => {
         const { error } = await client.from('transactions').delete().eq('id', id)
         if (error) throw error
+        await fetchSales(true)
     }
 
     return {
         sales,
+        currentSale, // Expose persistent state
         loading,
         fetchSales,
         createSale,
-        deleteSale
+        deleteSale,
+        addToCart,
+        removeFromCart,
+        updateCartItemQty,
+        clearCurrentSale
     }
 }

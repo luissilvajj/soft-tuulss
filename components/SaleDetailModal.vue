@@ -42,10 +42,10 @@
                     <tr v-for="(item, i) in displayItems" :key="i">
                         <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-center font-mono">{{ item.qty }}</td>
                         <td class="px-4 py-2 text-sm text-[var(--color-heading)]">{{ item.name }}</td>
-                        <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-right font-mono">
+                        <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-right font-mono whitespace-nowrap">
                             {{ formatMoney(item.price, showInVes ? 'VES' : 'USD') }}
                         </td>
-                        <td class="px-4 py-2 text-sm text-[var(--color-heading)] text-right font-mono">
+                        <td class="px-4 py-2 text-sm text-[var(--color-heading)] text-right font-mono whitespace-nowrap">
                              {{ formatMoney(item.price * item.qty, showInVes ? 'VES' : 'USD') }}
                         </td>
                     </tr>
@@ -66,7 +66,7 @@
                     <div class="flex justify-between text-lg font-bold text-[var(--color-heading)]">
                         <span>Total {{ showInVes ? 'Bolívares' : 'USD' }}</span>
                         <!-- If showing VES, use paidVesAmount. If USD, use baseUsdAmount -->
-                         <span class="font-mono">
+                         <span class="font-mono whitespace-nowrap">
                             {{ formatMoney(showInVes ? paidVesAmount : baseUsdAmount, showInVes ? 'VES' : 'USD') }}
                          </span>
                     </div>
@@ -82,17 +82,17 @@
                         </div>
                         <div v-if="sale.payment_details.usd_amount > 0" class="flex justify-between text-[var(--color-text-secondary)]">
                             <span>Pagado en Divisa</span>
-                            <span class="font-mono text-emerald-500">${{ Number(sale.payment_details.usd_amount).toFixed(2) }}</span>
+                            <span class="font-mono text-emerald-500 whitespace-nowrap">${{ Number(sale.payment_details.usd_amount).toFixed(2) }}</span>
                         </div>
                         <div v-if="sale.payment_details.ves_amount > 0" class="flex justify-between text-[var(--color-text-secondary)]">
                             <span>Pagado en Bolívares</span>
                             <div class="text-right">
-                                <span class="font-mono text-[var(--color-accent-blue)] block">Bs. {{ Number(sale.payment_details.ves_amount).toLocaleString('es-VE', { minimumFractionDigits: 2 }) }}</span>
+                                <span class="font-mono text-[var(--color-accent-blue)] block whitespace-nowrap">Bs. {{ Number(sale.payment_details.ves_amount).toLocaleString('es-VE', { minimumFractionDigits: 2 }) }}</span>
                             </div>
                         </div>
                          <div v-if="sale.tax_igtf > 0" class="flex justify-between text-[var(--color-text-secondary)] text-xs mt-1 pt-1 border-t border-[var(--color-border-subtle)] dashed">
                             <span>Base IGTF (Divisa)</span>
-                            <span class="font-mono">${{ Number(sale.payment_details.igtf_base || sale.payment_details.usd_amount).toFixed(2) }}</span>
+                            <span class="font-mono whitespace-nowrap">${{ Number(sale.payment_details.igtf_base || sale.payment_details.usd_amount).toFixed(2) }}</span>
                         </div>
                      </div>
 
@@ -104,7 +104,7 @@
                         </div>
                         <div class="flex justify-between text-[var(--color-text-secondary)] mb-1">
                             <span>Tasa de Cambio</span>
-                            <span class="font-mono">{{ Number(sale.exchange_rate).toFixed(2) }} Bs/$</span>
+                            <span class="font-mono whitespace-nowrap">{{ Number(sale.exchange_rate).toFixed(2) }} Bs/$</span>
                         </div>
                         
                         <div class="border-t border-[var(--color-border-subtle)] my-2"></div>
@@ -112,11 +112,11 @@
                         <!-- Reference Values -->
                         <div v-if="showInVes" class="flex justify-between font-medium text-emerald-500">
                             <span>Equivalente en Divisa</span>
-                            <span class="font-mono">{{ formatMoney(baseUsdAmount, 'USD') }}</span>
+                            <span class="font-mono whitespace-nowrap">{{ formatMoney(baseUsdAmount, 'USD') }}</span>
                         </div>
                         <div v-else class="flex justify-between font-medium text-[var(--color-accent-blue)]">
                             <span>Equivalente en Bolívares</span>
-                            <span class="font-mono">{{ formatMoney(paidVesAmount, 'VES') }}</span>
+                            <span class="font-mono whitespace-nowrap">{{ formatMoney(paidVesAmount, 'VES') }}</span>
                         </div>
                      </div>
 
@@ -124,7 +124,7 @@
                      <div v-if="sale.payment_reference" class="mt-2 pt-2 border-t border-[var(--color-border-subtle)]">
                         <div class="flex justify-between text-[var(--color-text-secondary)]">
                             <span>Referencia</span>
-                            <span class="font-mono">{{ sale.payment_reference }}</span>
+                            <span class="font-mono whitespace-nowrap">{{ sale.payment_reference }}</span>
                         </div>
                     </div>
                 </div>
@@ -133,6 +133,10 @@
     </div>
     
     <template #actions>
+        <button @click="printInvoice" class="btn bg-[var(--color-bg-subtle)] text-[var(--color-heading)] border border-[var(--color-border-subtle)] hover:bg-[var(--color-border-subtle)] transition-colors flex items-center gap-2 mr-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            Imprimir
+        </button>
         <button @click="$emit('close')" class="w-full btn btn-primary">
             Cerrar
         </button>
@@ -146,6 +150,17 @@ import type { Sale } from '~/types/models'
 const props = defineProps<{
   sale: Sale
 }>()
+
+const router = useRouter()
+
+// ... existing code ...
+
+const printInvoice = () => {
+    // Navigate to print page
+    const url = router.resolve(`/app/sales/print/${props.sale.id}`).href
+    window.open(url, '_blank')
+}
+</script>
 
 // State for the toggle (User asked for a button)
 const showInVes = ref(props.sale.currency === 'VES')

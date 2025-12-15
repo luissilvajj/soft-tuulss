@@ -40,6 +40,7 @@ export interface SaleItem {
     quantity: number
     price_at_transaction: number
     subtotal?: number // computed
+    discount?: number // New: Item discount amount
 }
 
 export interface Sale {
@@ -58,6 +59,7 @@ export interface Sale {
     currency?: 'USD' | 'VES'
     exchange_rate?: number
     subtotal?: number
+    discount?: number // New: Global discount amount
     tax_iva?: number
     tax_igtf?: number
     is_exempt?: boolean
@@ -69,3 +71,23 @@ export interface Sale {
         change?: number
     }
 }
+
+export interface Transaction {
+    id: string
+    organization_id: string
+    client_id?: string
+    client?: Client
+    type: 'sale' | 'expense' | 'income' | 'adjustment'
+    description: string
+    amount: number
+    currency: 'USD' | 'VES'
+    exchange_rate: number
+    payment_method: string
+    payment_reference?: string
+    date: string
+    created_at: string
+    status: string
+    items?: any[]
+    client_name?: string // Helper
+}
+

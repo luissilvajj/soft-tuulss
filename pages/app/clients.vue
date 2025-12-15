@@ -7,6 +7,17 @@
         <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Gestiona tu base de datos de clientes.</p>
       </div>
       <div class="flex items-center gap-3">
+        <!-- Search Bar -->
+        <div class="relative hidden md:block w-64">
+           <input 
+              v-model="searchQuery" 
+              type="text" 
+              placeholder="Buscar cliente..." 
+              class="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-bg-subtle)] text-[var(--color-white)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] transition-all"
+           />
+           <svg class="w-4 h-4 text-[var(--color-text-secondary)] absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+
         <!-- View Toggle -->
         <div class="flex bg-[var(--color-bg-subtle)] p-1 rounded-lg border border-[var(--color-border-subtle)]">
             <button 
@@ -38,6 +49,20 @@
             </span>
         </button>
       </div>
+      </div>
+    </div>
+    
+    <!-- Mobile Search (Visible only on small screens) -->
+    <div class="md:hidden mb-6">
+        <div class="relative w-full">
+           <input 
+              v-model="searchQuery" 
+              type="text" 
+              placeholder="Buscar cliente (Nombre, Email, CI/RIF)..." 
+              class="w-full pl-10 pr-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-subtle)] text-[var(--color-white)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] transition-all"
+           />
+           <svg class="w-5 h-5 text-[var(--color-text-secondary)] absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
     </div>
 
     <!-- Stats Review -->
@@ -58,10 +83,10 @@
       <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-accent-blue)]"></div>
     </div>
     
-    <div v-else-if="clients.length > 0">
+    <div v-else-if="filteredClients.length > 0">
         <!-- Grid View -->
         <div v-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
-            <div v-for="client in clients" :key="client.id" class="glass-panel p-6 hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden group">
+            <div v-for="client in filteredClients" :key="client.id" class="glass-panel p-6 hover:-translate-y-1 transition-transform duration-300 relative overflow-hidden group">
                  <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[var(--color-accent-blue)]/10 to-transparent rounded-bl-[100px] -mr-4 -mt-4"></div>
                  
                  <div class="relative z-10">
@@ -111,7 +136,7 @@
         <div v-else class="glass-panel overflow-hidden">
             <!-- Mobile Card View for List Mode -->
             <div class="block md:hidden space-y-4 p-4">
-                 <div v-for="client in clients" :key="client.id" class="bg-[var(--color-bg-subtle)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3 relative">
+                 <div v-for="client in filteredClients" :key="client.id" class="bg-[var(--color-bg-subtle)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3 relative">
                      <div class="flex items-start gap-4">
                          <div class="w-10 h-10 rounded-xl bg-[var(--color-bg-dark)] flex items-center justify-center text-lg font-bold text-[var(--color-accent-blue)] border border-[var(--color-border-subtle)]">
                              {{ client.name.charAt(0).toUpperCase() }}
@@ -156,7 +181,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[var(--color-border-subtle)]">
-                        <tr v-for="client in clients" :key="client.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors">
+                        <tr v-for="client in filteredClients" :key="client.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-lg bg-[var(--color-bg-dark)] flex items-center justify-center text-sm font-bold text-[var(--color-accent-blue)] border border-[var(--color-border-subtle)]">
@@ -250,22 +275,37 @@
 </template>
 
 <script setup>
+import { useClients } from '~/composables/useClients'
+
 definePageMeta({ layout: 'dashboard' })
 useAuthGuard()
 const supabase = useSupabaseClient()
 const { organization, fetchOrganization } = useOrganization()
+// Use Composable
+const { clients, loading, fetchClients, addClient, updateClient, deleteClient: removeClient } = useClients()
 
-const clients = ref([])
 const showModal = ref(false)
 const saving = ref(false)
 const viewMode = ref('grid')
 const editingId = ref(null)
-const newClient = ref({ name: '', email: '', phone: '', identity_document: '' })
+const newClient = ref({ name: '', email: '', phone: '', identity_document: '', address: '' })
 
-const fetchClients = async () => {
-    const { data } = await supabase.from('clients').select('*').order('created_at', { ascending: false })
-    if (data) clients.value = data
-}
+// Search Logic
+const searchQuery = ref('')
+
+const filteredClients = computed(() => {
+    if (!searchQuery.value) return clients.value
+    
+    const q = searchQuery.value.toLowerCase()
+    return clients.value.filter(c => {
+        return (
+            (c.name && c.name.toLowerCase().includes(q)) ||
+            (c.email && c.email.toLowerCase().includes(q)) ||
+            (c.identity_document && c.identity_document.toLowerCase().includes(q)) ||
+            (c.phone && c.phone.includes(q))
+        )
+    })
+})
 
 const openModal = (client = null) => {
     if (client) {
@@ -273,7 +313,7 @@ const openModal = (client = null) => {
         newClient.value = { ...client }
     } else {
         editingId.value = null
-        newClient.value = { name: '', email: '', phone: '', identity_document: '' }
+        newClient.value = { name: '', email: '', phone: '', identity_document: '', address: '' }
     }
     showModal.value = true
 }
@@ -281,27 +321,19 @@ const openModal = (client = null) => {
 const closeModal = () => {
     showModal.value = false
     editingId.value = null
-    newClient.value = { name: '', email: '', phone: '', identity_document: '' }
+    newClient.value = { name: '', email: '', phone: '', identity_document: '', address: '' }
 }
 
 const saveClient = async () => {
     if (!newClient.value.name || !organization.value) return
     saving.value = true
     try {
+        const payload = { ...newClient.value }
         if (editingId.value) {
-             const { error } = await supabase.from('clients')
-                .update({ ...newClient.value })
-                .eq('id', editingId.value)
-             if (error) throw error
+             await updateClient(editingId.value, payload)
         } else {
-            const { error } = await supabase.from('clients').insert({
-                organization_id: organization.value.id,
-                ...newClient.value
-            })
-            if (error) throw error
+             await addClient(payload)
         }
-        
-        await fetchClients()
         closeModal()
     } catch (e) {
         alert(e.message)
@@ -313,9 +345,7 @@ const saveClient = async () => {
 const deleteClient = async (id) => {
     if (!confirm('¿Estás seguro de eliminar este cliente?')) return
     try {
-        const { error } = await supabase.from('clients').delete().eq('id', id)
-        if (error) throw error
-        clients.value = clients.value.filter(c => c.id !== id)
+        await removeClient(id)
     } catch (e) {
         alert('Error eliminando: ' + e.message)
     }
@@ -327,8 +357,12 @@ const openWhatsapp = (client) => {
     window.open(`https://wa.me/${phone}`, '_blank')
 }
 
+watch(() => organization.value?.id, (newId) => {
+   if(newId) fetchClients()
+}, { immediate: true })
+
 onMounted(async () => {
-  await fetchOrganization()
-  fetchClients()
+  if(!organization.value?.id) await fetchOrganization()
+  if(organization.value?.id) fetchClients()
 })
 </script>

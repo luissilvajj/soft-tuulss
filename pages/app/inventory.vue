@@ -73,6 +73,9 @@
                           </span>
                       </div>
                       <div class="flex gap-2">
+                           <button @click="openRestockModal(product)" class="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors" title="Restock">
+                               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                           </button>
                            <button @click="openEditModal(product)" class="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                            </button>
@@ -124,6 +127,9 @@
                         </td>
                          <td class="px-6 py-4 text-right text-sm font-medium">
                             <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button @click="openRestockModal(product)" class="text-emerald-500 hover:text-emerald-400 p-1" title="Agregar Stock">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
                                 <button @click="openEditModal(product)" class="text-[var(--color-accent-blue)] hover:text-blue-400 p-1">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </button>
@@ -153,7 +159,7 @@
         </div>
     </div>
 
-    <!-- Modern Modal -->
+    <!-- Product Modal -->
     <AppModal
       :show="showModal"
       :title="isEditing ? 'Editar Producto' : 'Nuevo Producto'"
@@ -196,10 +202,40 @@
         </button>
       </template>
     </AppModal>
-    <!-- Debug Footer -->
-    <div class="fixed bottom-0 right-0 p-2 bg-black/80 text-[10px] text-white pointer-events-none opacity-50 z-50">
-        Role: {{ organization?.role || 'None' }} | ID: {{ organization?.id || 'None' }}
-    </div>
+
+    <!-- Restock Modal -->
+    <AppModal
+      :show="showRestockModal"
+      title="Agregar Stock"
+      description="Ingresa la cantidad a agregar al inventario."
+      @close="showRestockModal = false"
+    >
+        <div class="space-y-5">
+             <div class="p-4 bg-[var(--color-bg-subtle)] rounded-lg text-sm">
+                <p>Producto: <span class="font-bold text-[var(--color-white)]">{{ restockTarget?.name }}</span></p>
+                <p>Stock Actual: <span class="font-mono text-[var(--color-accent-blue)]">{{ restockTarget?.stock }}</span></p>
+             </div>
+             
+             <div>
+                <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Cantidad a Agregar</label>
+                <input v-model.number="restockForm.quantity" type="number" min="1" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none" placeholder="0">
+             </div>
+
+             <div>
+                <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Costo Unitario ($)</label>
+                <input v-model.number="restockForm.cost" type="number" min="0" step="0.01" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none" placeholder="0.00">
+             </div>
+        </div>
+
+        <template #actions>
+             <button @click="handleRestock" type="button" class="btn btn-primary" :disabled="saving || restockForm.quantity <= 0">
+                 {{ saving ? 'Procesando...' : 'Agregar Stock' }}
+             </button>
+             <button @click="showRestockModal = false" type="button" class="px-6 py-2.5 text-sm font-bold text-[var(--color-text-secondary)] bg-transparent border border-[var(--color-border-subtle)] rounded-xl hover:bg-[var(--color-bg-dark)] focus:outline-none transition-colors">
+               Cancelar
+             </button>
+        </template>
+    </AppModal>
   </div>
 </template>
 
@@ -214,15 +250,23 @@ definePageMeta({
 useAuthGuard()
 
 const { organization, fetchOrganization } = useOrganization()
-const { canEditInventory } = usePermissions() // Check Perms
-// Use Destructured State & Methods from Composable
+const { canEditInventory } = usePermissions()
 const { products, loading, fetchProducts, addProduct: createProduct, updateProduct, restockProduct } = useInventory()
+const client = useSupabaseClient() // For delete override
 
-// ... (Restock Logic remains same)
-
+// Product Form Logic
 const showModal = ref(false)
 const isEditing = ref(false)
 const editingId = ref(null)
+const saving = ref(false)
+
+const newProduct = ref({
+  name: '',
+  sku: '',
+  price: '',
+  cost: '',
+  stock: ''
+})
 
 const openEditModal = (product) => {
     isEditing.value = true
@@ -238,22 +282,15 @@ const openEditModal = (product) => {
 }
 
 const confirmDelete = async (product) => {
-    if(!confirm('¿Eliminar producto?')) return
-    // ToDo: Delete Logic in Composable
-    alert('Borrado pendiente de implementación')
+    if(!confirm('¿Eliminar producto "' + product.name + '"?')) return
+    try {
+        const { error } = await client.from('products').delete().eq('id', product.id)
+        if (error) throw error
+        await fetchProducts(true)
+    } catch (e) {
+        alert('Error al eliminar: ' + e.message)
+    }
 }
-
-const saving = ref(false)
-
-const newProduct = ref({
-  name: '',
-  sku: '',
-  price: '',
-  cost: '',
-  stock: ''
-})
-
-// ... (Metrics remain same)
 
 const openModal = () => {
     isEditing.value = false
@@ -271,7 +308,7 @@ const closeModal = () => {
 
 const handleSaveProduct = async () => {
   if (!organization.value) {
-    alert('Error: No se ha detectado una organización activa. Por favor recarga la página o contacta soporte.')
+    alert('Error: No se ha detectado una organización activa.')
     return
   }
   if (!newProduct.value.name) return
@@ -300,14 +337,46 @@ const handleSaveProduct = async () => {
   }
 }
 
-// Global watcher to ensure data loads on org change
+// Restock Logic
+const showRestockModal = ref(false)
+const restockTarget = ref(null)
+const restockForm = ref({ quantity: 0, cost: 0 })
+
+const openRestockModal = (product) => {
+    restockTarget.value = product
+    restockForm.value = { quantity: 1, cost: product.cost || 0 }
+    showRestockModal.value = true
+}
+
+const handleRestock = async () => {
+    if (!restockTarget.value) return
+    saving.value = true
+    try {
+        await restockProduct(restockTarget.value.id, restockForm.value.quantity, restockForm.value.cost)
+        showRestockModal.value = false
+        alert('Stock actualizado')
+    } catch (e) {
+        alert('Error: ' + e.message)
+    } finally {
+        saving.value = false
+    }
+}
+
+// Metrics
+const totalInventoryValue = computed(() => {
+    return products.value.reduce((acc, p) => acc + (p.price * p.stock), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+})
+
+const lowStockCount = computed(() => {
+    return products.value.filter(p => p.stock <= (p.min_stock || 0)).length
+})
+
 watch(() => organization.value?.id, (newId) => {
     if (newId) fetchProducts()
 }, { immediate: true })
 
 onMounted(async () => {
   if (!organization.value?.id) await fetchOrganization()
-  // Fetch is triggered by watcher or here if org already exists
   if (organization.value?.id) fetchProducts()
 })
 </script>

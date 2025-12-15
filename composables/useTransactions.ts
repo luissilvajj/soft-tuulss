@@ -83,14 +83,15 @@ export const useTransactions = () => {
                     quantity,
                     created_at,
                     product:products(name),
-                    transaction:transactions(
+                    transaction:transactions!inner(
                         type,
                         description,
                         date,
-                        client_id
+                        client_id,
+                        organization_id
                     )
                 `)
-                .eq('organization_id', organization.value.id)
+                .eq('transaction.organization_id', organization.value.id)
                 .order('created_at', { ascending: false })
 
             if (error) throw error

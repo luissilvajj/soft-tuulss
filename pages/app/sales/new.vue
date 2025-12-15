@@ -200,22 +200,22 @@
                 <div class="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-2">
                     <div class="flex justify-between text-sm text-[var(--color-text-primary)]">
                         <span class="text-gray-500">Subtotal</span>
-                        <span class="font-medium">{{ formatPrice(financials.subtotal) }}</span>
+                        <span class="font-medium">{{ formatPrice(displayFinancials.subtotal) }}</span>
                     </div>
                     <div class="flex justify-between text-sm text-[var(--color-text-primary)]">
                         <span class="text-gray-500">IVA (16%)</span>
-                         <span class="font-medium">{{ formatPrice(financials.taxIva) }}</span>
+                         <span class="font-medium">{{ formatPrice(displayFinancials.taxIva) }}</span>
                     </div>
                     <div v-if="financials.taxIgtf > 0" class="flex justify-between text-sm text-[var(--color-text-primary)]">
                         <span class="text-gray-500">IGTF (3%)</span>
-                         <span class="font-medium">{{ formatPrice(financials.taxIgtf) }}</span>
+                         <span class="font-medium">{{ formatPrice(displayFinancials.taxIgtf) }}</span>
                     </div>
                     <div class="flex justify-between items-center text-lg font-bold border-t border-gray-100 dark:border-gray-800 pt-3 mt-2 text-[var(--color-text-primary)]">
                         <span>Total</span>
-                        <span>{{ formatPrice(financials.total) }}</span>
+                        <span>{{ formatPrice(displayFinancials.total) }}</span>
                     </div>
                      <p class="text-right text-xs text-gray-400">
-                        ~ {{ currency === 'USD' ? `Bs. ${(financials.total * exchangeRate).toLocaleString()}` : `$ ${(financials.total / exchangeRate).toLocaleString()}` }}
+                        ~ {{ currency === 'USD' ? `Bs. ${(financials.total * exchangeRate).toLocaleString()}` : `$ ${(financials.total).toLocaleString()}` }}
                      </p>
                 </div>
 
@@ -454,37 +454,60 @@ const formatPrice = (amount: number) => {
 }
 
 const financials = computed(() => {
-    let rawSubtotalUSD = cart.value.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
-    let subtotal = currency.value === 'USD' ? rawSubtotalUSD : rawSubtotalUSD * exchangeRate.value
+    // Base Calculation (Always USD)
+    let subtotalUSD = cart.value.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
     
-    let taxIva = !form.isExempt ? subtotal * 0.16 : 0
-    let taxIgtf = (currency.value === 'USD' && form.paymentMethod === 'cash' && !form.isIgtfExempt) ? (subtotal + taxIva) * 0.03 : 0
-    const total = subtotal + taxIva + taxIgtf
+    // Tax Logic
+    let taxIvaUSD = !form.isExempt ? subtotalUSD * 0.16 : 0
 
-    return { subtotal, taxIva, taxIgtf, total }
+    // IGTF Logic: Applies only if paying in Foreign Currency (USD) and method is Cash
+    // If currency is VES, we assume payment in Bs, so no IGTF (usually).
+    let taxIgtfUSD = (currency.value === 'USD' && form.paymentMethod === 'cash' && !form.isIgtfExempt) ? (subtotalUSD + taxIvaUSD) * 0.03 : 0
+    
+    const totalUSD = subtotalUSD + taxIvaUSD + taxIgtfUSD
+
+    return { 
+        subtotal: subtotalUSD, 
+        taxIva: taxIvaUSD, 
+        taxIgtf: taxIgtfUSD, 
+        total: totalUSD 
+    }
+})
+
+// Display Financials (For UI only)
+const displayFinancials = computed(() => {
+    const f = financials.value
+    const rate = currency.value === 'VES' ? exchangeRate.value : 1
+    return {
+        subtotal: f.subtotal * rate,
+        taxIva: f.taxIva * rate,
+        taxIgtf: f.taxIgtf * rate,
+        total: f.total * rate
+    }
 })
 
 const handleCheckout = async () => {
     if (cart.value.length === 0) return
     try {
+        // ALWAYS save as USD transaction
         await createSale({
             clientId: form.clientId || undefined,
             status: form.status,
             paymentMethod: form.paymentMethod,
             paymentReference: form.paymentReference,
             date: form.date,
-            currency: currency.value,
+            currency: 'USD', // Enforce USD base
             exchangeRate: exchangeRate.value,
             isExempt: form.isExempt,
-            subtotal: financials.value.subtotal,
-            taxIva: financials.value.taxIva,
-            taxIgtf: financials.value.taxIgtf,
-            total: financials.value.total,
+            subtotal: financials.value.subtotal, // USD
+            taxIva: financials.value.taxIva,     // USD
+            taxIgtf: financials.value.taxIgtf,   // USD
+            total: financials.value.total,       // USD
             itemsSnapshot: cart.value.map(i => ({
                 id: i.product.id,
                 name: i.product.name,
                 qty: i.quantity,
-                price: i.product.price 
+                price: i.product.price // Base price is USD
             }))
         }, cart.value.map(i => ({ productId: i.product.id, quantity: i.quantity, price: i.product.price })))
         

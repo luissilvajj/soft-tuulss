@@ -396,7 +396,7 @@ const clientSelectorKey = ref(0) // Force re-render of selector
 const savingClient = ref(false)
 const newClient = ref({ name: '', email: '', phone: '', identity_document: '' })
 const allProducts = ref<Product[]>([])
-const loadingProducts = ref(true)
+const loadingProducts = ref(false)
 
 // --- Computed Config ---
 const availableMethods = computed(() => {
@@ -476,10 +476,13 @@ const fetchExchangeRate = async () => {
 }
 
 onMounted(() => {
-    fetchProducts()
     fetchExchangeRate()
     searchInput.value?.focus()
 })
+
+watch(() => organization.value?.id, (newId) => {
+    if (newId) fetchProducts()
+}, { immediate: true })
 
 const searchResults = computed(() => {
     if (!searchQuery.value) return []

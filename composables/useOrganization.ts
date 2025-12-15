@@ -14,26 +14,24 @@ export const useOrganization = () => {
 
         loading.value = true
         try {
-            loading.value = true
-            try {
-                // Use Server API to bypass RLS issues
-                const data = await $fetch('/api/me/organization')
+            // Use Server API to bypass RLS issues
+            const data = await $fetch('/api/me/organization')
 
-                if (data) {
-                    organization.value = data
-                }
-            } catch (e) {
-                console.error('Error fetching organization:', e)
-            } finally {
-                loading.value = false
+            if (data) {
+                organization.value = data
             }
-
-            return organization.value
+        } catch (e) {
+            console.error('Error fetching organization:', e)
+        } finally {
+            loading.value = false
         }
+
+        return organization.value
+    }
 
     return {
-            organization,
-            loading,
-            fetchOrganization
-        }
+        organization,
+        loading,
+        fetchOrganization
     }
+}

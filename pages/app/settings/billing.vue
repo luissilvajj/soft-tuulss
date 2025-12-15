@@ -306,14 +306,27 @@ const openPaymentModal = async (plan: string, price: number) => {
 
 const submitPayment = async () => {
     submittingPayment.value = true
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 1500))
-    
-    successMessage.value = '¡Pago reportado con éxito! Te notificaremos al activarlo.'
-    submittingPayment.value = false
-    setTimeout(() => {
-        showPaymentModal.value = false
-    }, 2000)
+    try {
+        await $fetch('/api/payments/report', {
+            method: 'POST',
+            body: {
+                reference: paymentForm.value.reference,
+                date: paymentForm.value.date,
+                amount: paymentForm.value.amount,
+                plan: selectedPlan.value,
+                organization_id: organization.value?.id
+            }
+        })
+        
+        successMessage.value = '¡Pago reportado con éxito! Te notificaremos al activarlo.'
+        setTimeout(() => {
+            showPaymentModal.value = false
+        }, 2000)
+    } catch (e: any) {
+        alert('Error reportando pago: ' + e.message)
+    } finally {
+        submittingPayment.value = false
+    }
 }
 
 const trialDaysLeft = computed(() => {

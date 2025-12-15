@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
             source: 'BCV (via API)',
             last_update: lastUpdate
         }
-    } catch (e) {
+    } catch (e: any) {
         console.error('Error fetching BCV rate:', e)
         // Fallback hardcoded (safe failover) to avoid breaking UI if API down
         return {

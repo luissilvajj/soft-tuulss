@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
         console.error('Error fetching BCV rate:', e)
         // Fallback hardcoded (safe failover) to avoid breaking UI if API down
         return {
-            rate: 60.00, // Update this manually if needed
+            rate: 270.79, // Updated Dec 15 2025 based on user input
             source: 'Fallback',
             error: e.message
         }

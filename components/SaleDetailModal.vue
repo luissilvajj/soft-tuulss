@@ -153,14 +153,11 @@ const props = defineProps<{
 
 const router = useRouter()
 
-// ... existing code ...
-
 const printInvoice = () => {
     // Navigate to print page
     const url = router.resolve(`/app/sales/print/${props.sale.id}`).href
     window.open(url, '_blank')
 }
-</script>
 
 // State for the toggle (User asked for a button)
 const showInVes = ref(props.sale.currency === 'VES')

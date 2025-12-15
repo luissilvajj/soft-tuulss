@@ -49,7 +49,7 @@
             </span>
         </button>
       </div>
-      </div>
+
     </div>
     
     <!-- Mobile Search (Visible only on small screens) -->

@@ -4,13 +4,12 @@ export default defineEventHandler(async (event) => {
         // Option 2: Use a reliable community API that scrapes BCV
         // We will use a reliable public API that mirrors BCV to ensure stability for the user's business.
 
-        // Using pydolarvenezuela-api which is very popular and reliable
-        const response = await $fetch('https://pydolarvenezuela-api.vercel.app/api/v1/dollar?page=bcv') as any
+        // Using ve.dolarapi.com (Reliable and free)
+        const response = await $fetch('https://ve.dolarapi.com/v1/dolares/oficial') as any
 
-        // Structure check (adjust based on actual API response)
-        // Usually returns { monitors: { usd: { price: 36.5, ... } } }
-        const rate = response?.monitors?.usd?.price || 0
-        const lastUpdate = response?.monitors?.usd?.last_update || new Date().toISOString()
+        // Structure check: { Average: 270.79, ... } -> actually { promedio: 270.79 }
+        const rate = response?.promedio || 0
+        const lastUpdate = response?.fechaActualizacion || new Date().toISOString()
 
         if (!rate) {
             throw new Error('Rate not found in API')
@@ -18,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
         return {
             rate: parseFloat(rate),
-            source: 'BCV (via API)',
+            source: 'BCV (DolarApi)',
             last_update: lastUpdate
         }
     } catch (e: any) {

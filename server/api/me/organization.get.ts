@@ -8,6 +8,14 @@ export default defineEventHandler(async (event) => {
             return { error: 'Unauthorized: No user session' }
         }
 
+        // DEBUG: Strict User ID Check
+        if (!user.id) {
+            return {
+                error: 'User ID Undefined',
+                debugUser: user // Dump the whole user object to see what's inside
+            }
+        }
+
         const config = useRuntimeConfig()
         const serviceKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY
         const url = process.env.SUPABASE_URL

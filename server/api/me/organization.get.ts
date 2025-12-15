@@ -9,7 +9,8 @@ export default defineEventHandler(async (event) => {
         }
 
         // FIX: user.id might be missing in some contexts, use user.sub (Subject) as fallback
-        const userId = user.id || user.sub
+        // Cast to any because 'sub' is not in the standard User type definition
+        const userId = user.id || (user as any).sub
 
         // DEBUG: Strict User ID Check
         if (!userId) {

@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
     const { data, error } = await supabaseAdmin
         .from('payment_reports')
         .insert({
-            user_id: user.id || user.sub,
+            user_id: user.id || (user as any).sub,
             organization_id: organization_id,
             reference_number: reference,
             payment_date: date,

@@ -153,13 +153,13 @@
                      <ClientSelector :key="clientSelectorKey" v-model="form.clientId" @create-client="showClientModal = true" />
                 </div>
 
-                <!-- Payment Method -->
+                <!-- Payment Method & Mixed Logic -->
                 <div>
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Método de Pago</label>
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-2 gap-2 mb-4">
                         <button 
                             v-for="method in availableMethods" :key="method.id"
-                            @click="form.paymentMethod = method.id"
+                            @click="setPaymentMethod(method.id)"
                             :class="[
                                 'px-3 py-2 text-sm border rounded-md transition-all text-left flex items-center justify-between',
                                 form.paymentMethod === method.id 
@@ -170,6 +170,47 @@
                             {{ method.label }}
                             <div v-if="form.paymentMethod === method.id" class="w-2 h-2 rounded-full bg-blue-600"></div>
                         </button>
+                    </div>
+
+                    <!-- Mixed Payment / Amounts Section -->
+                    <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700 space-y-3">
+                         <div class="flex items-center justify-between">
+                            <label class="text-xs font-semibold text-gray-500 uppercase">Desglose de Pago</label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <span class="text-xs text-blue-600 font-medium">Pago Mixto / Exacto</span>
+                                <input type="checkbox" v-model="isMixedPayment" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            </label>
+                         </div>
+                         
+                         <div v-if="isMixedPayment" class="space-y-3 pt-2">
+                             <!-- USD Payment Input -->
+                             <div>
+                                 <label class="text-xs text-gray-400 block mb-1">Monto en Divisa ($)</label>
+                                 <input 
+                                    v-model.number="mixedPayment.usdAmount" 
+                                    type="number" 
+                                    class="w-full bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-md px-3 py-2 text-sm font-mono focus:border-blue-500 outline-none"
+                                    placeholder="0.00"
+                                 >
+                             </div>
+                             <!-- VES Payment Input -->
+                             <div>
+                                 <label class="text-xs text-gray-400 block mb-1">Monto en Bolívares (Bs)</label>
+                                 <input 
+                                    v-model.number="mixedPayment.vesAmount" 
+                                    type="number" 
+                                    class="w-full bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-md px-3 py-2 text-sm font-mono focus:border-blue-500 outline-none"
+                                    placeholder="0.00"
+                                 >
+                             </div>
+                             <!-- Remainder/Change Display -->
+                             <div class="flex justify-between text-xs pt-2 border-t border-gray-200 dark:border-gray-700">
+                                 <span class="text-gray-500">Restante por Pagar:</span>
+                                 <span :class="remainingDue > 0.01 ? 'text-red-500 font-bold' : 'text-green-500 font-bold'">
+                                     ${{ remainingDue.toFixed(2) }}
+                                 </span>
+                             </div>
+                         </div>
                     </div>
                 </div>
 
@@ -207,7 +248,7 @@
                          <span class="font-medium">{{ formatPrice(displayFinancials.taxIva) }}</span>
                     </div>
                     <div v-if="financials.taxIgtf > 0" class="flex justify-between text-sm text-[var(--color-text-primary)]">
-                        <span class="text-gray-500">IGTF (3%)</span>
+                        <span class="text-gray-500">IGTF (3% de ${{ igtfBaseAmount.toFixed(2) }})</span>
                          <span class="font-medium">{{ formatPrice(displayFinancials.taxIgtf) }}</span>
                     </div>
                     <div class="flex justify-between items-center text-lg font-bold border-t border-gray-100 dark:border-gray-800 pt-3 mt-2 text-[var(--color-text-primary)]">
@@ -222,11 +263,14 @@
                 <!-- Checkout Button -->
                  <button 
                      @click="handleCheckout"
-                     :disabled="loading || cart.length === 0 || (needsReference && !form.paymentReference)"
+                     :disabled="loading || cart.length === 0 || (needsReference && !form.paymentReference) || (isMixedPayment && remainingDue > 0.05)"
                      class="w-full bg-black dark:bg-white text-white dark:text-black py-3 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-gray-200 dark:shadow-none"
                  >
                      {{ loading ? 'Procesando...' : 'Cobrar' }}
                  </button>
+            </div>
+        </div>
+    </div>
             </div>
         </div>
     </div>
@@ -446,6 +490,44 @@ const removeFromCart = (index: number) => { cart.value.splice(index, 1) }
 const incrementQty = (index: number) => { if (cart.value[index].quantity < cart.value[index].product.stock) cart.value[index].quantity++ }
 const decrementQty = (index: number) => { cart.value[index].quantity > 1 ? cart.value[index].quantity-- : removeFromCart(index) }
 
+const isMixedPayment = ref(false)
+const mixedPayment = reactive({
+    usdAmount: 0,
+    vesAmount: 0
+})
+
+const setPaymentMethod = (id: string) => {
+    form.paymentMethod = id
+    // Reset mixed logic defaults on method change for convenience
+    // If Cash $, default USD amount to full? Not necessarily, let user type.
+}
+
+// Calculate IGTF Base
+const igtfBaseAmount = computed(() => {
+    // If mixed payment, base is whatever user typed in USD Amount
+    if (isMixedPayment.value) {
+        return mixedPayment.usdAmount
+    }
+    // If standard payment:
+    // IGTF applies if Paying in USD Cash (or maybe others if configured, usually just Cash/Zelle)
+    // Here we assume standard 'cash' (USD) triggers full IGTF unless exempt.
+    if (currency.value === 'USD' && form.paymentMethod === 'cash') {
+         // It's full amount minus IGTF itself... wait, IGTF is added ON TOP.
+         // So base is Subtotal + IVA.
+         return financials.value.subtotal + financials.value.taxIva
+    }
+    return 0
+})
+
+const remainingDue = computed(() => {
+    if (!isMixedPayment.value) return 0
+    const totalDue = financials.value.total
+    const paidUSD = mixedPayment.usdAmount
+    const paidVES_in_USD = mixedPayment.vesAmount / (exchangeRate.value || 1)
+    
+    return Math.max(0, totalDue - (paidUSD + paidVES_in_USD))
+})
+
 // --- Financial ---
 const formatPrice = (amount: number) => {
     return currency.value === 'USD' 
@@ -460,9 +542,18 @@ const financials = computed(() => {
     // Tax Logic
     let taxIvaUSD = !form.isExempt ? subtotalUSD * 0.16 : 0
 
-    // IGTF Logic: Applies only if paying in Foreign Currency (USD) and method is Cash
-    // If currency is VES, we assume payment in Bs, so no IGTF (usually).
-    let taxIgtfUSD = (currency.value === 'USD' && form.paymentMethod === 'cash' && !form.isIgtfExempt) ? (subtotalUSD + taxIvaUSD) * 0.03 : 0
+    // IGTF Logic
+    // If Mixed: 3% of the USD Part
+    // If Not Mixed but USD Cash: 3% of (Subtotal+IVA)
+    let igtfBase = 0
+    
+    if (isMixedPayment.value) {
+        igtfBase = mixedPayment.usdAmount
+    } else if (!form.isIgtfExempt && currency.value === 'USD' && form.paymentMethod === 'cash') {
+        igtfBase = subtotalUSD + taxIvaUSD
+    }
+
+    let taxIgtfUSD = (igtfBase > 0 && !form.isIgtfExempt) ? igtfBase * 0.03 : 0
     
     const totalUSD = subtotalUSD + taxIvaUSD + taxIgtfUSD
 
@@ -489,6 +580,13 @@ const displayFinancials = computed(() => {
 const handleCheckout = async () => {
     if (cart.value.length === 0) return
     try {
+        // Construct Payment Details
+        const paymentDetails = isMixedPayment.value ? {
+            usd_amount: mixedPayment.usdAmount,
+            ves_amount: mixedPayment.vesAmount,
+            igtf_base: igtfBaseAmount.value
+        } : (currency.value === 'USD' ? { usd_amount: financials.value.total } : { ves_amount: financials.value.total * exchangeRate.value })
+
         // ALWAYS save as USD transaction
         await createSale({
             clientId: form.clientId || undefined,
@@ -496,13 +594,14 @@ const handleCheckout = async () => {
             paymentMethod: form.paymentMethod,
             paymentReference: form.paymentReference,
             date: form.date,
-            currency: 'USD', // Enforce USD base
+            currency: isMixedPayment.value ? 'MIXED' : currency.value, // Mark as MIXED if split
             exchangeRate: exchangeRate.value,
             isExempt: form.isExempt,
             subtotal: financials.value.subtotal, // USD
             taxIva: financials.value.taxIva,     // USD
             taxIgtf: financials.value.taxIgtf,   // USD
             total: financials.value.total,       // USD
+            paymentDetails: paymentDetails,      // NEW FIELD
             itemsSnapshot: cart.value.map(i => ({
                 id: i.product.id,
                 name: i.product.name,

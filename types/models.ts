@@ -61,4 +61,10 @@ export interface Sale {
     tax_igtf?: number
     is_exempt?: boolean
     items?: SaleItem[]
+    payment_details?: {
+        usd_amount?: number
+        ves_amount?: number
+        igtf_base?: number
+        change?: number
+    }
 }

@@ -94,7 +94,8 @@ export const useSales = () => {
                     tax_iva: saleData.taxIva,
                     tax_igtf: saleData.taxIgtf,
                     is_exempt: saleData.isExempt,
-                    items: saleData.itemsSnapshot
+                    items: saleData.itemsSnapshot,
+                    payment_details: saleData.paymentDetails // Pass JSONB
                 } as any)
                 .select()
                 .single()

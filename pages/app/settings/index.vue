@@ -410,13 +410,15 @@ const inviteUser = async () => {
          throw new Error('No se pudo detectar la organización. Recarga la página.')
       }
 
-      console.log('Sending RPC to p_org_id:', orgId)
-      const { data, error } = await client.rpc('add_team_member', {
-         p_org_id: orgId,
-         p_email: inviteEmail.value
-      })
+      console.log('Sending API Request to invite:', inviteEmail.value)
       
-      if (error) throw error
+      await $fetch('/api/invite', {
+          method: 'POST',
+          body: {
+              email: inviteEmail.value,
+              orgId: orgId
+          }
+      })
       
       console.log('Invite Success')
       inviteStatus.value = 'success'

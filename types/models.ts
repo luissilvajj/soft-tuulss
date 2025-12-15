@@ -17,6 +17,7 @@ export interface Product {
     name: string
     sku?: string
     price: number
+    cost?: number // Added cost
     stock: number
     created_at: string
 }

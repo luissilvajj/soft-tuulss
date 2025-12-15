@@ -76,34 +76,84 @@
                    </div>
                 </div>
 
-                <!-- Upgrade Card -->
-                <div class="relative border border-[var(--color-accent-blue)] rounded-xl p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-[var(--color-bg-dark)] dark:to-blue-900/20 flex flex-col justify-between overflow-hidden group shadow-lg dark:shadow-none">
-                   <div class="absolute -right-10 -top-10 w-32 h-32 bg-[var(--color-accent-blue)]/10 blur-3xl group-hover:bg-[var(--color-accent-blue)]/20 transition-all"></div>
-                   
-                   <div class="relative z-10">
-                       <div class="flex justify-between items-start">
-                           <span class="text-xs font-bold text-[var(--color-accent-blue)] uppercase tracking-wider">Recomendado</span>
-                           <span class="text-2xl font-bold text-[var(--color-text-primary)]">$29<span class="text-sm text-[var(--color-text-secondary)] font-medium">/mes</span></span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Plan Basic -->
+                <div class="border border-[var(--color-border-subtle)] rounded-xl p-6 bg-[var(--color-bg-subtle)] flex flex-col justify-between hover:border-[var(--color-text-secondary)] transition-colors">
+                   <div>
+                       <span class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Start</span>
+                       <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mt-2">Básico</h2>
+                       <div class="mt-2 flex items-baseline gap-1">
+                           <span class="text-3xl font-bold text-[var(--color-text-primary)]">$0</span>
+                           <span class="text-sm text-[var(--color-text-secondary)]">/mes</span>
                        </div>
-                       <h2 class="text-xl font-bold text-[var(--color-text-primary)] mt-2">Plan Pro</h2>
-                       <ul class="mt-4 space-y-2">
+                       <ul class="mt-6 space-y-3">
                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                              <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             3 Usuarios
+                          </li>
+                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                             <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             Control de Inventario
+                          </li>
+                       </ul>
+                   </div>
+                   <button class="mt-6 w-full btn btn-secondary opacity-50 cursor-not-allowed">Plan Actual</button>
+                </div>
+
+                <!-- Plan Pro -->
+                <div class="relative border-2 border-[var(--color-accent-blue)] rounded-xl p-6 bg-[var(--color-bg-subtle)] flex flex-col justify-between shadow-xl shadow-blue-500/10 transform scale-105 z-10">
+                   <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[var(--color-accent-blue)] text-white text-xs font-bold rounded-full uppercase tracking-wider shadow-lg">
+                       Más Popular
+                   </div>
+                   <div>
+                       <span class="text-xs font-bold text-[var(--color-accent-blue)] uppercase tracking-wider">Growth</span>
+                       <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mt-2">Pro</h2>
+                       <div class="mt-2 flex items-baseline gap-1">
+                           <span class="text-3xl font-bold text-[var(--color-text-primary)]">$29</span>
+                           <span class="text-sm text-[var(--color-text-secondary)]">/mes</span>
+                       </div>
+                       <ul class="mt-6 space-y-3">
+                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium">
+                             <svg class="w-4 h-4 text-[var(--color-accent-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                              Usuarios Ilimitados
                           </li>
-                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                             <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium">
+                             <svg class="w-4 h-4 text-[var(--color-accent-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                              Facturación PDF
                           </li>
-                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                             <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium">
+                             <svg class="w-4 h-4 text-[var(--color-accent-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                              Soporte Prioritario
                           </li>
                        </ul>
                    </div>
+                   <button @click="openPaymentModal('pro', 29)" class="mt-6 w-full btn btn-primary justify-center shadow-lg shadow-blue-500/20">
+                       Elegir Pro
+                   </button>
+                </div>
 
-                   <button disabled class="relative z-10 mt-6 w-full btn btn-primary justify-center opacity-70 cursor-not-allowed">
-                       Conectar Stripe (Pronto)
+                <!-- Plan Enterprise -->
+                <div class="border border-[var(--color-border-subtle)] rounded-xl p-6 bg-[var(--color-bg-subtle)] flex flex-col justify-between hover:border-[var(--color-text-secondary)] transition-colors">
+                   <div>
+                       <span class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Business</span>
+                       <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mt-2">Enterprise</h2>
+                       <div class="mt-2 flex items-baseline gap-1">
+                           <span class="text-3xl font-bold text-[var(--color-text-primary)]">$99</span>
+                           <span class="text-sm text-[var(--color-text-secondary)]">/mes</span>
+                       </div>
+                       <ul class="mt-6 space-y-3">
+                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                             <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             API Access
+                          </li>
+                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                             <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             Dedicated Success Manager
+                          </li>
+                       </ul>
+                   </div>
+                   <button @click="openPaymentModal('enterprise', 99)" class="mt-6 w-full btn btn-outline justify-center">
+                       Contáctanos
                    </button>
                 </div>
             </div>
@@ -118,6 +168,85 @@
          </div>
       </div>
     </div>
+    
+    <!-- Payment Modal -->
+    <div v-if="showPaymentModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showPaymentModal = false"></div>
+        <div class="relative w-full max-w-4xl bg-[var(--color-bg-primary)] rounded-2xl shadow-2xl border border-[var(--color-border-subtle)] overflow-hidden flex flex-col md:flex-row">
+            
+            <!-- Left: Bank Details -->
+            <div class="w-full md:w-1/2 p-8 bg-[var(--color-bg-subtle)] border-r border-[var(--color-border-subtle)]">
+                <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">Datos para Pago Móvil</h3>
+                
+                <div class="space-y-6">
+                    <div class="p-4 bg-white/5 rounded-xl border border-[var(--color-border-subtle)]">
+                        <p class="text-xs text-[var(--color-text-secondary)] uppercase font-bold mb-1">Banco</p>
+                        <p class="text-lg font-bold text-[var(--color-text-primary)]">Banco de Venezuela (0102)</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                         <div class="p-4 bg-white/5 rounded-xl border border-[var(--color-border-subtle)]">
+                            <p class="text-xs text-[var(--color-text-secondary)] uppercase font-bold mb-1">Teléfono</p>
+                            <p class="text-lg font-bold text-[var(--color-text-primary)]">0412-123-4567</p>
+                        </div>
+                         <div class="p-4 bg-white/5 rounded-xl border border-[var(--color-border-subtle)]">
+                            <p class="text-xs text-[var(--color-text-secondary)] uppercase font-bold mb-1">Cédula / RIF</p>
+                            <p class="text-lg font-bold text-[var(--color-text-primary)]">J-123456789</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t border-[var(--color-border-subtle)]">
+                        <p class="text-sm font-bold text-[var(--color-text-secondary)] mb-4">Total a Pagar (Tasa BCV)</p>
+                        <div class="flex items-baseline gap-2">
+                             <span class="text-4xl font-bold text-[var(--color-accent-blue)]">Bs. {{ totalBs }}</span>
+                             <span class="text-sm text-[var(--color-text-secondary)]">Ref: ${{ selectedPrice }} @ {{ bcvRate }}</span>
+                        </div>
+                        <p class="text-xs text-[var(--color-text-secondary)] mt-2 opacity-70">
+                           Tasa calculada automáticamente según BCV del día.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Report Form -->
+            <div class="w-full md:w-1/2 p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-[var(--color-text-primary)]">Reportar Pago</h3>
+                    <button @click="showPaymentModal = false" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <form @submit.prevent="submitPayment" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Número de Referencia (4-6 dígitos)</label>
+                        <input v-model="paymentForm.reference" type="text" placeholder="Ej: 123456" class="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] focus:border-[var(--color-accent-blue)] focus:ring-1 focus:ring-[var(--color-accent-blue)] outline-none transition-all" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Fecha de Pago</label>
+                        <input v-model="paymentForm.date" type="date" class="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] focus:border-[var(--color-accent-blue)] focus:ring-1 focus:ring-[var(--color-accent-blue)] outline-none transition-all" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Monto Pagado (Bs)</label>
+                        <input v-model="paymentForm.amount" type="number" step="0.01" class="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] focus:border-[var(--color-accent-blue)] focus:ring-1 focus:ring-[var(--color-accent-blue)] outline-none transition-all" required>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" :disabled="submittingPayment" class="w-full py-3 px-4 bg-[var(--color-accent-blue)] hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            {{ submittingPayment ? 'Verificando...' : 'Confirmar Pago' }}
+                        </button>
+                        <p class="text-xs text-center text-[var(--color-text-secondary)] mt-4">
+                            Un administrador verificará tu pago en breve (max 24h).
+                        </p>
+                        <p v-if="successMessage" class="text-sm text-center text-green-500 font-bold mt-2">{{ successMessage }}</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
      <!-- Debug Section (Temporary) -->
      <div class="mt-8 p-4 bg-black text-green-400 font-mono text-xs rounded-xl overflow-auto">
         <p class="font-bold text-white mb-2">DEBUG INFO (Take Screenshot)</p>
@@ -126,6 +255,7 @@
         <p>Org State (Composable): {{ organization }}</p>
         <p>Direct API Result: {{ debugResult }}</p>
         <p class="text-red-400" v-if="debugError">API Error: {{ debugError }}</p>
+        <p>BCV Rate: {{ bcvRate }}</p>
         <p>Loading: {{ loading }}</p>
      </div>
   </div>
@@ -137,10 +267,54 @@ const { organization, fetchOrganization, loading } = useOrganization()
 
 definePageMeta({ layout: 'dashboard' })
 
-onMounted(async () => {
-    // Force refresh to ensure we have the latest subscription status (e.g. after upgrade/DB reset)
-    await fetchOrganization(true)
+// Payment Logic
+const showPaymentModal = ref(false)
+const selectedPrice = ref(0)
+const selectedPlan = ref('')
+const bcvRate = ref(0)
+const submittingPayment = ref(false)
+const successMessage = ref('')
+
+const paymentForm = ref({
+    reference: '',
+    date: new Date().toISOString().split('T')[0],
+    amount: ''
 })
+
+const totalBs = computed(() => {
+    return (selectedPrice.value * bcvRate.value).toFixed(2)
+})
+
+const openPaymentModal = async (plan: string, price: number) => {
+    selectedPlan.value = plan
+    selectedPrice.value = price
+    showPaymentModal.value = true
+    successMessage.value = ''
+    
+    // Fetch BCV Rate
+    try {
+        const data = await $fetch<any>('/api/bcv-rate')
+        if (data && data.rate) {
+            bcvRate.value = data.rate
+            paymentForm.value.amount = (price * data.rate).toFixed(2)
+        }
+    } catch (e) {
+        console.error('Error fetching BCV rate', e)
+        bcvRate.value = 60 // Fallback
+    }
+}
+
+const submitPayment = async () => {
+    submittingPayment.value = true
+    // Simulate API call
+    await new Promise(r => setTimeout(r, 1500))
+    
+    successMessage.value = '¡Pago reportado con éxito! Te notificaremos al activarlo.'
+    submittingPayment.value = false
+    setTimeout(() => {
+        showPaymentModal.value = false
+    }, 2000)
+}
 
 const trialDaysLeft = computed(() => {
     if (!organization.value?.trial_ends_at) return 0

@@ -123,9 +123,9 @@
 
 <script setup lang="ts">
 const user = useSupabaseUser()
-// organization and fetchOrganization are already defined below/above. logic is mixed.
-// Let's consolidate.
 const { organization, fetchOrganization, loading } = useOrganization()
+
+definePageMeta({ layout: 'dashboard' })
 
 onMounted(async () => {
     // Force refresh to ensure we have the latest subscription status (e.g. after upgrade/DB reset)

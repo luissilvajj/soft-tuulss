@@ -153,6 +153,8 @@
                       <div class="bg-[var(--color-accent-violet)] p-2 rounded-lg text-white shadow-lg shadow-purple-500/20">
                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                       </div>
+                      <span class="font-bold text-[var(--color-white)]">Inventario</span>
+                   </div>
                    <svg class="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </NuxtLink>
              </div>

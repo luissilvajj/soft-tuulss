@@ -17,8 +17,55 @@
         </p>
     </div>
 
-    <!-- Table -->
-    <div v-else class="overflow-hidden rounded-xl border border-white/10">
+    <!-- Mobile Card View -->
+    <div class="block md:hidden space-y-4">
+        <div v-for="org in tenants" :key="org.id" class="glass-panel p-4 flex flex-col gap-3 relative">
+            <div class="flex justify-between items-start">
+                <div>
+                   <h3 class="font-bold text-white">{{ org.name }}</h3>
+                   <p class="text-xs text-gray-400">{{ org.owner_email }}</p>
+                </div>
+                <div class="flex flex-col items-end">
+                    <span :class="[
+                       'px-2 py-0.5 rounded text-[10px] font-bold uppercase',
+                       org.subscription_status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                    ]">
+                        {{ org.subscription_status || 'Trial' }}
+                    </span>
+                    <span class="text-[10px] text-gray-500 mt-1" v-if="org.subscription_plan">{{ org.subscription_plan.toUpperCase() }}</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 text-xs text-gray-300">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Restan {{ getDaysLeft(org.trial_ends_at) }} días de prueba
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-3 border-t border-white/10">
+                <button @click="extendTrial(org)" class="px-3 py-2 bg-blue-500/10 text-blue-400 rounded-lg text-xs font-bold hover:bg-blue-500/20">
+                    + Trial
+                </button>
+                <div class="relative group w-full">
+                    <button class="w-full px-3 py-2 bg-green-500/10 text-green-400 rounded-lg text-xs font-bold hover:bg-green-500/20 flex justify-center items-center gap-1">
+                        Plan ▼
+                    </button>
+                    <!-- Mobile Dropdown -->
+                    <div class="absolute left-0 bottom-full mb-1 hidden group-hover:block w-full bg-gray-900 border border-white/10 rounded-lg shadow-xl z-50">
+                        <button @click="setPlan(org, 'basic')" class="block w-full text-center px-4 py-2 text-xs hover:bg-white/10 text-white border-b border-white/5">Básico</button>
+                        <button @click="setPlan(org, 'pro')" class="block w-full text-center px-4 py-2 text-xs hover:bg-white/10 text-white border-b border-white/5">Pro</button>
+                        <button @click="setPlan(org, 'enterprise')" class="block w-full text-center px-4 py-2 text-xs hover:bg-white/10 text-white">Enterprise</button>
+                    </div>
+                </div>
+                <button @click="deleteOrg(org)" class="col-span-2 px-3 py-2 bg-red-500/10 text-red-400 rounded-lg text-xs font-bold hover:bg-red-500/20 flex justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Eliminar Organización
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="hidden md:block overflow-hidden rounded-xl border border-white/10">
       <table class="min-w-full divide-y divide-white/10 text-sm">
         <thead class="bg-white/5">
           <tr>

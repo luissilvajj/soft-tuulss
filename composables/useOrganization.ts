@@ -14,46 +14,26 @@ export const useOrganization = () => {
 
         loading.value = true
         try {
-            // Get the first organization for simplicity in MVP
-            const { data, error } = await client
-                .from('organization_members')
-                .select(`
-          organization:organizations (
-            id,
-            name,
-            logo_url,
-            subscription_status,
-            subscription_plan,
-            trial_ends_at,
-            current_period_end,
-            stripe_customer_id
-          ),
-          role
-        `)
-                .eq('user_id', user.value.id)
-                .limit(1)
-                .maybeSingle() as any
+            loading.value = true
+            try {
+                // Use Server API to bypass RLS issues
+                const data = await $fetch('/api/me/organization')
 
-            if (error && error.code !== 'PGRST116') throw error // PGRST116 is no rows found
-
-            if (data) {
-                organization.value = {
-                    ...data.organization,
-                    role: data.role // Append role to org object for easy access
+                if (data) {
+                    organization.value = data
                 }
+            } catch (e) {
+                console.error('Error fetching organization:', e)
+            } finally {
+                loading.value = false
             }
-        } catch (e) {
-            console.error('Error fetching organization:', e)
-        } finally {
-            loading.value = false
+
+            return organization.value
         }
 
-        return organization.value
-    }
-
     return {
-        organization,
-        loading,
-        fetchOrganization
+            organization,
+            loading,
+            fetchOrganization
+        }
     }
-}

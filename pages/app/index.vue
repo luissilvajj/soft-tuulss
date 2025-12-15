@@ -2,7 +2,7 @@
   <div class="relative">
     <!-- Welcome Header -->
     <div class="mb-10 relative z-10">
-      <h1 class="text-4xl font-extrabold text-gradient tracking-tight">
+      <h1 class="text-4xl font-extrabold text-[var(--color-white)] tracking-tight">
         Hola, <span class="text-[var(--color-accent-blue)] relative inline-block">
             {{ displayName }}
             <svg class="absolute -bottom-2 left-0 w-full h-2 text-[var(--color-accent-blue)]/30" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="4" fill="none"/></svg>
@@ -13,13 +13,13 @@
 
     <!-- Quick Actions (Mobile/Tablet visible) -->
     <div class="flex gap-4 mb-8 overflow-x-auto pb-2 md:hidden">
-       <NuxtLink to="/app/sales" class="flex-shrink-0 bg-[var(--color-accent-blue)] text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 flex items-center gap-2">
+       <NuxtLink to="/app/sales/new" class="flex-shrink-0 bg-[var(--color-accent-blue)] text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 flex items-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
           Nueva Venta
        </NuxtLink>
-       <NuxtLink to="/app/inventory" class="flex-shrink-0 bg-[var(--color-bg-subtle)] text-[var(--color-text-secondary)] px-6 py-3 rounded-xl font-bold border border-[var(--color-border-subtle)] flex items-center gap-2">
+       <NuxtLink to="/app/inventory" class="flex-shrink-0 bg-[var(--color-surface-glass)] text-[var(--color-text-secondary)] px-6 py-3 rounded-xl font-bold border border-[var(--color-border-subtle)] flex items-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-          Inventario
+          Nuevo Producto
        </NuxtLink>
     </div>
 
@@ -150,7 +150,17 @@
                    <svg class="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </NuxtLink>
 
-                <NuxtLink to="/app/inventory" class="w-full flex items-center justify-between bg-white/10 hover:bg-white/20 p-4 rounded-xl transition-colors group cursor-pointer no-underline text-white border border-white/10">
+                <NuxtLink to="/app/sales/new" class="w-full flex items-center justify-between bg-[var(--color-surface-glass)] hover:bg-white/20 p-4 rounded-xl transition-colors group cursor-pointer no-underline text-white border border-white/10">
+                   <div class="flex items-center gap-3">
+                      <div class="bg-[var(--color-accent-blue)] p-2 rounded-lg text-white">
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                      </div>
+                      <span class="font-bold">Registrar Venta</span>
+                   </div>
+                   <svg class="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </NuxtLink>
+
+                <NuxtLink to="/app/inventory" class="w-full flex items-center justify-between bg-[var(--color-surface-glass)] hover:bg-white/20 p-4 rounded-xl transition-colors group cursor-pointer no-underline text-white border border-white/10">
                    <div class="flex items-center gap-3">
                       <div class="bg-[var(--color-accent-violet)] p-2 rounded-lg text-white">
                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>

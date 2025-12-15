@@ -35,7 +35,14 @@ export const useSales = () => {
                 .order('date', { ascending: false })
 
             if (error) throw error
-            sales.value = data as unknown as Sale[]
+            if (error) throw error
+
+            // Map data to match Sale interface (flatten client_name)
+            sales.value = (data || []).map((s: any) => ({
+                ...s,
+                client_name: s.client?.name || 'Cliente Casual',
+                amount: s.amount || 0 // Ensure numeric
+            })) as unknown as Sale[]
         } catch (e) {
             console.error('Error fetching sales:', e)
         } finally {

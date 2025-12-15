@@ -497,10 +497,7 @@ const saveClient = async () => {
         // Success: Close modal, refresh selector, and select new client
         alert('Cliente creado exitosamente')
         showClientModal.value = false
-        alert('Cliente creado exitosamente')
-        showClientModal.value = false
         newClient.value = { name: '', email: '', phone: '', identity_document: '' }
-        clientSelectorKey.value++ // Force refresh of ClientSelector
         clientSelectorKey.value++ // Force refresh of ClientSelector
         if (data) form.clientId = data.id
 

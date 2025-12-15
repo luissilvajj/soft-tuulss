@@ -644,7 +644,7 @@ const handleCheckout = async () => {
             paymentMethod: form.paymentMethod,
             paymentReference: form.paymentReference,
             date: form.date,
-            currency: isMixedPayment.value ? 'MIXED' : currency.value, // Mark as MIXED if split
+            currency: 'USD', // Always USD as base for mixed/usd transactions
             exchangeRate: exchangeRate.value,
             isExempt: form.isExempt,
             subtotal: financials.value.subtotal, // USD

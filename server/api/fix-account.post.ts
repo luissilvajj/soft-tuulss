@@ -52,5 +52,9 @@ export default defineEventHandler(async (event) => {
 
     if (linkError) throw createError({ statusCode: 500, statusMessage: linkError.message })
 
-    return { status: 'created', message: 'New Organization created and linked' }
+    return {
+        status: 'created',
+        message: 'New Organization created and linked',
+        organization: { ...newOrg, role: 'owner' }
+    }
 })

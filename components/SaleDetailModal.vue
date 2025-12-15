@@ -6,23 +6,24 @@
             <div>
                 <p class="text-sm text-[var(--color-text-secondary)] uppercase tracking-wider font-semibold">Cliente</p>
                 <p class="text-lg font-bold text-[var(--color-heading)]">{{ sale.client_name || 'Cliente Casual' }}</p>
-                <p class="text-sm text-[var(--color-text-secondary)]">{{ sale.client_email }}</p>
-                <p class="text-sm text-[var(--color-text-secondary)]">{{ sale.client_doc }}</p>
-            </div>
-            <div class="text-right">
-                <p class="text-sm text-[var(--color-text-secondary)] uppercase tracking-wider font-semibold">Fecha</p>
-                <p class="font-mono text-[var(--color-heading)]">{{ new Date(sale.created_at).toLocaleString() }}</p>
-                <div class="mt-2">
+                <div class="flex items-center gap-2 mt-1">
                      <span :class="[
                         'px-2 py-1 text-xs font-bold rounded-full',
                         sale.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-yellow-500/10 text-yellow-500'
                     ]">
                         {{ sale.status === 'paid' ? 'PAGADO' : 'PENDIENTE' }}
                     </span>
-                    <p class="text-xs text-[var(--color-text-secondary)] mt-1 uppercase font-bold tracking-wider">
-                        {{ sale.currency }}
-                    </p>
+                     <!-- Currency Toggle -->
+                    <button @click="toggleCurrency" class="btn btn-xs border border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-subtle)] flex items-center gap-1">
+                         <span class="text-[10px] uppercase font-bold">{{ showInVes ? 'Ver en Dólares' : 'Ver en Bolívares' }}</span>
+                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    </button>
                 </div>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-[var(--color-text-secondary)] uppercase tracking-wider font-semibold">Fecha</p>
+                <p class="font-mono text-[var(--color-heading)]">{{ new Date(sale.created_at).toLocaleString() }}</p>
+                <p class="text-xs text-[var(--color-text-secondary)] mt-1">Ref: {{ sale.payment_reference || 'N/A' }}</p>
             </div>
         </div>
 
@@ -42,15 +43,15 @@
                         <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-center font-mono">{{ item.qty }}</td>
                         <td class="px-4 py-2 text-sm text-[var(--color-heading)]">{{ item.name }}</td>
                         <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-right font-mono">
-                            {{ formatMoney(item.price * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}
+                            {{ formatMoney(item.price, showInVes ? 'VES' : 'USD') }}
                         </td>
                         <td class="px-4 py-2 text-sm text-[var(--color-heading)] text-right font-mono">
-                            {{ formatMoney((item.price * item.qty) * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}
+                             {{ formatMoney(item.price * item.qty, showInVes ? 'VES' : 'USD') }}
                         </td>
                     </tr>
                     <tr v-if="displayItems.length === 0">
                         <td colspan="4" class="px-4 py-4 text-center text-sm text-[var(--color-text-secondary)] italic">
-                            Detalle de items no disponible
+                            No hay items registrados
                         </td>
                     </tr>
                 </tbody>
@@ -60,55 +61,38 @@
         <!-- Financials -->
         <div class="flex justify-end">
             <div class="w-1/2 space-y-2">
-                <!-- Breakdown in PAYMENT CURRENCY -->
-                <div class="flex justify-between text-sm text-[var(--color-text-secondary)]">
-                    <span>Subtotal</span>
-                    <span class="font-mono">{{ formatMoney(Number(sale.subtotal) * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}</span>
-                </div>
-                <div class="flex justify-between text-sm text-[var(--color-text-secondary)]">
-                    <span>IVA (16%)</span>
-                    <span class="font-mono">{{ formatMoney(Number(sale.tax_iva) * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}</span>
-                </div>
-                <div v-if="sale.tax_igtf > 0" class="flex justify-between text-sm text-[var(--color-text-secondary)]">
-                    <span>IGTF (3%)</span>
-                    <span class="font-mono">{{ formatMoney(Number(sale.tax_igtf) * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}</span>
-                </div>
-                
+                 <!-- Main Display (Toggled) -->
                 <div class="border-t border-[var(--color-border-subtle)] pt-2 mt-2">
                     <div class="flex justify-between text-lg font-bold text-[var(--color-heading)]">
-                        <span>Total {{ sale.currency }}</span>
-                        <span class="font-mono">{{ formatMoney(Number(sale.amount) * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}</span>
+                        <span>Total {{ showInVes ? 'Bolívares' : 'USD' }}</span>
+                        <!-- If showing VES, use paidVesAmount. If USD, use baseUsdAmount -->
+                         <span class="font-mono">
+                            {{ formatMoney(showInVes ? paidVesAmount : baseUsdAmount, showInVes ? 'VES' : 'USD') }}
+                         </span>
                     </div>
                 </div>
 
-                <!-- Reference / Conversion Box -->
-                <div class="bg-[var(--color-bg-subtle)] rounded-lg p-3 mt-4 border border-[var(--color-border-subtle)]">
-                     <div class="flex justify-between text-sm text-[var(--color-text-secondary)] mb-1">
-                        <span>Método</span>
+                <!-- Context Box -->
+                <div class="bg-[var(--color-bg-subtle)] rounded-lg p-3 mt-4 border border-[var(--color-border-subtle)] text-sm">
+                     <div class="flex justify-between text-[var(--color-text-secondary)] mb-1">
+                        <span>Método de Pago</span>
                         <span class="capitalize font-medium text-[var(--color-heading)]">{{ displayPaymentMethod(sale.payment_method) }}</span>
                     </div>
-                     <div v-if="sale.payment_reference" class="flex justify-between text-sm text-[var(--color-text-secondary)] mb-1">
-                        <span>Referencia</span>
-                        <span class="font-mono">{{ sale.payment_reference }}</span>
-                    </div>
-
-                    <!-- If paid in VES, show USD equivalent context -->
-                    <div v-if="sale.currency === 'VES'" class="mt-2 pt-2 border-t border-[var(--color-border-subtle)]">
-                        <div class="flex justify-between text-xs text-[var(--color-text-secondary)] mb-1">
-                            <span>Tasa de Cambio</span>
-                            <span class="font-mono">{{ Number(sale.exchange_rate).toFixed(2) }} Bs/$</span>
-                        </div>
-                        <div class="flex justify-between text-sm font-semibold text-emerald-500">
-                             <span>Equivalente en Divisa</span>
-                             <span>${{ Number(sale.amount).toFixed(2) }}</span>
-                        </div>
+                     <div class="flex justify-between text-[var(--color-text-secondary)] mb-1">
+                        <span>Tasa de Cambio</span>
+                        <span class="font-mono">{{ Number(sale.exchange_rate).toFixed(2) }} Bs/$</span>
                     </div>
                     
-                    <!-- If paid in USD but showing context -->
-                    <div v-else class="mt-2 pt-2 border-t border-[var(--color-border-subtle)]">
-                        <div class="text-center text-xs text-emerald-600 font-bold uppercase tracking-wider">
-                            Operación en Divisa
-                        </div>
+                    <div class="border-t border-[var(--color-border-subtle)] my-2"></div>
+                    
+                    <!-- Reference Values -->
+                    <div v-if="showInVes" class="flex justify-between font-medium text-emerald-500">
+                        <span>Equivalente en Divisa</span>
+                        <span class="font-mono">{{ formatMoney(baseUsdAmount, 'USD') }}</span>
+                    </div>
+                    <div v-else class="flex justify-between font-medium text-[var(--color-accent-blue)]">
+                         <span>Equivalente en Bolívares</span>
+                         <span class="font-mono">{{ formatMoney(paidVesAmount, 'VES') }}</span>
                     </div>
                 </div>
             </div>
@@ -130,25 +114,58 @@ const props = defineProps<{
   sale: Sale
 }>()
 
+// State for the toggle (User asked for a button)
+const showInVes = ref(props.sale.currency === 'VES')
+
+// Computed logic to handle legacy vs new data types
+const isOriginalCurrencyVes = computed(() => props.sale.currency === 'VES')
+
+// The Base Amount in USD (Accountable truth)
+const baseUsdAmount = computed(() => {
+    if (isOriginalCurrencyVes.value) {
+        return Number(props.sale.amount) / (Number(props.sale.exchange_rate) || 1)
+    }
+    return Number(props.sale.amount)
+})
+
+// The Paid Amount in VES ( Transaction truth)
+const paidVesAmount = computed(() => {
+    if (isOriginalCurrencyVes.value) {
+        return Number(props.sale.amount)
+    }
+    return Number(props.sale.amount) * (Number(props.sale.exchange_rate) || 1)
+})
+
 const displayItems = computed(() => {
-    // 1. Try relational data (from fetchSales)
+    let items = []
+    
+    // 1. Try relational data
     if (props.sale.items && Array.isArray(props.sale.items) && props.sale.items.length > 0) {
-        return props.sale.items.map((i: any) => ({
+        items = props.sale.items.map((i: any) => ({
             qty: i.quantity,
             name: i.product?.name || 'Producto Desconocido',
             price: i.price_at_transaction || 0
         }))
     }
-    
-    // 2. Try Snapshot field (legacy or fallback)
-    if (props.sale.items_snapshot) {
+    // 2. Try Snapshot
+    else if (props.sale.items_snapshot) {
         const raw = typeof props.sale.items_snapshot === 'string' 
             ? JSON.parse(props.sale.items_snapshot) 
             : props.sale.items_snapshot
-        return Array.isArray(raw) ? raw : []
+        items = Array.isArray(raw) ? raw : []
     }
 
-    return []
+    // Normalize prices based on the toggle view
+    return items.map(item => {
+        let price = Number(item.price)
+        // If the item price comes from DB, it's usually USD (unless legacy snapshot was VES).
+        // Assuming database item prices are USD base.
+        
+        if (showInVes.value) {
+             return { ...item, price: price * (Number(props.sale.exchange_rate) || 1) }
+        }
+        return { ...item, price }
+    })
 })
 
 const displayPaymentMethod = (method: string) => {
@@ -163,8 +180,13 @@ const displayPaymentMethod = (method: string) => {
     return map[method] || method
 }
 
-const formatMoney = (amount: number) => {
-    if (props.sale.currency === 'VES') {
+// Helpers
+const toggleCurrency = () => {
+    showInVes.value = !showInVes.value
+}
+
+const formatMoney = (amount: number, currency: 'USD' | 'VES') => {
+    if (currency === 'VES') {
         return `Bs. ${amount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     } else {
         return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`

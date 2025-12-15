@@ -197,7 +197,16 @@
                              </div>
                              <!-- VES Payment Input -->
                              <div>
-                                 <label class="text-xs text-gray-400 block mb-1">Monto en Bolívares (Bs)</label>
+                                 <div class="flex justify-between items-center mb-1">
+                                    <label class="text-xs text-gray-400">Monto en Bolívares (Bs)</label>
+                                    <button 
+                                        @click="fillRemainingVes" 
+                                        class="text-[10px] uppercase font-bold text-blue-500 hover:text-blue-400 transition-colors"
+                                        v-if="remainingDue > 0.01"
+                                    >
+                                        Completar ({{ formatPriceInBs(remainingDue * exchangeRate) }})
+                                    </button>
+                                 </div>
                                  <input 
                                     :value="mixedPayment.vesAmount"
                                     @input="(e: any) => updateMixedAmount('vesAmount', e.target.value)"
@@ -210,9 +219,14 @@
                              <!-- Remainder/Change Display -->
                              <div class="flex justify-between text-xs pt-2 border-t border-gray-200 dark:border-gray-700">
                                  <span class="text-gray-500">Restante por Pagar:</span>
-                                 <span :class="remainingDue > 0.01 ? 'text-red-500 font-bold' : 'text-green-500 font-bold'">
-                                     ${{ remainingDue.toFixed(2) }}
-                                 </span>
+                                 <div class="text-right">
+                                     <span :class="remainingDue > 0.01 ? 'text-red-500 font-bold' : 'text-green-500 font-bold'">
+                                         ${{ remainingDue.toFixed(2) }}
+                                     </span>
+                                     <span v-if="remainingDue > 0.01" class="text-gray-400 ml-1">
+                                         (~{{ (remainingDue * exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 }) }} Bs)
+                                     </span>
+                                 </div>
                              </div>
                          </div>
                     </div>
@@ -519,6 +533,19 @@ const updateMixedAmount = (field: 'usdAmount' | 'vesAmount', value: string) => {
     
     mixedPayment[field] = Number(normalized)
 }
+
+const fillRemainingVes = () => {
+    // Calculate how much USD is missing
+    const totalDue = financials.value.total
+    const paidUSD = mixedPayment.usdAmount
+    const missingUSD = Math.max(0, totalDue - paidUSD)
+    
+    // Convert to Bs
+    const missingVes = missingUSD * exchangeRate.value
+    mixedPayment.vesAmount = Number(missingVes.toFixed(2))
+}
+
+const formatPriceInBs = (val: number) => `Bs. ${val.toLocaleString('es-VE', { maximumFractionDigits: 2 })}`
 
 // Calculate IGTF Base
 const igtfBaseAmount = computed(() => {

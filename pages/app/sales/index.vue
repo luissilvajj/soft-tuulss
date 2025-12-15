@@ -23,7 +23,7 @@
                   <div class="flex justify-between items-start">
                        <div>
                           <p class="font-bold text-[var(--color-heading)]">{{ sale.client_name || 'Cliente Casual' }}</p>
-                          <p class="text-xs text-[var(--color-text-secondary)] font-mono">{{ new Date(sale.created_at).toLocaleDateString() }}</p>
+                          <p class="text-xs text-[var(--color-text-secondary)] font-mono">{{ new Date(sale.created_at || '').toLocaleDateString() }}</p>
                        </div>
                        <span class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-1 text-[10px] font-bold rounded-full">
                            Pagado
@@ -31,10 +31,10 @@
                   </div>
                    <div class="flex justify-between items-center border-t border-[var(--color-border-subtle)] pt-3">
                       <div class="text-sm text-[var(--color-text-secondary)] capitalize">
-                          {{ sale.payment_method }}
+                          {{ getPaymentMethodLabel(sale.payment_method) }}
                       </div>
                       <div class="font-bold text-[var(--color-heading)] text-lg font-mono">
-                          ${{ (Number(sale.amount) || 0).toFixed(2) }}
+                          {{ formatAmount(sale) }}
                       </div>
                   </div>
                    <button @click="openDetailModal(sale)" class="w-full btn btn-sm bg-[var(--color-bg-subtle)] hover:bg-[var(--color-border-subtle)] text-[var(--color-text-primary)] text-xs border border-[var(--color-border-subtle)] transition-colors">
@@ -59,7 +59,7 @@
                 <tbody class="divide-y divide-[var(--color-border-subtle)] bg-[var(--color-bg-dark)]">
                     <tr v-for="sale in sales" :key="sale.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors duration-150 group">
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)] font-mono">
-                            {{ new Date(sale.created_at).toLocaleDateString() }}
+                            {{ new Date(sale.created_at || '').toLocaleDateString() }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center gap-3">
@@ -70,16 +70,16 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)] capitalize">
-                            {{ sale.payment_method }}
+                            {{ getPaymentMethodLabel(sale.payment_method) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             <span class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full">
-                                Pagado
+                                {{ sale.status === 'paid' ? 'Pagado' : sale.status }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">
                             <div class="font-bold font-mono text-lg text-[var(--color-heading)]">
-                                ${{ (Number(sale.amount) || 0).toFixed(2) }}
+                                {{ formatAmount(sale) }}
                             </div>
                         </td>
                          <td class="px-6 py-4 whitespace-nowrap text-right">
@@ -139,6 +139,31 @@ const openDetailModal = (sale: Sale) => {
 const closeDetailModal = () => {
     showDetailModal.value = false
     selectedSale.value = null
+}
+
+// Helpers
+const getPaymentMethodLabel = (method: string) => {
+    const map: Record<string, string> = {
+        'mobile_pay': 'Pago Móvil',
+        'transfer': 'Transferencia',
+        'cash': 'Efectivo',
+        'card': 'Tarjeta',
+        'zelle': 'Zelle',
+        'other': 'Otro',
+        'mixed': 'Mixto'
+    }
+    return map[method] || method
+}
+
+const formatAmount = (sale: any) => {
+    const amount = Number(sale.amount) || 0
+    // If currency is explicitly VES, show Bs.
+    // Also support legacy heuristic if needed? No, user wants strict rule for "venta en bolivares"
+    if (sale.currency === 'VES') {
+        return `Bs. ${amount.toFixed(2)}`
+    }
+    // Default to USD
+    return `$${amount.toFixed(2)}`
 }
 
 onMounted(() => {

@@ -14,19 +14,15 @@
       </NuxtLink>
     </div>
 
-<!-- Sales Table -->
-    <div class="glass-panel overflow-hidden">
-        <!-- DEBUG DATA -->
-        <div v-if="sales.length > 0" class="p-2 bg-black text-xs font-mono text-green-400 overflow-x-auto">
-             DEBUG: {{ JSON.stringify(sales[0]) }}
-        </div>
-        <div v-if="sales.length > 0">
+    <!-- Sales Table -->
+    <div class="glass-panel overflow-hidden flex flex-col h-full rounded-2xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-subtle)] shadow-sm">
+        <div v-if="sales.length > 0" class="w-full">
            <!-- Mobile Card View (Visible only on small screens) -->
-           <div class="block md:hidden space-y-4">
-              <div v-for="sale in sales" :key="sale.id" class="bg-[var(--color-bg-subtle)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3">
+           <div class="block lg:hidden space-y-4 p-4">
+              <div v-for="sale in sales" :key="sale.id" class="bg-[var(--color-bg-dark)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3 shadow-sm">
                   <div class="flex justify-between items-start">
                        <div>
-                          <p class="font-bold text-[var(--color-white)]">{{ sale.client_name || 'Cliente Casual' }}</p>
+                          <p class="font-bold text-[var(--color-heading)]">{{ sale.client_name || 'Cliente Casual' }}</p>
                           <p class="text-xs text-[var(--color-text-secondary)] font-mono">{{ new Date(sale.created_at).toLocaleDateString() }}</p>
                        </div>
                        <span class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-1 text-[10px] font-bold rounded-full">
@@ -37,40 +33,40 @@
                       <div class="text-sm text-[var(--color-text-secondary)] capitalize">
                           {{ sale.payment_method }}
                       </div>
-                      <div class="font-bold text-[var(--color-white)] text-lg">
+                      <div class="font-bold text-[var(--color-heading)] text-lg font-mono">
                           ${{ (Number(sale.amount) || 0).toFixed(2) }}
                       </div>
                   </div>
-                   <button @click="openDetailModal(sale)" class="w-full btn btn-sm bg-[var(--color-bg-dark)] hover:bg-[var(--color-border-subtle)] text-xs">
+                   <button @click="openDetailModal(sale)" class="w-full btn btn-sm bg-[var(--color-bg-subtle)] hover:bg-[var(--color-border-subtle)] text-[var(--color-text-primary)] text-xs border border-[var(--color-border-subtle)] transition-colors">
                         Ver Detalle
                    </button>
               </div>
            </div>
 
            <!-- Desktop Table View (Hidden on small screens) -->
-           <div class="hidden md:block overflow-x-auto">
+           <div class="hidden lg:block w-full overflow-x-auto">
             <table class="min-w-full divide-y divide-[var(--color-border-subtle)] text-left align-middle">
-                <thead class="bg-[var(--color-bg-dark)]/50">
+                <thead class="bg-[var(--color-bg-subtle)]">
                     <tr>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Fecha</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Cliente</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Método</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-center">Estado</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Total</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Acciones</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider whitespace-nowrap">Fecha</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider whitespace-nowrap">Cliente</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider whitespace-nowrap">Método</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-center whitespace-nowrap">Estado</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right whitespace-nowrap">Total</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right whitespace-nowrap">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[var(--color-border-subtle)]">
+                <tbody class="divide-y divide-[var(--color-border-subtle)] bg-[var(--color-bg-dark)]">
                     <tr v-for="sale in sales" :key="sale.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors duration-150 group">
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)] font-mono">
                             {{ new Date(sale.created_at).toLocaleDateString() }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-[var(--color-accent-blue)] font-bold text-xs">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-[var(--color-accent-blue)] font-bold text-xs shrink-0">
                                     {{ (sale.client_name || 'C').charAt(0).toUpperCase() }}
                                 </div>
-                                <span class="font-bold text-[var(--color-white)]">{{ sale.client_name || 'Cliente Casual' }}</span>
+                                <span class="font-bold text-[var(--color-heading)] truncate max-w-[150px]">{{ sale.client_name || 'Cliente Casual' }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)] capitalize">
@@ -82,7 +78,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">
-                            <div class="font-bold font-mono text-lg text-emerald-400">
+                            <div class="font-bold font-mono text-lg text-[var(--color-heading)]">
                                 ${{ (Number(sale.amount) || 0).toFixed(2) }}
                             </div>
                         </td>

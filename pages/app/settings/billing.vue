@@ -34,12 +34,17 @@
             </div>
 
             <!-- Blocked Status -->
-            <div v-if="trialDaysLeft < 0 && organization?.subscription_status !== 'active'" class="mb-8 p-4 rounded-xl border border-red-500/30 bg-red-500/10 flex items-start gap-3">
-               <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-               <div>
-                 <h3 class="text-sm font-bold text-red-700">Suscripción Vencida</h3>
-                 <p class="text-sm text-red-800/80">Tu periodo de prueba ha terminado. Por favor suscríbete para continuar usando el sistema.</p>
+            <div v-if="trialDaysLeft < 0 && organization?.subscription_status !== 'active'" class="mb-8 p-4 rounded-xl border border-red-500/30 bg-red-500/10 flex flex-col md:flex-row items-start gap-4">
+               <div class="flex items-start gap-3">
+                   <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                   <div>
+                     <h3 class="text-sm font-bold text-red-700">Suscripción Vencida o Error de Acceso</h3>
+                     <p class="text-sm text-red-800/80 mb-3">Si crees que esto es un error o acabas de resetear tu cuenta, pulsa el botón para reparar tu acceso.</p>
+                   </div>
                </div>
+               <button @click="fixAccount" :disabled="fixing" class="whitespace-nowrap px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-lg shadow-lg transition-all">
+                   {{ fixing ? 'Reparando...' : '🔓 Reparar Mi Cuenta' }}
+               </button>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -144,4 +149,19 @@ const currentPlanName = computed(() => {
     if (trialDaysLeft.value > 0) return 'Prueba Gratuita'
     return 'Vencido'
 })
+const fixing = ref(false)
+const fixAccount = async () => {
+    fixing.value = true
+    try {
+        const { error } = await useFetch('/api/fix-account', { method: 'POST' })
+        if (error.value) throw error.value
+        
+        alert('✅ Cuenta Reparada. Recargando...')
+        window.location.href = '/app'
+    } catch (e) {
+        alert('Error reparando: ' + e.message)
+    } finally {
+        fixing.value = false
+    }
+}
 </script>

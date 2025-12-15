@@ -8,8 +8,11 @@ export default defineEventHandler(async (event) => {
             return { error: 'Unauthorized: No user session' }
         }
 
+        // FIX: user.id might be missing in some contexts, use user.sub (Subject) as fallback
+        const userId = user.id || user.sub
+
         // DEBUG: Strict User ID Check
-        if (!user.id) {
+        if (!userId) {
             return {
                 error: 'User ID Undefined',
                 debugUser: user // Dump the whole user object to see what's inside
@@ -49,7 +52,7 @@ export default defineEventHandler(async (event) => {
                     stripe_customer_id
                 )
             `)
-            .eq('user_id', user.id)
+            .eq('user_id', userId)
             .limit(1)
             .maybeSingle()
 
@@ -58,7 +61,7 @@ export default defineEventHandler(async (event) => {
         }
 
         if (!data || !data.organization) {
-            return { error: 'No Organization Found', userId: user.id }
+            return { error: 'No Organization Found', userId: userId }
         }
 
         return {

@@ -122,13 +122,10 @@
 </template>
 
 <script setup lang="ts">
-import { useOrganization } from '~/composables/useOrganization'
 const user = useSupabaseUser()
+// organization and fetchOrganization are already defined below/above. logic is mixed.
+// Let's consolidate.
 const { organization, fetchOrganization, loading } = useOrganization()
-
-definePageMeta({ layout: 'dashboard' })
-
-const { organization, fetchOrganization } = useOrganization()
 
 onMounted(async () => {
     // Force refresh to ensure we have the latest subscription status (e.g. after upgrade/DB reset)

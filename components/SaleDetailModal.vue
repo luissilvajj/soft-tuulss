@@ -74,25 +74,58 @@
 
                 <!-- Context Box -->
                 <div class="bg-[var(--color-bg-subtle)] rounded-lg p-3 mt-4 border border-[var(--color-border-subtle)] text-sm">
-                     <div class="flex justify-between text-[var(--color-text-secondary)] mb-1">
-                        <span>Método de Pago</span>
-                        <span class="capitalize font-medium text-[var(--color-heading)]">{{ displayPaymentMethod(sale.payment_method) }}</span>
-                    </div>
-                     <div class="flex justify-between text-[var(--color-text-secondary)] mb-1">
-                        <span>Tasa de Cambio</span>
-                        <span class="font-mono">{{ Number(sale.exchange_rate).toFixed(2) }} Bs/$</span>
-                    </div>
-                    
-                    <div class="border-t border-[var(--color-border-subtle)] my-2"></div>
-                    
-                    <!-- Reference Values -->
-                    <div v-if="showInVes" class="flex justify-between font-medium text-emerald-500">
-                        <span>Equivalente en Divisa</span>
-                        <span class="font-mono">{{ formatMoney(baseUsdAmount, 'USD') }}</span>
-                    </div>
-                    <div v-else class="flex justify-between font-medium text-[var(--color-accent-blue)]">
-                         <span>Equivalente en Bolívares</span>
-                         <span class="font-mono">{{ formatMoney(paidVesAmount, 'VES') }}</span>
+                     
+                     <!-- Mixed Payment Details -->
+                     <div v-if="sale.payment_details && (sale.payment_details.usd_amount || sale.payment_details.ves_amount)" class="space-y-2">
+                        <div class="flex justify-between text-[var(--color-heading)] font-bold mb-2 border-b border-[var(--color-border-subtle)] pb-1">
+                            <span>Desglose de Pago (Mixto)</span>
+                        </div>
+                        <div v-if="sale.payment_details.usd_amount > 0" class="flex justify-between text-[var(--color-text-secondary)]">
+                            <span>Pagado en Divisa</span>
+                            <span class="font-mono text-emerald-500">${{ Number(sale.payment_details.usd_amount).toFixed(2) }}</span>
+                        </div>
+                        <div v-if="sale.payment_details.ves_amount > 0" class="flex justify-between text-[var(--color-text-secondary)]">
+                            <span>Pagado en Bolívares</span>
+                            <div class="text-right">
+                                <span class="font-mono text-[var(--color-accent-blue)] block">Bs. {{ Number(sale.payment_details.ves_amount).toLocaleString('es-VE', { minimumFractionDigits: 2 }) }}</span>
+                            </div>
+                        </div>
+                         <div v-if="sale.tax_igtf > 0" class="flex justify-between text-[var(--color-text-secondary)] text-xs mt-1 pt-1 border-t border-[var(--color-border-subtle)] dashed">
+                            <span>Base IGTF (Divisa)</span>
+                            <span class="font-mono">${{ Number(sale.payment_details.igtf_base || sale.payment_details.usd_amount).toFixed(2) }}</span>
+                        </div>
+                     </div>
+
+                     <!-- Standard Single Method Details -->
+                     <div v-else>
+                        <div class="flex justify-between text-[var(--color-text-secondary)] mb-1">
+                            <span>Método de Pago</span>
+                            <span class="capitalize font-medium text-[var(--color-heading)]">{{ displayPaymentMethod(sale.payment_method) }}</span>
+                        </div>
+                        <div class="flex justify-between text-[var(--color-text-secondary)] mb-1">
+                            <span>Tasa de Cambio</span>
+                            <span class="font-mono">{{ Number(sale.exchange_rate).toFixed(2) }} Bs/$</span>
+                        </div>
+                        
+                        <div class="border-t border-[var(--color-border-subtle)] my-2"></div>
+                        
+                        <!-- Reference Values -->
+                        <div v-if="showInVes" class="flex justify-between font-medium text-emerald-500">
+                            <span>Equivalente en Divisa</span>
+                            <span class="font-mono">{{ formatMoney(baseUsdAmount, 'USD') }}</span>
+                        </div>
+                        <div v-else class="flex justify-between font-medium text-[var(--color-accent-blue)]">
+                            <span>Equivalente en Bolívares</span>
+                            <span class="font-mono">{{ formatMoney(paidVesAmount, 'VES') }}</span>
+                        </div>
+                     </div>
+
+                     <!-- Common Reference -->
+                     <div v-if="sale.payment_reference" class="mt-2 pt-2 border-t border-[var(--color-border-subtle)]">
+                        <div class="flex justify-between text-[var(--color-text-secondary)]">
+                            <span>Referencia</span>
+                            <span class="font-mono">{{ sale.payment_reference }}</span>
+                        </div>
                     </div>
                 </div>
             </div>

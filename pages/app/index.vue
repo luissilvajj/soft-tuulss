@@ -132,41 +132,27 @@
 
        <!-- Quick Actions Panel (Desktop) -->
        <div class="hidden lg:flex flex-col gap-4">
-          <div class="rounded-3xl p-6 text-white shadow-2xl relative overflow-hidden" style="background: var(--gradient-logo);">
-             <!-- Decorators -->
-             <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+          <div class="glass-panel p-6 relative overflow-hidden">
              
-             <h3 class="text-xl font-bold mb-2 relative z-10">Acciones Rápidas</h3>
-             <p class="text-white/80 text-sm mb-6 relative z-10">Gestiona tu negocio de forma eficiente.</p>
+             <h3 class="text-lg font-bold text-[var(--color-white)] mb-2">Acciones Rápidas</h3>
+             <p class="text-[var(--color-text-secondary)] text-sm mb-6">Gestiona tu negocio de forma eficiente.</p>
              
-             <div class="space-y-3 relative z-10">
-                <NuxtLink to="/app/sales" class="w-full flex items-center justify-between bg-white/10 hover:bg-white/20 p-4 rounded-xl transition-colors group cursor-pointer no-underline text-white border border-white/10">
+             <div class="space-y-3">
+                <NuxtLink to="/app/sales/new" class="w-full flex items-center justify-between bg-[var(--color-bg-subtle)] hover:bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] p-4 rounded-xl transition-all group cursor-pointer no-underline text-[var(--color-text-primary)] shadow-sm hover:shadow-md">
                    <div class="flex items-center gap-3">
-                      <div class="bg-[var(--color-accent-blue)] p-2 rounded-lg text-white">
+                      <div class="bg-[var(--color-accent-blue)] p-2 rounded-lg text-white shadow-lg shadow-blue-500/20">
                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                       </div>
-                      <span class="font-bold">Registrar Venta</span>
+                      <span class="font-bold text-[var(--color-white)]">Registrar Venta</span>
                    </div>
-                   <svg class="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                   <svg class="w-5 h-5 text-[var(--color-text-secondary)] group-hover:text-[var(--color-accent-blue)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </NuxtLink>
 
-                <NuxtLink to="/app/sales/new" class="w-full flex items-center justify-between bg-[var(--color-surface-glass)] hover:bg-white/20 p-4 rounded-xl transition-colors group cursor-pointer no-underline text-white border border-white/10">
+                <NuxtLink to="/app/inventory" class="w-full flex items-center justify-between bg-[var(--color-bg-subtle)] hover:bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] p-4 rounded-xl transition-all group cursor-pointer no-underline text-[var(--color-text-primary)] shadow-sm hover:shadow-md">
                    <div class="flex items-center gap-3">
-                      <div class="bg-[var(--color-accent-blue)] p-2 rounded-lg text-white">
-                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                      </div>
-                      <span class="font-bold">Registrar Venta</span>
-                   </div>
-                   <svg class="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </NuxtLink>
-
-                <NuxtLink to="/app/inventory" class="w-full flex items-center justify-between bg-[var(--color-surface-glass)] hover:bg-white/20 p-4 rounded-xl transition-colors group cursor-pointer no-underline text-white border border-white/10">
-                   <div class="flex items-center gap-3">
-                      <div class="bg-[var(--color-accent-violet)] p-2 rounded-lg text-white">
+                      <div class="bg-[var(--color-accent-violet)] p-2 rounded-lg text-white shadow-lg shadow-purple-500/20">
                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                       </div>
-                      <span class="font-bold">Nuevo Producto</span>
-                   </div>
                    <svg class="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </NuxtLink>
              </div>

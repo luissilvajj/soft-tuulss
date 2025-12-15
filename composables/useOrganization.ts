@@ -15,7 +15,8 @@ export const useOrganization = () => {
         loading.value = true
         try {
             // Use Server API to bypass RLS issues
-            const data = await $fetch('/api/me/organization')
+            // Add timestamp to bust cache
+            const data = await $fetch(`/api/me/organization?t=${new Date().getTime()}`)
 
             if (data) {
                 organization.value = data

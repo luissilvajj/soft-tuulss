@@ -8,10 +8,16 @@ export default defineEventHandler(async (event) => {
     }
 
     const config = useRuntimeConfig()
+    // Retrieve Service Key from runtime config OR process.env directly (Vercel fallback)
     const serviceKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY
-    if (!serviceKey) throw createError({ statusCode: 500, message: 'Missing Service Key' })
 
-    // Use Service Key to bypass RLS
+    // Debug logging (will show in Vercel logs)
+    if (!serviceKey) {
+        console.error('DEBUG: Service Key missing in organization.get.ts')
+        throw createError({ statusCode: 500, message: 'Missing Service Key' })
+    }
+
+    // Use Service Key to bypass RLS - Exact pattern from working admin API
     const supabaseAdmin = createClient(process.env.SUPABASE_URL!, serviceKey)
 
     // Fetch Member + Org

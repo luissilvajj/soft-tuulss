@@ -301,23 +301,23 @@
                 <div class="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-2">
                     <div class="flex justify-between text-sm text-[var(--color-text-primary)]">
                         <span class="text-gray-500">Subtotal</span>
-                        <span class="font-medium">{{ formatDisplayPrice(displayFinancials.subtotal) }}</span>
+                        <span class="font-medium">{{ formatDisplayPrice(financials.subtotal) }}</span>
                     </div>
                      <div v-if="currentSale.globalDiscount > 0" class="flex justify-between text-sm text-green-600">
                         <span>Descuento</span>
-                        <span>-{{ formatDisplayPrice(currentSale.globalDiscount * (currentSale.currency === 'VES' ? currentSale.exchangeRate : 1)) }}</span>
+                        <span>-{{ formatDisplayPrice(currentSale.globalDiscount) }}</span>
                     </div>
                     <div class="flex justify-between text-sm text-[var(--color-text-primary)]">
                         <span class="text-gray-500">IVA (16%)</span>
-                         <span class="font-medium">{{ formatDisplayPrice(displayFinancials.taxIva) }}</span>
+                         <span class="font-medium">{{ formatDisplayPrice(financials.taxIva) }}</span>
                     </div>
                     <div v-if="financials.taxIgtf > 0" class="flex justify-between text-sm text-[var(--color-text-primary)]">
                         <span class="text-gray-500">IGTF (3% de ${{ igtfBaseAmount.toFixed(2) }})</span>
-                         <span class="font-medium">{{ formatDisplayPrice(displayFinancials.taxIgtf) }}</span>
+                         <span class="font-medium">{{ formatDisplayPrice(financials.taxIgtf) }}</span>
                     </div>
                     <div class="flex justify-between items-center text-lg font-bold border-t border-gray-100 dark:border-gray-800 pt-3 mt-2 text-[var(--color-text-primary)]">
                         <span>Total</span>
-                        <span>{{ formatDisplayPrice(displayFinancials.total) }}</span>
+                        <span>{{ formatDisplayPrice(financials.total) }}</span>
                     </div>
                      <p class="text-right text-xs text-gray-400">
                         ~ {{ currentSale.currency === 'USD' ? `Bs. ${(financials.total * currentSale.exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 })}` : `$ ${(financials.total).toLocaleString('en-US', { maximumFractionDigits: 2 })}` }}
@@ -592,9 +592,12 @@ const remainingDue = computed(() => {
 
 // --- Financial ---
 const formatDisplayPrice = (amount: number) => {
-    return currentSale.value.currency === 'USD' 
-        ? `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-        : `Bs. ${amount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    if (currentSale.value.currency === 'VES') {
+        const rate = currentSale.value.exchangeRate || 1
+        const converted = amount * rate
+        return `Bs. ${converted.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    }
+    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 const financials = computed(() => {
@@ -630,16 +633,7 @@ const financials = computed(() => {
     }
 })
 
-const displayFinancials = computed(() => {
-    const f = financials.value
-    const rate = currentSale.value.currency === 'VES' ? currentSale.value.exchangeRate : 1
-    return {
-        subtotal: f.subtotal * rate,
-        taxIva: f.taxIva * rate,
-        taxIgtf: f.taxIgtf * rate,
-        total: f.total * rate
-    }
-})
+
 
 const handleCheckout = async () => {
     if (currentSale.value.cart.length === 0) return

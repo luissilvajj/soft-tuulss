@@ -30,6 +30,16 @@
             <component :is="tabs[1].icon" class="w-5 h-5" />
             Equipo
           </button>
+          
+          <NuxtLink 
+            v-if="canManageTeam"
+            to="/app/settings/audit"
+            class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)] transition-all"
+            active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] font-bold !text-[var(--color-accent-blue)]"
+          >
+             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            Auditoría
+          </NuxtLink>
           <NuxtLink 
             to="/app/settings/billing"
             class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)] transition-all"

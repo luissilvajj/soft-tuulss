@@ -35,21 +35,19 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--color-border-subtle)]">
-                    <!-- Assuming we will fetch items or they are embedded. 
-                         For now, if items aren't joined, we might show a placeholder or need to fetch them.
-                         But typically 'sale' might come with items if fetched deeply. 
-                         If not, I'll just show totals for now to stay safe, or check if 'items_snapshot' exists. -->
-                    <tr v-if="sale.items_snapshot" v-for="(item, i) in (typeof sale.items_snapshot === 'string' ? JSON.parse(sale.items_snapshot) : sale.items_snapshot)" :key="i">
+                <tbody class="divide-y divide-[var(--color-border-subtle)]">
+                    <tr v-for="(item, i) in displayItems" :key="i">
                         <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-center">{{ item.qty }}</td>
                         <td class="px-4 py-2 text-sm text-[var(--color-heading)]">{{ item.name }}</td>
                         <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-right font-mono">${{ Number(item.price).toFixed(2) }}</td>
                         <td class="px-4 py-2 text-sm text-[var(--color-heading)] text-right font-mono">${{ (Number(item.price) * Number(item.qty)).toFixed(2) }}</td>
                     </tr>
-                    <tr v-else>
+                    <tr v-if="displayItems.length === 0">
                         <td colspan="4" class="px-4 py-4 text-center text-sm text-[var(--color-text-secondary)] italic">
                             Detalle de items no disponible
                         </td>
                     </tr>
+                </tbody>
                 </tbody>
             </table>
         </div>
@@ -110,6 +108,27 @@ import type { Sale } from '~/types/models'
 const props = defineProps<{
   sale: Sale
 }>()
+
+const displayItems = computed(() => {
+    // 1. Try relational data (from fetchSales)
+    if (props.sale.items && Array.isArray(props.sale.items) && props.sale.items.length > 0) {
+        return props.sale.items.map((i: any) => ({
+            qty: i.quantity,
+            name: i.product?.name || 'Producto Desconocido',
+            price: i.price_at_transaction || 0
+        }))
+    }
+    
+    // 2. Try Snapshot field (legacy or fallback)
+    if (props.sale.items_snapshot) {
+        const raw = typeof props.sale.items_snapshot === 'string' 
+            ? JSON.parse(props.sale.items_snapshot) 
+            : props.sale.items_snapshot
+        return Array.isArray(raw) ? raw : []
+    }
+
+    return []
+})
 
 const displayPaymentMethod = (method: string) => {
     const map: Record<string, string> = {

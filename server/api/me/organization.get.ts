@@ -2,54 +2,66 @@ import { serverSupabaseUser } from '#supabase/server'
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
-    const user = await serverSupabaseUser(event)
-    if (!user) {
-        throw createError({ statusCode: 401, message: 'Unauthorized' })
-    }
+    try {
+        const user = await serverSupabaseUser(event)
+        if (!user) {
+            return { error: 'Unauthorized: No user session' }
+        }
 
-    const config = useRuntimeConfig()
-    // Retrieve Service Key from runtime config OR process.env directly (Vercel fallback)
-    const serviceKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY
+        const config = useRuntimeConfig()
+        const serviceKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY
+        const url = process.env.SUPABASE_URL
 
-    // Debug logging (will show in Vercel logs)
-    if (!serviceKey) {
-        console.error('DEBUG: Service Key missing in organization.get.ts')
-        throw createError({ statusCode: 500, message: 'Missing Service Key' })
-    }
+        // DEBUG: Return config status if missing
+        if (!serviceKey || !url) {
+            return {
+                error: 'Configuration Missing',
+                debug: {
+                    hasServiceKey: !!serviceKey,
+                    hasUrl: !!url,
+                    serviceKeySource: config.supabaseServiceKey ? 'runtimeConfig' : (process.env.SUPABASE_SERVICE_KEY ? 'env' : 'none')
+                }
+            }
+        }
 
-    // Use Service Key to bypass RLS - Exact pattern from working admin API
-    const supabaseAdmin = createClient(process.env.SUPABASE_URL!, serviceKey)
+        const supabaseAdmin = createClient(url, serviceKey)
 
-    // Fetch Member + Org
-    const { data, error } = await supabaseAdmin
-        .from('organization_members')
-        .select(`
-            role,
-            organization:organizations (
-                id,
-                name,
-                logo_url,
-                subscription_status,
-                subscription_plan,
-                trial_ends_at,
-                current_period_end,
-                stripe_customer_id
-            )
-        `)
-        .eq('user_id', user.id)
-        .limit(1)
-        .maybeSingle()
+        const { data, error } = await supabaseAdmin
+            .from('organization_members')
+            .select(`
+                role,
+                organization:organizations (
+                    id,
+                    name,
+                    logo_url,
+                    subscription_status,
+                    subscription_plan,
+                    trial_ends_at,
+                    current_period_end,
+                    stripe_customer_id
+                )
+            `)
+            .eq('user_id', user.id)
+            .limit(1)
+            .maybeSingle()
 
-    if (error) {
-        throw createError({ statusCode: 500, message: error.message })
-    }
+        if (error) {
+            return { error: 'DB Error: ' + error.message, details: error }
+        }
 
-    if (!data || !data.organization) {
-        return null // No org found
-    }
+        if (!data || !data.organization) {
+            return { error: 'No Organization Found', userId: user.id }
+        }
 
-    return {
-        ...data.organization,
-        role: data.role
+        return {
+            ...data.organization,
+            role: data.role
+        }
+
+    } catch (e: any) {
+        return {
+            error: 'Server Exception: ' + e.message,
+            stack: e.stack
+        }
     }
 })

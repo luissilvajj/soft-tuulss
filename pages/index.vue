@@ -48,9 +48,9 @@
           <NuxtLink to="/signup" class="px-8 py-4 rounded-full bg-[var(--color-white)] text-[var(--color-bg-dark)] font-bold text-lg hover:bg-gray-100 transition-all hover:scale-105 shadow-xl shadow-white/10">
             Ver Planes Ahora
           </NuxtLink>
-          <a href="#demo" class="px-8 py-4 rounded-full text-[var(--color-white)] border border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-subtle)] transition-colors text-lg font-bold">
+          <NuxtLink to="/signup" class="px-8 py-4 rounded-full text-[var(--color-white)] border border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-subtle)] transition-colors text-lg font-bold">
             Solicitar Demo
-          </a>
+          </NuxtLink>
         </div>
 
         <!-- Mockup Container -->

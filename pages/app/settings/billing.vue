@@ -105,11 +105,21 @@
          </div>
       </div>
     </div>
+     <!-- Debug Section (Temporary) -->
+     <div class="mt-8 p-4 bg-black text-green-400 font-mono text-xs rounded-xl overflow-auto">
+        <p class="font-bold text-white mb-2">DEBUG INFO (Take Screenshot)</p>
+        <p>User Email: {{ user?.email }}</p>
+        <p>User ID: {{ user?.id }}</p>
+        <p>Org State: {{ organization }}</p>
+        <p>Loading: {{ loading }}</p>
+     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useOrganization } from '~/composables/useOrganization'
+const user = useSupabaseUser()
+const { organization, fetchOrganization, loading } = useOrganization()
 
 definePageMeta({ layout: 'dashboard' })
 

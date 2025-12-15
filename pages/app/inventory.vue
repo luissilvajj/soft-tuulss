@@ -67,9 +67,9 @@
                       <div class="flex items-center gap-2">
                           <span :class="[
                               'px-2 py-1 text-xs font-bold rounded-full border',
-                              product.quantity <= (product.min_stock || 0) ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                              product.stock <= (product.min_stock || 0) ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                           ]">
-                              Stock: {{ product.quantity }}
+                              Stock: {{ product.stock }}
                           </span>
                       </div>
                       <div class="flex gap-2">
@@ -108,9 +108,9 @@
                         <td class="px-6 py-4 text-center">
                             <span :class="[
                                 'px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full border',
-                                product.quantity <= (product.min_stock || 0) ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                product.stock <= (product.min_stock || 0) ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                             ]">
-                                {{ product.quantity }}
+                                {{ product.stock }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-right text-sm font-medium text-[var(--color-white)]">
@@ -120,7 +120,7 @@
                             ${{ (product.cost || 0).toFixed(2) }}
                         </td>
                         <td class="px-6 py-4 text-right text-sm text-[var(--color-text-secondary)] font-mono">
-                            ${{ (product.price * product.quantity).toFixed(2) }}
+                            ${{ (product.price * product.stock).toFixed(2) }}
                         </td>
                          <td class="px-6 py-4 text-right text-sm font-medium">
                             <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -171,10 +171,14 @@
               <input v-model="newProduct.sku" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="Ej. SKU-001">
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Precio ($)</label>
               <input v-model="newProduct.price" type="number" step="0.01" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="0.00">
+            </div>
+             <div>
+              <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Costo ($)</label>
+              <input v-model="newProduct.cost" type="number" step="0.01" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="0.00">
             </div>
             <div>
               <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Stock Inicial</label>
@@ -264,6 +268,7 @@ const newProduct = ref({
   name: '',
   sku: '',
   price: '',
+  cost: '',
   stock: ''
 })
 
@@ -292,11 +297,12 @@ const addProduct = async () => {
       name: newProduct.value.name,
       sku: newProduct.value.sku,
       price: parseFloat(newProduct.value.price) || 0,
+      cost: parseFloat(newProduct.value.cost) || 0,
       stock: parseInt(newProduct.value.stock) || 0
     })
     
     closeModal()
-    newProduct.value = { name: '', sku: '', price: '', stock: '' }
+    newProduct.value = { name: '', sku: '', price: '', cost: '', stock: '' }
   } catch (e) {
     alert('Error al guardar: ' + e.message)
   } finally {

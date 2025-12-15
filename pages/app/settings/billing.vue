@@ -123,7 +123,9 @@
         <p class="font-bold text-white mb-2">DEBUG INFO (Take Screenshot)</p>
         <p>User Email: {{ user?.email }}</p>
         <p>User ID: {{ user?.id }}</p>
-        <p>Org State: {{ organization }}</p>
+        <p>Org State (Composable): {{ organization }}</p>
+        <p>Direct API Result: {{ debugResult }}</p>
+        <p class="text-red-400" v-if="debugError">API Error: {{ debugError }}</p>
         <p>Loading: {{ loading }}</p>
      </div>
   </div>
@@ -172,6 +174,9 @@ const nextBillingDate = computed(() => {
 })
 
 const fixing = ref(false)
+const debugResult = ref<any>(null)
+const debugError = ref<any>(null)
+
 const fixAccount = async () => {
     fixing.value = true
     try {
@@ -186,4 +191,17 @@ const fixAccount = async () => {
         fixing.value = false
     }
 }
+
+onMounted(async () => {
+    // Force refresh to ensure we have the latest subscription status
+    await fetchOrganization(true)
+
+    // DEBUG: Direct API Test
+    try {
+        debugResult.value = await $fetch('/api/me/organization')
+    } catch (e) {
+        debugError.value = e
+    }
+})
+
 </script>

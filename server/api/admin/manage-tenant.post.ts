@@ -34,6 +34,17 @@ export default defineEventHandler(async (event) => {
         updateData = {
             subscription_status: 'canceled'
         }
+    } else if (action === 'delete_org') {
+        // Delete organization (cascade will delete related data)
+        const { error: deleteError } = await supabase
+            .from('organizations')
+            .delete()
+            .eq('id', orgId)
+
+        if (deleteError) {
+            throw createError({ statusCode: 500, statusMessage: deleteError.message })
+        }
+        return { success: true, deleted: true }
     } else {
         throw createError({ statusCode: 400, statusMessage: 'Invalid Action' })
     }

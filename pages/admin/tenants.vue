@@ -45,12 +45,15 @@
                 {{ getDaysLeft(org.trial_ends_at) }} días
             </td>
             <td class="px-6 py-4 text-right flex justify-end gap-2">
-                <!-- Action Buttons (Placeholders for now) -->
-                <button @click="extendTrial(org)" class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded hover:bg-blue-500/30">
+                <!-- Action Buttons -->
+                <button @click="extendTrial(org)" class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded hover:bg-blue-500/30 text-xs">
                     +14 Días
                 </button>
-                <button v-if="org.subscription_status !== 'active'" @click="activatePlan(org)" class="px-2 py-1 bg-green-500/20 text-green-400 rounded hover:bg-green-500/30">
+                <button v-if="org.subscription_status !== 'active'" @click="activatePlan(org)" class="px-2 py-1 bg-green-500/20 text-green-400 rounded hover:bg-green-500/30 text-xs">
                     Activar
+                </button>
+                <button @click="deleteOrg(org)" class="px-2 py-1 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 text-xs">
+                    🗑️
                 </button>
             </td>
           </tr>

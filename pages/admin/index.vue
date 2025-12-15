@@ -2,13 +2,16 @@
   <div>
     <h1 class="text-3xl font-bold text-white mb-8">Panel de Control</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    <!-- Loading State -->
+    <div v-if="pending" class="text-white">Cargando métricas...</div>
+
+    <!-- Metrics -->
+    <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <!-- Metric Card 1 -->
         <div class="bg-white/5 border border-white/10 p-6 rounded-2xl">
             <h3 class="text-gray-400 text-sm font-medium uppercase">Total Organizaciones</h3>
             <div class="mt-4 flex items-baseline gap-2">
-                <span class="text-4xl font-bold text-white">...</span>
-                <span class="text-sm text-green-400">+...%</span>
+                <span class="text-4xl font-bold text-white">{{ metrics?.totalOrgs || 0 }}</span>
             </div>
         </div>
 
@@ -16,7 +19,7 @@
         <div class="bg-white/5 border border-white/10 p-6 rounded-2xl">
             <h3 class="text-gray-400 text-sm font-medium uppercase">Usuarios Activos</h3>
             <div class="mt-4 flex items-baseline gap-2">
-                <span class="text-4xl font-bold text-white">...</span>
+                <span class="text-4xl font-bold text-white">{{ metrics?.activeUsers || 0 }}</span>
             </div>
         </div>
 
@@ -24,7 +27,7 @@
         <div class="bg-white/5 border border-white/10 p-6 rounded-2xl">
             <h3 class="text-gray-400 text-sm font-medium uppercase">Ingresos (MRR)</h3>
             <div class="mt-4 flex items-baseline gap-2">
-                <span class="text-4xl font-bold text-white">$...</span>
+                <span class="text-4xl font-bold text-white">${{ metrics?.mrr || 0 }}</span>
             </div>
         </div>
     </div>
@@ -48,4 +51,6 @@ definePageMeta({
   layout: 'admin',
   middleware: 'admin'
 })
+
+const { data: metrics, pending } = await useFetch('/api/admin/metrics')
 </script>

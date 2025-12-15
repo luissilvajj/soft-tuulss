@@ -30,13 +30,15 @@ export const useInventory = () => {
         }
     }
 
+    const { logAction } = useAuditLogs()
+
     const addProduct = async (productData: Partial<Product>) => {
         if (!organization.value?.id) throw new Error('No Organization')
 
-        const { error } = await client.from('products').insert({
+        const { data, error } = await client.from('products').insert({
             organization_id: organization.value.id,
             ...productData
-        })
+        }).select().single()
 
         if (error) {
             if (error.code === '23505') { // Unique violation
@@ -44,6 +46,8 @@ export const useInventory = () => {
             }
             throw error
         }
+
+        logAction('product_created', { name: productData.name, sku: productData.sku, initial_stock: productData.stock })
 
         // Refresh list
         await fetchProducts(true)
@@ -63,6 +67,8 @@ export const useInventory = () => {
             }
             throw error
         }
+
+        logAction('product_updated', { id, changes: productData })
 
         await fetchProducts(true)
     }
@@ -111,6 +117,8 @@ export const useInventory = () => {
             .eq('id', productId)
 
         if (updateError) throw updateError
+
+        logAction('product_restocked', { product_id: productId, added: quantity, cost: costPerUnit })
 
         await fetchProducts(true) // Updates UI
         return true

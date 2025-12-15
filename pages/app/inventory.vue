@@ -286,6 +286,11 @@ const confirmDelete = async (product) => {
     try {
         const { error } = await client.from('products').delete().eq('id', product.id)
         if (error) throw error
+        if (error) throw error
+        
+        const { logAction } = useAuditLogs()
+        logAction('product_deleted', { name: product.name, sku: product.sku })
+
         await fetchProducts(true)
     } catch (e) {
         alert('Error al eliminar: ' + e.message)

@@ -206,6 +206,13 @@ export const useSales = () => {
             // Refresh List
             await fetchSales(true)
 
+            logAction('sale_created', {
+                sale_id: sale.id,
+                total: payload.total,
+                client_id: payload.clientId,
+                payment_method: payload.paymentMethod
+            })
+
             return sale
         } catch (e) {
             console.error('Error creating sale:', e)

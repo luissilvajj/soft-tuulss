@@ -34,7 +34,7 @@
                     <input 
                         v-model.number="exchangeRate"
                         type="number"
-                        class="w-20 bg-transparent border-b border-gray-200 focus:border-black outline-none text-right font-medium"
+                        class="w-20 bg-transparent border-b border-gray-200 dark:border-gray-700 focus:border-black dark:focus:border-white outline-none text-right font-medium text-[var(--color-text-primary)]"
                     >
                     <span class="absolute right-0 top-0 -mt-2 text-[10px] text-gray-400 opacity-0 hover:opacity-100 transition-opacity">Bs/USD</span>
                 </div>
@@ -55,7 +55,7 @@
                     ref="searchInput"
                     v-model="searchQuery"
                     type="text" 
-                    class="w-full bg-white border border-gray-200 rounded-lg py-3 pl-10 pr-4 text-sm focus:ring-1 focus:ring-black focus:border-black transition-all placeholder-gray-400"
+                    class="w-full bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-gray-700 rounded-lg py-3 pl-10 pr-4 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white transition-all placeholder-gray-400 text-[var(--color-text-primary)]"
                     placeholder="Buscar producto (Nombre o SKU)..."
                     @keydown.down.prevent="selectNextResult"
                     @keydown.up.prevent="selectPrevResult"
@@ -63,7 +63,7 @@
                 />
 
                 <!-- Results Dropdown -->
-                <div v-if="searchQuery" class="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-lg shadow-xl overflow-hidden max-h-96 overflow-y-auto z-50 ring-1 ring-black/5">
+                <div v-if="searchQuery" class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1C1C1E] border border-gray-100 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden max-h-96 overflow-y-auto z-50 ring-1 ring-black/5">
                     <div v-if="loadingProducts" class="p-4 text-center text-sm text-gray-400">
                         <span class="inline-block animate-spin mr-2">⟳</span> Cargando inventario...
                     </div>
@@ -79,28 +79,28 @@
                         :key="product.id"
                         @click="addProductToCart(product)"
                         :class="[
-                            'p-3 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors',
-                            focusedResultIndex === index ? 'bg-gray-50' : ''
+                            'p-3 cursor-pointer flex justify-between items-center border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors',
+                            focusedResultIndex === index ? 'bg-gray-50 dark:bg-gray-800' : ''
                         ]"
                     >
                         <div>
-                             <p class="text-sm font-medium text-gray-900">{{ product.name }}</p>
+                             <p class="text-sm font-medium text-gray-900 dark:text-white">{{ product.name }}</p>
                              <p class="text-xs text-gray-400">SKU: {{ product.sku || '-' }} • Stock: {{ product.stock }}</p>
                         </div>
-                        <span class="text-sm font-semibold text-gray-900">{{ formatPrice(product.price) }}</span>
+                        <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatPrice(product.price) }}</span>
                     </div>
                 </div>
             </div>
 
             <!-- Table -->
-            <div class="flex-1 bg-white border border-gray-200 rounded-lg flex flex-col shadow-sm overflow-hidden">
-                <div class="p-3 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+            <div class="flex-1 bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col shadow-sm overflow-hidden">
+                <div class="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
                     <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Items ({{ cart.length }})</span>
                     <button v-if="cart.length > 0" @click="cart = []" class="text-xs text-red-600 hover:text-red-700 font-medium">Vaciar</button>
                 </div>
                 <div class="flex-1 overflow-y-auto">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-white sticky top-0 z-10">
+                        <thead class="bg-white dark:bg-[#1C1C1E] sticky top-0 z-10">
                             <tr>
                                 <th class="pl-4 py-2 font-medium text-gray-400 w-1/2">Producto</th>
                                 <th class="text-center py-2 font-medium text-gray-400">Cant.</th>
@@ -109,16 +109,16 @@
                                 <th class="w-10"></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            <tr v-for="(item, index) in cart" :key="item.product.id" class="group hover:bg-gray-50/50">
+                        <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
+                            <tr v-for="(item, index) in cart" :key="item.product.id" class="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50">
                                 <td class="pl-4 py-3">
-                                    <p class="font-medium text-gray-900">{{ item.product.name }}</p>
+                                    <p class="font-medium text-gray-900 dark:text-white">{{ item.product.name }}</p>
                                 </td>
                                 <td class="py-3 text-center">
-                                    <div class="inline-flex items-center border border-gray-200 rounded-md bg-white">
-                                        <button @click="decrementQty(index)" class="px-2 py-1 text-gray-500 hover:text-black">-</button>
-                                        <input v-model.number="item.quantity" class="w-8 text-center text-xs font-medium outline-none appearance-none" />
-                                        <button @click="incrementQty(index)" class="px-2 py-1 text-gray-500 hover:text-black">+</button>
+                                    <div class="inline-flex items-center border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800">
+                                        <button @click="decrementQty(index)" class="px-2 py-1 text-gray-500 hover:text-black dark:hover:text-white">-</button>
+                                        <input v-model.number="item.quantity" class="w-8 text-center text-xs font-medium outline-none appearance-none bg-transparent text-[var(--color-text-primary)]" />
+                                        <button @click="incrementQty(index)" class="px-2 py-1 text-gray-500 hover:text-black dark:hover:text-white">+</button>
                                     </div>
                                 </td>
                                 <td class="py-4 text-right font-mono text-sm text-[var(--color-text-primary)]">
@@ -133,8 +133,8 @@
                                 </td>
                             </tr>
                              <tr v-if="cart.length === 0">
-                                <td colspan="5" class="py-20 text-center text-gray-300">
-                                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                <td colspan="5" class="py-20 text-center text-gray-300 dark:text-gray-600">
+                                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-200 dark:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                                     <p class="text-sm">Carrito vacío</p>
                                 </td>
                             </tr>
@@ -146,7 +146,7 @@
 
         <!-- Right: Summary -->
         <div class="col-span-4 flex flex-col gap-6">
-            <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm space-y-6">
+            <div class="bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-gray-700 rounded-lg p-5 shadow-sm space-y-6">
                 <!-- Client -->
                 <div>
                      <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Cliente</label>
@@ -163,8 +163,8 @@
                             :class="[
                                 'px-3 py-2 text-sm border rounded-md transition-all text-left flex items-center justify-between',
                                 form.paymentMethod === method.id 
-                                    ? 'border-blue-600 bg-blue-50 text-blue-700 font-medium ring-1 ring-blue-600' 
-                                    : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-medium ring-1 ring-blue-600' 
+                                    : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                             ]"
                         >
                             {{ method.label }}
@@ -179,7 +179,7 @@
                     <input 
                         v-model="form.paymentReference" 
                         type="text" 
-                        class="w-full bg-gray-50 border border-gray-200 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-black focus:border-black outline-none font-mono"
+                        class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none font-mono text-[var(--color-text-primary)]"
                         placeholder="000000"
                     />
                 </div>
@@ -188,29 +188,29 @@
                  <div class="flex flex-col gap-2">
                      <label class="flex items-center gap-2 cursor-pointer group">
                         <input type="checkbox" v-model="form.isExempt" class="rounded border-gray-300 text-black focus:ring-black">
-                        <span class="text-sm text-gray-600 group-hover:text-black transition-colors">Venta Exenta de IVA</span>
+                        <span class="text-sm text-gray-600 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors">Venta Exenta de IVA</span>
                      </label>
                      <label class="flex items-center gap-2 cursor-pointer group">
                         <input type="checkbox" v-model="form.isIgtfExempt" class="rounded border-gray-300 text-black focus:ring-black">
-                        <span class="text-sm text-gray-600 group-hover:text-black transition-colors">Exenta de IGTF (3%)</span>
+                        <span class="text-sm text-gray-600 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors">Exenta de IGTF (3%)</span>
                      </label>
                  </div>
 
                 <!-- Totals -->
-                <div class="border-t border-gray-100 pt-4 space-y-2">
-                    <div class="flex justify-between text-sm">
+                <div class="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-2">
+                    <div class="flex justify-between text-sm text-[var(--color-text-primary)]">
                         <span class="text-gray-500">Subtotal</span>
                         <span class="font-medium">{{ formatPrice(financials.subtotal) }}</span>
                     </div>
-                    <div class="flex justify-between text-sm">
+                    <div class="flex justify-between text-sm text-[var(--color-text-primary)]">
                         <span class="text-gray-500">IVA (16%)</span>
                          <span class="font-medium">{{ formatPrice(financials.taxIva) }}</span>
                     </div>
-                    <div v-if="financials.taxIgtf > 0" class="flex justify-between text-sm">
+                    <div v-if="financials.taxIgtf > 0" class="flex justify-between text-sm text-[var(--color-text-primary)]">
                         <span class="text-gray-500">IGTF (3%)</span>
                          <span class="font-medium">{{ formatPrice(financials.taxIgtf) }}</span>
                     </div>
-                    <div class="flex justify-between items-center text-lg font-bold border-t border-gray-100 pt-3 mt-2">
+                    <div class="flex justify-between items-center text-lg font-bold border-t border-gray-100 dark:border-gray-800 pt-3 mt-2 text-[var(--color-text-primary)]">
                         <span>Total</span>
                         <span>{{ formatPrice(financials.total) }}</span>
                     </div>
@@ -223,7 +223,7 @@
                  <button 
                      @click="handleCheckout"
                      :disabled="loading || cart.length === 0 || (needsReference && !form.paymentReference)"
-                     class="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-gray-200"
+                     class="w-full bg-black dark:bg-white text-white dark:text-black py-3 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-gray-200 dark:shadow-none"
                  >
                      {{ loading ? 'Procesando...' : 'Cobrar' }}
                  </button>
@@ -283,7 +283,7 @@ const router = useRouter()
 
 // --- State ---
 const currency = ref<'USD' | 'VES'>('USD')
-const exchangeRate = ref(250.00) // Default requested by user
+const exchangeRate = ref(0) // Initialize 0, fetch will populate
 const searchQuery = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
 const focusedResultIndex = ref(0)
@@ -344,6 +344,18 @@ const fetchProducts = async () => {
 
 // --- Exchange Rate Persistence ---
 const fetchExchangeRate = async () => {
+    // 1. Try Automatic BCV Rate First (Default)
+    try {
+        const data = await $fetch('/api/bcv-rate')
+        if (data && data.rate) {
+            exchangeRate.value = data.rate
+            return // Use API rate
+        }
+    } catch (e) {
+        console.error('Error fetching BCV API rate', e)
+        // Fallback to DB or hardcoded if API fails
+    }
+
     if (!organization.value?.id) return
     try {
         const { data } = await client.from('exchange_rates')

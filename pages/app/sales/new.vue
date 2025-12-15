@@ -666,6 +666,12 @@ const handleCheckout = async () => {
             discount: currentSale.value.globalDiscount, // Pass Global Discount
             total: financials.value.total,
             paymentDetails: paymentDetails,
+            rawItems: currentSale.value.cart.map(i => ({
+                productId: i.product.id,
+                quantity: i.quantity,
+                price: i.product.price,
+                discount: i.discount
+            })),
             itemsSnapshot: currentSale.value.cart.map(i => ({
                 id: i.product.id,
                 name: i.product.name,

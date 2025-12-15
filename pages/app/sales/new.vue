@@ -187,8 +187,10 @@
                              <div>
                                  <label class="text-xs text-gray-400 block mb-1">Monto en Divisa ($)</label>
                                  <input 
-                                    v-model.number="mixedPayment.usdAmount" 
-                                    type="number" 
+                                    :value="mixedPayment.usdAmount"
+                                    @input="(e: any) => updateMixedAmount('usdAmount', e.target.value)"
+                                    type="text"
+                                    inputmode="decimal" 
                                     class="w-full bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-md px-3 py-2 text-sm font-mono focus:border-blue-500 outline-none"
                                     placeholder="0.00"
                                  >
@@ -197,8 +199,10 @@
                              <div>
                                  <label class="text-xs text-gray-400 block mb-1">Monto en Bolívares (Bs)</label>
                                  <input 
-                                    v-model.number="mixedPayment.vesAmount" 
-                                    type="number" 
+                                    :value="mixedPayment.vesAmount"
+                                    @input="(e: any) => updateMixedAmount('vesAmount', e.target.value)"
+                                    type="text"
+                                    inputmode="decimal"
                                     class="w-full bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-md px-3 py-2 text-sm font-mono focus:border-blue-500 outline-none"
                                     placeholder="0.00"
                                  >
@@ -498,6 +502,22 @@ const setPaymentMethod = (id: string) => {
     form.paymentMethod = id
     // Reset mixed logic defaults on method change for convenience
     // If Cash $, default USD amount to full? Not necessarily, let user type.
+}
+
+const updateMixedAmount = (field: 'usdAmount' | 'vesAmount', value: string) => {
+    // Normalize comma to dot
+    let normalized = value.replace(',', '.')
+    // Allow empty string to be 0 or empty? Prefer preserving user input if possible, 
+    // but here we are binding to a reactive number. 
+    // Actually, binding to number state from string input is tricky.
+    // Let's just Regex it to be safe.
+    normalized = normalized.replace(/[^0-9.]/g, '')
+    
+    // Prevent multiple dots
+    const parts = normalized.split('.')
+    if (parts.length > 2) normalized = parts[0] + '.' + parts.slice(1).join('')
+    
+    mixedPayment[field] = Number(normalized)
 }
 
 // Calculate IGTF Base

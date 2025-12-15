@@ -118,7 +118,7 @@
                   trx.type === 'sale' ? 'text-emerald-600' : 'text-[var(--color-white)]',
                   'font-bold'
                ]">
-                  {{ trx.type === 'sale' ? '+' : '-' }} ${{ trx.amount }}
+                  {{ trx.type === 'sale' ? '+' : '-' }} ${{ trx.formattedAmount }}
                </span>
             </li>
           </ul>
@@ -216,9 +216,9 @@ const { data: dashboardData, pending } = await useAsyncData('dashboard-metrics',
     
     // Execute all independent queries in parallel
     const [salesResult, stockResult, clientResult, trxResult] = await Promise.all([
-        // 1. Today Sales
+        // 1. Today Sales - Get ALL columns to do manual conversion
         supabase.from('transactions')
-          .select('amount').eq('type', 'sale').gte('date', today),
+          .select('amount, currency, exchange_rate').eq('type', 'sale').gte('date', today),
           
         // 2. Low Stock
         supabase.from('products')
@@ -233,19 +233,38 @@ const { data: dashboardData, pending } = await useAsyncData('dashboard-metrics',
           .select('*').order('date', { ascending: false }).limit(5)
     ])
 
-    const todaySales = salesResult.data?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0
+    const normalizeAmount = (trx) => {
+        let amount = trx.amount || 0
+        let rate = trx.exchange_rate || 1
+        
+        // Heuristic: If VES or likely VES (>1000 and rate > 20)
+        const isVes = trx.currency === 'VES' || (amount > 1000 && rate > 20)
+        
+        if (isVes && rate) {
+            return amount / rate
+        }
+        return amount
+    }
+
+    const todaySales = salesResult.data?.reduce((acc, curr) => acc + normalizeAmount(curr), 0) || 0
     const lowStockCount = stockResult.count || 0
     const clientCount = clientResult.count || 0
     const recentTransactions = trxResult.data || []
+    
+    // Patch recent transactions for display
+    const formattedRecent = recentTransactions.map(t => ({
+        ...t,
+        formattedAmount: normalizeAmount(t).toFixed(2)
+    }))
 
     return {
         todaySales,
         lowStockCount,
         clientCount,
-        recentTransactions
+        recentTransactions: formattedRecent
     }
 }, {
-    lazy: true, // Don't block navigation, show skeleton state if needed (or "...")
-    server: false // Supabase auth is client-side usually, so keep false unless sensitive to headers
+    lazy: true, 
+    server: false 
 })
 </script>

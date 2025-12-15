@@ -198,7 +198,12 @@ onMounted(async () => {
 
     // DEBUG: Direct API Test
     try {
-        debugResult.value = await $fetch('/api/me/organization')
+        debugResult.value = await $fetch('/api/me/organization?t=' + Date.now())
+        
+        // FORCE UPDATE STATE FROM API
+        if (debugResult.value && debugResult.value.subscription_status) {
+            organization.value = debugResult.value
+        }
     } catch (e) {
         debugError.value = e
     }

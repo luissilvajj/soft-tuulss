@@ -19,6 +19,9 @@
                     ]">
                         {{ sale.status === 'paid' ? 'PAGADO' : 'PENDIENTE' }}
                     </span>
+                    <p class="text-xs text-[var(--color-text-secondary)] mt-1 uppercase font-bold tracking-wider">
+                        {{ sale.currency }}
+                    </p>
                 </div>
             </div>
         </div>
@@ -28,19 +31,22 @@
             <table class="min-w-full divide-y divide-[var(--color-border-subtle)]">
                 <thead class="bg-[var(--color-bg-subtle)]">
                     <tr>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase">Cant.</th>
+                        <th class="px-4 py-2 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase w-16">Cant.</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase w-full">Producto</th>
-                        <th class="px-4 py-2 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Precio</th>
-                        <th class="px-4 py-2 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase">Total</th>
+                        <th class="px-4 py-2 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase whitespace-nowrap">Precio Unit.</th>
+                        <th class="px-4 py-2 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase whitespace-nowrap">Total</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--color-border-subtle)]">
-                <tbody class="divide-y divide-[var(--color-border-subtle)]">
                     <tr v-for="(item, i) in displayItems" :key="i">
-                        <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-center">{{ item.qty }}</td>
+                        <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-center font-mono">{{ item.qty }}</td>
                         <td class="px-4 py-2 text-sm text-[var(--color-heading)]">{{ item.name }}</td>
-                        <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-right font-mono">${{ Number(item.price).toFixed(2) }}</td>
-                        <td class="px-4 py-2 text-sm text-[var(--color-heading)] text-right font-mono">${{ (Number(item.price) * Number(item.qty)).toFixed(2) }}</td>
+                        <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-right font-mono">
+                            {{ formatMoney(item.price * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}
+                        </td>
+                        <td class="px-4 py-2 text-sm text-[var(--color-heading)] text-right font-mono">
+                            {{ formatMoney((item.price * item.qty) * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}
+                        </td>
                     </tr>
                     <tr v-if="displayItems.length === 0">
                         <td colspan="4" class="px-4 py-4 text-center text-sm text-[var(--color-text-secondary)] italic">
@@ -48,63 +54,61 @@
                         </td>
                     </tr>
                 </tbody>
-                </tbody>
             </table>
         </div>
 
         <!-- Financials -->
         <div class="flex justify-end">
             <div class="w-1/2 space-y-2">
+                <!-- Breakdown in PAYMENT CURRENCY -->
                 <div class="flex justify-between text-sm text-[var(--color-text-secondary)]">
                     <span>Subtotal</span>
-                    <span class="font-mono">${{ Number(sale.subtotal).toFixed(2) }}</span>
+                    <span class="font-mono">{{ formatMoney(Number(sale.subtotal) * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}</span>
                 </div>
                 <div class="flex justify-between text-sm text-[var(--color-text-secondary)]">
                     <span>IVA (16%)</span>
-                    <span class="font-mono">${{ Number(sale.tax_iva).toFixed(2) }}</span>
+                    <span class="font-mono">{{ formatMoney(Number(sale.tax_iva) * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}</span>
                 </div>
                 <div v-if="sale.tax_igtf > 0" class="flex justify-between text-sm text-[var(--color-text-secondary)]">
                     <span>IGTF (3%)</span>
-                    <span class="font-mono">${{ Number(sale.tax_igtf).toFixed(2) }}</span>
+                    <span class="font-mono">{{ formatMoney(Number(sale.tax_igtf) * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}</span>
                 </div>
                 
                 <div class="border-t border-[var(--color-border-subtle)] pt-2 mt-2">
                     <div class="flex justify-between text-lg font-bold text-[var(--color-heading)]">
-                        <span>Total Base (USD)</span>
-                        <span class="font-mono">${{ Number(sale.amount).toFixed(2) }}</span>
+                        <span>Total {{ sale.currency }}</span>
+                        <span class="font-mono">{{ formatMoney(Number(sale.amount) * (sale.currency === 'VES' ? sale.exchange_rate : 1)) }}</span>
                     </div>
                 </div>
 
-                <!-- Payment Details (Dynamic Currency) -->
-                <!-- If paid in VES, show the conversion clearly -->
-                <div v-if="sale.currency === 'VES' || sale.exchange_rate > 1" class="bg-[var(--color-bg-subtle)] rounded-lg p-3 mt-4 border border-[var(--color-border-subtle)]">
+                <!-- Reference / Conversion Box -->
+                <div class="bg-[var(--color-bg-subtle)] rounded-lg p-3 mt-4 border border-[var(--color-border-subtle)]">
                      <div class="flex justify-between text-sm text-[var(--color-text-secondary)] mb-1">
-                        <span>Tasa de Cambio</span>
-                        <span class="font-mono">{{ Number(sale.exchange_rate).toFixed(2) }} Bs/$</span>
+                        <span>Método</span>
+                        <span class="capitalize font-medium text-[var(--color-heading)]">{{ displayPaymentMethod(sale.payment_method) }}</span>
                     </div>
-                    <div class="flex justify-between text-sm text-[var(--color-text-primary)] mb-1">
-                         <span>Equivalente</span>
-                         <span>{{ Number(sale.amount).toFixed(2) }} USD</span>
+                     <div v-if="sale.payment_reference" class="flex justify-between text-sm text-[var(--color-text-secondary)] mb-1">
+                        <span>Referencia</span>
+                        <span class="font-mono">{{ sale.payment_reference }}</span>
                     </div>
-                    <div class="border-t border-[var(--color-border-subtle)] my-2"></div>
-                    <div class="flex justify-between text-base font-bold text-[var(--color-accent-blue)]">
-                        <span>Monto Pagado (Bolívares)</span>
-                        <span class="font-mono">Bs. {{ (Number(sale.amount) * Number(sale.exchange_rate)).toLocaleString('es-VE', { minimumFractionDigits: 2 }) }}</span>
+
+                    <!-- If paid in VES, show USD equivalent context -->
+                    <div v-if="sale.currency === 'VES'" class="mt-2 pt-2 border-t border-[var(--color-border-subtle)]">
+                        <div class="flex justify-between text-xs text-[var(--color-text-secondary)] mb-1">
+                            <span>Tasa de Cambio</span>
+                            <span class="font-mono">{{ Number(sale.exchange_rate).toFixed(2) }} Bs/$</span>
+                        </div>
+                        <div class="flex justify-between text-sm font-semibold text-emerald-500">
+                             <span>Equivalente en Divisa</span>
+                             <span>${{ Number(sale.amount).toFixed(2) }}</span>
+                        </div>
                     </div>
-                     <div class="text-xs text-[var(--color-text-secondary)] text-right mt-1">
-                        Método: <span class="capitalize text-[var(--color-heading)]">{{ displayPaymentMethod(sale.payment_method) }}</span>
-                        <span v-if="sale.payment_reference"> (Ref: {{ sale.payment_reference }})</span>
-                    </div>
-                </div>
-                
-                <!-- If paid in USD, confirm it -->
-                <div v-else class="bg-[var(--color-bg-subtle)] rounded-lg p-3 mt-4 border border-[var(--color-border-subtle)]">
-                     <div class="flex justify-between text-base font-bold text-emerald-500">
-                        <span>Monto Pagado (USD)</span>
-                        <span class="font-mono">${{ Number(sale.amount).toFixed(2) }}</span>
-                    </div>
-                     <div class="text-xs text-[var(--color-text-secondary)] text-right mt-1">
-                        Método: <span class="capitalize text-[var(--color-heading)]">{{ displayPaymentMethod(sale.payment_method) }}</span>
+                    
+                    <!-- If paid in USD but showing context -->
+                    <div v-else class="mt-2 pt-2 border-t border-[var(--color-border-subtle)]">
+                        <div class="text-center text-xs text-emerald-600 font-bold uppercase tracking-wider">
+                            Operación en Divisa
+                        </div>
                     </div>
                 </div>
             </div>
@@ -157,5 +161,13 @@ const displayPaymentMethod = (method: string) => {
         'other': 'Otro'
     }
     return map[method] || method
+}
+
+const formatMoney = (amount: number) => {
+    if (props.sale.currency === 'VES') {
+        return `Bs. ${amount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    } else {
+        return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    }
 }
 </script>

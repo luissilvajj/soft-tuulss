@@ -426,7 +426,8 @@ const inviteUser = async () => {
    } catch (e) {
       console.error('Invite Exception:', e)
       inviteStatus.value = 'error'
-      inviteFeedback.value = e.message || 'Error al invitar usuario.'
+      // Extract specific error from Nuxt/Fetch error object
+      inviteFeedback.value = e.data?.message || e.response?._data?.message || e.message || 'Error al invitar usuario.'
    } finally {
       inviting.value = false
       console.log('--- INVITE END ---')

@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
-    const { orgId, action } = body
+    const { orgId, action, days, plan } = body
 
     if (!orgId || !action) {
         throw createError({ statusCode: 400, statusMessage: 'Missing orgId or action' })
@@ -17,18 +17,22 @@ export default defineEventHandler(async (event) => {
     let updateData = {}
 
     if (action === 'extend_trial') {
-        // Add 14 days to current time (or current trial end if valid?)
-        // Let's just reset to NOW + 14 days for simplicity
+        // Add X days to current date (default 14)
+        const daysToAdd = days ? parseInt(days) : 14
         const newDate = new Date()
-        newDate.setDate(newDate.getDate() + 14)
+        newDate.setDate(newDate.getDate() + daysToAdd)
         updateData = {
             trial_ends_at: newDate.toISOString(),
             subscription_status: 'trialing'
         }
-    } else if (action === 'activate_pro') {
+    } else if (action === 'set_plan') {
+        // Generic set plan action
+        const validPlans = ['basic', 'pro', 'enterprise']
+        const selectedPlan = validPlans.includes(plan) ? plan : 'pro'
+
         updateData = {
             subscription_status: 'active',
-            subscription_plan: 'pro'
+            subscription_plan: selectedPlan
         }
     } else if (action === 'cancel_sub') {
         updateData = {

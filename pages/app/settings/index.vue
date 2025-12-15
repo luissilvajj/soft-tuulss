@@ -275,6 +275,12 @@ const updateOrgName = async () => {
 }
 
 const ensureOrgId = async () => {
+    // 0. Guard against missing user
+    if (!user.value?.id) {
+        console.warn('ensureOrgId: No user ID available')
+        return
+    }
+
     // 1. Try Local State
     if (currentOrgId.value) return
 
@@ -293,7 +299,7 @@ const ensureOrgId = async () => {
             organization:organizations ( id, name, subscription_status ),
             role
         `)
-        .eq('user_id', user.value?.id)
+        .eq('user_id', user.value.id)
         .limit(1)
         .maybeSingle()
     
@@ -329,11 +335,13 @@ const fetchMembers = async () => {
 
    console.log('Fetching members for Org:', orgId)
    
+   // Removed 'email' as it is not in public.profiles. 
+   // Ideally we should sync email or use a view, but for now we fallback to name.
    const { data, error } = await client.from('organization_members')
       .select(`
          user_id,
          role,
-         profile:profiles ( email, full_name )
+         profile:profiles ( full_name, avatar_url )
       `)
       .eq('organization_id', orgId)
    
@@ -346,7 +354,7 @@ const fetchMembers = async () => {
       members.value = data.map(m => ({
          user_id: m.user_id,
          role: m.role,
-         email: m.profile?.email || 'Unknown' 
+         email: m.profile?.full_name || 'Sin Nombre' 
       }))
    }
 }

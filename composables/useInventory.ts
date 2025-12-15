@@ -33,17 +33,37 @@ export const useInventory = () => {
     const addProduct = async (productData: Partial<Product>) => {
         if (!organization.value?.id) throw new Error('No Organization')
 
-        // Optimistic update or just wait for fetch? 
-        // Let's simplified wait pattern but could push to local state.
-
         const { error } = await client.from('products').insert({
             organization_id: organization.value.id,
             ...productData
         })
 
-        if (error) throw error
+        if (error) {
+            if (error.code === '23505') { // Unique violation
+                throw new Error('El código SKU ya existe en otro producto.')
+            }
+            throw error
+        }
 
         // Refresh list
+        await fetchProducts(true)
+    }
+
+    const updateProduct = async (id: string, productData: Partial<Product>) => {
+        if (!organization.value?.id) throw new Error('No Organization')
+
+        const { error } = await client.from('products')
+            .update(productData)
+            .eq('id', id)
+            .eq('organization_id', organization.value.id)
+
+        if (error) {
+            if (error.code === '23505') {
+                throw new Error('El código SKU ya existe en otro producto.')
+            }
+            throw error
+        }
+
         await fetchProducts(true)
     }
 
@@ -101,6 +121,7 @@ export const useInventory = () => {
         loading,
         fetchProducts,
         addProduct,
+        updateProduct,
         restockProduct
     }
 }

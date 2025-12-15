@@ -74,7 +74,6 @@
                            </span>
                        </div>
                    </div>
-                   </div>
                 </div>
             </div> <!-- Close grid-cols-2 -->
 

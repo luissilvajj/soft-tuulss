@@ -85,7 +85,6 @@ export const useTransactions = () => {
                     product:products(name),
                     transaction:transactions!inner(
                         type,
-                        description,
                         date,
                         client_id,
                         organization_id

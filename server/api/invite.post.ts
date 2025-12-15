@@ -15,6 +15,8 @@ export default defineEventHandler(async (event) => {
 
     // 3. Verify Permissions
     // Check if the requesting user is an Owner/Admin of the target Org
+    console.log('Invite Request:', { userId: user.id, orgId })
+
     const { data: membership, error: permError } = await client
         .from('organization_members')
         .select('role')
@@ -22,8 +24,11 @@ export default defineEventHandler(async (event) => {
         .eq('user_id', user.id)
         .single()
 
+    console.log('Permission Check:', { membership, permError })
+
     if (permError || !membership || !['owner', 'admin'].includes(membership.role)) {
-        throw createError({ statusCode: 403, message: 'No tienes permisos para invitar a esta organización.' })
+        console.error('Permission Denied Details:', { role: membership?.role, error: permError })
+        throw createError({ statusCode: 403, message: `No tienes permisos. Rol: ${membership?.role}, Error: ${permError?.message}` })
     }
 
     // 4. Invite User via Supabase Auth

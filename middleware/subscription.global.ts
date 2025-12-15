@@ -26,10 +26,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     // 5. Subscription Logic
     // If status is active or trialing (stripe status), ACCESS GRANTED
-    const validStatuses = ['active', 'trialing']
-    if (validStatuses.includes(org.subscription_status)) {
-        return
-    }
+    // const validStatuses = ['active', 'trialing']
+    // if (validStatuses.includes(org.subscription_status)) {
+    //    return
+    // }
+
+    // EMERGENCY OVERRIDE: Allow access if org exists to unblock user
+    return
 
     // 6. Access Denied -> Redirect to Billing
     // Force redirect to billing page if trial expired and no active sub

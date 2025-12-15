@@ -67,9 +67,48 @@ export const useTransactions = () => {
         }
     }
 
+    // New: Inventory Movements
+    const inventoryMovements = useState<any[]>('inventory_movements', () => [])
+    const loadingMovements = useState('inventory_movements_loading', () => false)
+
+    const fetchInventoryMovements = async () => {
+        if (!organization.value?.id) return
+        loadingMovements.value = true
+        try {
+            // We need: Date, Product Name, Qty, Type (In/Out), Reference
+            const { data, error } = await client
+                .from('transaction_items')
+                .select(`
+                    id,
+                    quantity,
+                    created_at,
+                    product:products(name),
+                    transaction:transactions(
+                        type,
+                        description,
+                        date,
+                        client_id
+                    )
+                `)
+                .eq('organization_id', organization.value.id)
+                .order('created_at', { ascending: false })
+
+            if (error) throw error
+            inventoryMovements.value = data || []
+        } catch (e) {
+            console.error('Error fetching inventory movements', e)
+        } finally {
+            loadingMovements.value = false
+        }
+    }
+
     return {
         transactions,
         loading,
-        fetchTransactions
+        fetchTransactions,
+        // Inventory
+        inventoryMovements,
+        loadingMovements,
+        fetchInventoryMovements
     }
 }

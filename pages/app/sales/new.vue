@@ -215,6 +215,11 @@
                                     class="w-full bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-md px-3 py-2 text-sm font-mono focus:border-blue-500 outline-none"
                                     placeholder="0.00"
                                  >
+                                 <div v-if="mixedPayment.vesAmount > 0" class="text-right mt-1">
+                                     <span class="text-[10px] text-gray-400">
+                                         Equivale a: <span class="font-bold text-[var(--color-text-primary)]">${{ (mixedPayment.vesAmount / (exchangeRate || 1)).toFixed(2) }}</span>
+                                     </span>
+                                 </div>
                              </div>
                              <!-- Remainder/Change Display -->
                              <div class="flex justify-between text-xs pt-2 border-t border-gray-200 dark:border-gray-700">

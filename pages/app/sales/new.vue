@@ -271,9 +271,7 @@
             </div>
         </div>
     </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Client Creation Modal -->
     <AppModal 

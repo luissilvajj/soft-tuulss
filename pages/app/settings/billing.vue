@@ -23,7 +23,7 @@
 
       <!-- Content -->
       <div class="flex-1 p-4 md:p-8">
-         <div class="max-w-2xl">
+         <div class="max-w-5xl">
             <!-- Alert: Trial Status -->
             <div v-if="trialDaysLeft >= 0 && trialDaysLeft <= 14" class="mb-8 p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 flex items-start gap-3">
                <svg class="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -74,9 +74,11 @@
                            </span>
                        </div>
                    </div>
+                   </div>
                 </div>
+            </div> <!-- Close grid-cols-2 -->
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 <!-- Plan Basic -->
                 <div class="border border-[var(--color-border-subtle)] rounded-xl p-6 bg-[var(--color-bg-subtle)] flex flex-col justify-between hover:border-[var(--color-text-secondary)] transition-colors">
                    <div>

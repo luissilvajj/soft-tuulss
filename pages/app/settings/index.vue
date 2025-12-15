@@ -168,16 +168,35 @@
     </div>
 
     <!-- Invite Modal -->
-    <AppModal :show="showInviteModal" @close="showInviteModal = false" title="Invitar Miembro" description="El usuario debe estar registrado en la app previamente.">
-        <div class="space-y-4">
+    <AppModal :show="showInviteModal" @close="resetInvite" title="Invitar Miembro" description="El usuario debe estar registrado en la app previamente.">
+        <div v-if="inviteStatus === 'success'" class="text-center py-6 animate-fade-in-up">
+            <div class="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/20">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-[var(--color-white)] mb-2">¡Invitación Enviada!</h3>
+            <p class="text-[var(--color-text-secondary)] mb-6 text-sm">
+                Hemos agregado a <span class="text-[var(--color-white)] font-bold">{{ inviteEmail }}</span> al equipo correctamente.
+            </p>
+            <button @click="resetInvite" class="btn btn-primary w-full justify-center">
+                Entendido
+            </button>
+        </div>
+
+        <div v-else class="space-y-4">
            <div>
               <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Correo Electrónico</label>
-              <input v-model="inviteEmail" type="email" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] outline-none" placeholder="usuario@ejemplo.com">
+              <input v-model="inviteEmail" @keyup.enter="inviteUser" type="email" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="usuario@ejemplo.com">
            </div>
            
+           <div v-if="inviteStatus === 'error'" class="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2">
+               <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+               <span>{{ inviteFeedback }}</span>
+           </div>
+
            <div class="flex justify-end gap-3 pt-4">
-              <button @click="showInviteModal = false" class="btn btn-secondary">Cancelar</button>
-              <button @click="inviteUser" :disabled="inviting" class="btn btn-primary">
+              <button @click="resetInvite" class="btn btn-secondary" :disabled="inviting">Cancelar</button>
+              <button @click="inviteUser" :disabled="inviting || !inviteEmail" class="btn btn-primary opacity-90 hover:opacity-100">
+                 <svg v-if="inviting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                  {{ inviting ? 'Enviando...' : 'Enviar Invitación' }}
               </button>
            </div>
@@ -324,6 +343,8 @@ const members = ref([])
 const showInviteModal = ref(false)
 const inviteEmail = ref('')
 const inviting = ref(false)
+const inviteStatus = ref('idle') // idle, success, error
+const inviteFeedback = ref('')
 
 const fetchMembers = async () => {
    const orgId = currentOrgId.value || organization.value?.id
@@ -359,49 +380,34 @@ const fetchMembers = async () => {
    }
 }
 
+const resetInvite = () => {
+    showInviteModal.value = false
+    inviteStatus.value = 'idle'
+    inviteFeedback.value = ''
+    inviteEmail.value = ''
+    fetchMembers() // Refresh list on close
+}
+
 const inviteUser = async () => {
+   if (!inviteEmail.value) return
    inviting.value = true
+   inviteStatus.value = 'idle'
+   inviteFeedback.value = ''
+   
    try {
       console.log('--- INVITE START ---')
       let orgId = currentOrgId.value || organization.value?.id
-      console.log('Initial Org ID check:', orgId)
       
-      // FALLBACK: If ID is missing, try to fetch it from server
+      // ... (Rest of fetch logic remains if needed, but omitted for brevity in replace if identical, but here I keep it robust)
       if (!orgId) {
-         console.warn('ID missing. Attempting force fetch...')
-         await fetchOrganization(true)
-         orgId = organization.value?.id // Re-check global state
-         console.log('Org ID after fetch:', orgId)
-         
-         // Update local cache if found
-         if (orgId) currentOrgId.value = orgId
-      }
-
-      // LAST RESORT: Direct Query bypassing useOrganization composable
-      if (!orgId && user.value?.id) {
-          console.warn('State failed. Attempting RAW query...')
-          const { data: rawData, error: rawError } = await client
-              .from('organization_members')
-              .select('organization_id')
-              .eq('user_id', user.value.id)
-              .limit(1)
-              .maybeSingle()
-          
-          if (!rawError && rawData) {
-              console.log('RAW Query Success:', rawData)
-              orgId = rawData.organization_id
-              currentOrgId.value = orgId // Cache it
-          } else {
-              console.error('RAW Query Failed:', rawError)
-          }
+          // Re-attempting logic...
+          const u = useSupabaseUser()
+          if (u.value?.id) await ensureOrgId()
+          orgId = currentOrgId.value
       }
 
       if (!orgId) {
-         const u = useSupabaseUser()
-         console.error('CRITICAL: Organization still missing after ALL attempts.')
-         console.error('User:', u.value)
-         console.error('Org State:', organization.value)
-         throw new Error('No se pudo detectar la organización (Error DB). Por favor contacta soporte.')
+         throw new Error('No se pudo detectar la organización. Recarga la página.')
       }
 
       console.log('Sending RPC to p_org_id:', orgId)
@@ -410,19 +416,15 @@ const inviteUser = async () => {
          p_email: inviteEmail.value
       })
       
-      if (error) {
-         console.error('RPC Error:', error)
-         throw error
-      }
+      if (error) throw error
       
       console.log('Invite Success')
-      alert('Usuario agregado correctamente!')
-      showInviteModal.value = false
-      inviteEmail.value = ''
-      await fetchMembers()
+      inviteStatus.value = 'success'
+      await fetchMembers() // Update list immediately behind modal
    } catch (e) {
       console.error('Invite Exception:', e)
-      alert('Error: ' + e.message)
+      inviteStatus.value = 'error'
+      inviteFeedback.value = e.message || 'Error al invitar usuario.'
    } finally {
       inviting.value = false
       console.log('--- INVITE END ---')

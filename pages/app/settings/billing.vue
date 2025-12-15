@@ -26,19 +26,19 @@
          <div class="max-w-2xl">
             <!-- Alert: Trial Status -->
             <div v-if="trialDaysLeft >= 0 && trialDaysLeft <= 14" class="mb-8 p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 flex items-start gap-3">
-               <svg class="w-5 h-5 text-yellow-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+               <svg class="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                <div>
-                 <h3 class="text-sm font-bold text-yellow-500">Prueba Gratuita Activa</h3>
-                 <p class="text-sm text-yellow-200/80">Te quedan <span class="font-bold text-white">{{ trialDaysLeft }} días</span> de prueba. Actualiza a Pro para no perder acceso.</p>
+                 <h3 class="text-sm font-bold text-yellow-700">Prueba Gratuita Activa</h3>
+                 <p class="text-sm text-yellow-800/80">Te quedan <span class="font-bold text-yellow-900">{{ trialDaysLeft }} días</span> de prueba. Actualiza a Pro para no perder acceso.</p>
                </div>
             </div>
 
             <!-- Blocked Status -->
             <div v-if="trialDaysLeft < 0 && organization?.subscription_status !== 'active'" class="mb-8 p-4 rounded-xl border border-red-500/30 bg-red-500/10 flex items-start gap-3">
-               <svg class="w-5 h-5 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+               <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                <div>
-                 <h3 class="text-sm font-bold text-red-500">Suscripción Vencida</h3>
-                 <p class="text-sm text-red-200/80">Tu periodo de prueba ha terminado. Por favor suscríbete para continuar usando el sistema.</p>
+                 <h3 class="text-sm font-bold text-red-700">Suscripción Vencida</h3>
+                 <p class="text-sm text-red-800/80">Tu periodo de prueba ha terminado. Por favor suscríbete para continuar usando el sistema.</p>
                </div>
             </div>
 
@@ -115,8 +115,9 @@ definePageMeta({ layout: 'dashboard' })
 
 const { organization, fetchOrganization } = useOrganization()
 
-onMounted(() => {
-    fetchOrganization()
+onMounted(async () => {
+    // Force refresh to ensure we have the latest subscription status (e.g. after upgrade/DB reset)
+    await fetchOrganization(true)
 })
 
 const trialDaysLeft = computed(() => {

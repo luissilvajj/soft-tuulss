@@ -14,7 +14,7 @@ alter table public.audit_logs enable row level security;
 -- Policies
 -- 1. Members can INSERT logs (triggered by their actions)
 create policy "Members can insert logs" on public.audit_logs
-    for insert using (organization_id in (select get_auth_org_ids()));
+    for insert with check (organization_id in (select get_auth_org_ids()));
 
 -- 2. Only Admins/Owners can VIEW logs
 create policy "Admins can view logs" on public.audit_logs

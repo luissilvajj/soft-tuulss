@@ -286,7 +286,7 @@ const { clients, loading, fetchClients, addClient, updateClient, deleteClient: r
 
 const showModal = ref(false)
 const saving = ref(false)
-const viewMode = ref('grid')
+const viewMode = ref('list')
 const editingId = ref(null)
 const newClient = ref({ name: '', email: '', phone: '', identity_document: '', address: '' })
 

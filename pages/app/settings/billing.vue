@@ -57,14 +57,22 @@
                          {{ organization?.subscription_status === 'active' ? 'Renovación automática' : 'Modo Prueba' }}
                        </p>
                    </div>
-                   <div class="mt-6 pt-6 border-t border-[var(--color-border-subtle)]">
-                       <span class="text-xs text-[var(--color-text-secondary)]">Estado: </span>
-                       <span :class="[
-                          'px-2 py-0.5 rounded text-xs font-bold uppercase',
-                          organization?.subscription_status === 'active' ? 'bg-green-500/20 text-green-600 dark:text-green-400' : 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
-                       ]">
-                          {{ organization?.subscription_status || 'Trial' }}
-                       </span>
+                   <div class="mt-6 pt-6 border-t border-[var(--color-border-subtle)] space-y-3">
+                       <div class="flex justify-between items-center">
+                           <span class="text-xs text-[var(--color-text-secondary)]">Estado: </span>
+                           <span :class="[
+                              'px-2 py-0.5 rounded text-xs font-bold uppercase',
+                              organization?.subscription_status === 'active' ? 'bg-green-500/20 text-green-600 dark:text-green-400' : 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400'
+                           ]">
+                              {{ organization?.subscription_status || 'Trial' }}
+                           </span>
+                       </div>
+                       <div class="flex justify-between items-center" v-if="nextBillingDate">
+                           <span class="text-xs text-[var(--color-text-secondary)] font-bold">📅 Próxima Facturación: </span>
+                           <span class="text-sm font-mono text-[var(--color-text-primary)] font-bold">
+                              {{ nextBillingDate }}
+                           </span>
+                       </div>
                    </div>
                 </div>
 
@@ -146,6 +154,23 @@ const currentPlanName = computed(() => {
     if (trialDaysLeft.value > 0) return 'Prueba Gratuita'
     return 'Vencido'
 })
+
+const nextBillingDate = computed(() => {
+    const org = organization.value
+    if (!org) return null
+    
+    // Choose the relevant date
+    let dateStr = org.current_period_end || org.trial_ends_at
+    if (!dateStr) return null
+
+    // Format options: "15 de Enero de 2026"
+    return new Date(dateStr).toLocaleDateString('es-ES', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    })
+})
+
 const fixing = ref(false)
 const fixAccount = async () => {
     fixing.value = true

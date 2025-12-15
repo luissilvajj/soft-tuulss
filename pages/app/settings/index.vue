@@ -398,16 +398,16 @@ const inviteUser = async () => {
       console.log('--- INVITE START ---')
       let orgId = currentOrgId.value || organization.value?.id
       
-      // ... (Rest of fetch logic remains if needed, but omitted for brevity in replace if identical, but here I keep it robust)
-      if (!orgId) {
-          // Re-attempting logic...
-          const u = useSupabaseUser()
-          if (u.value?.id) await ensureOrgId()
-          orgId = currentOrgId.value
+      // Robust Org ID Check
+      if (!orgId || orgId === 'undefined') {
+         // Re-attempting logic...
+         const u = useSupabaseUser()
+         if (u.value?.id) await ensureOrgId()
+         orgId = currentOrgId.value
       }
 
-      if (!orgId) {
-         throw new Error('No se pudo detectar la organización. Recarga la página.')
+      if (!orgId || orgId === 'undefined') {
+         throw new Error('No se pudo detectar la organización. Recarga la página por favor (F5).')
       }
 
       console.log('Sending API Request to invite:', inviteEmail.value)

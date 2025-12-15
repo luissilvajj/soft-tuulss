@@ -4,6 +4,10 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const { email, orgId } = body
 
+    if (!email || !orgId || orgId === 'undefined') {
+        throw createError({ statusCode: 400, message: 'Faltan datos (Email u Org ID inválido).' })
+    }
+
     // 0. Configuration Check
     if (!process.env.supabaseServiceKey && !process.env.SUPABASE_SERVICE_KEY) {
         throw createError({ statusCode: 500, message: 'Server Config Error: SUPABASE_SERVICE_KEY is missing.' })

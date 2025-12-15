@@ -362,6 +362,13 @@ const parseMovementRef = (mv: any) => {
     return 'Movimiento'
 }
 
+const parseDescription = (trx: any) => {
+    if (trx.description) return trx.description
+    if (trx.type === 'sale') return 'Venta Registrada'
+    if (trx.type === 'expense') return 'Gasto Operativo'
+    return 'Transacción'
+}
+
 // Data Fixer
 const fixTransaction = async (trx: any) => {
     if (!confirm('¿Marcar esta transacción como Bolívares (VES)? Se aplicará tasa del día o 270 por defecto.')) return

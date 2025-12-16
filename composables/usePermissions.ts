@@ -4,9 +4,9 @@ export const usePermissions = () => {
     const { organization } = useOrganization()
 
     const isAdmin = computed(() => {
-        // MVP: Allow 'member' to act as admin, or check if role exists at all.
-        // This fixes the issue where users might default to 'member' and get locked out.
-        return !!organization.value?.role
+        // Strict Role Check: Only Owner or Admin can edit
+        const role = organization.value?.role
+        return role === 'owner' || role === 'admin'
     })
 
     const canEditInventory = computed(() => isAdmin.value)

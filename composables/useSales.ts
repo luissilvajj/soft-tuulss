@@ -9,6 +9,7 @@ export interface CartItem {
 export const useSales = () => {
     const client = useSupabaseClient()
     const { organization } = useOrganization()
+    const { logAction } = useAuditLogs()
 
     const loading = useState('sales_loading', () => false)
     const sales = useState<Sale[]>('sales_list', () => [])

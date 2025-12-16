@@ -272,11 +272,23 @@ const loadProfile = async () => {
 }
 
 const updateProfile = async () => {
-    if (!user.value?.id) return
+    let userId = user.value?.id
+    
+    if (!userId) {
+        // Fallback fetch
+        const { data } = await client.auth.getUser()
+        userId = data.user?.id
+    }
+
+    if (!userId) {
+        alert('Error: No se pudo identificar al usuario. Recarga la página.')
+        return
+    }
+
     loadingProfile.value = true
     try {
         const { error } = await client.from('profiles').upsert({
-            id: user.value.id,
+            id: userId,
             full_name: profileForm.fullName,
             updated_at: new Date()
         })

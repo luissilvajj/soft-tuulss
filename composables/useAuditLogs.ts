@@ -4,15 +4,23 @@ export const useAuditLogs = () => {
     const { organization } = useOrganization()
 
     const logAction = async (action: string, details: any = {}) => {
-        if (!organization.value?.id || !user.value?.id) {
-            console.warn('Cannot log action: Missing Org ID or User ID', { org: organization.value?.id, user: user.value?.id })
+        let userId = user.value?.id
+
+        // Fallback: Try fetching user directly if state is empty
+        if (!userId) {
+            const { data } = await client.auth.getUser()
+            userId = data.user?.id
+        }
+
+        if (!organization.value?.id || !userId) {
+            console.warn('Cannot log action: Missing Org ID or User ID', { org: organization.value?.id, user: userId })
             return
         }
 
         try {
             const { error } = await client.from('audit_logs').insert({
                 organization_id: organization.value.id,
-                user_id: user.value.id,
+                user_id: userId,
                 action,
                 details
             })

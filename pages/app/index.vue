@@ -212,7 +212,9 @@ onMounted(async () => {
 
 // Use Async Data for Parallel Fetching of Dashboard Metrics
 const { data: dashboardData, pending } = await useAsyncData('dashboard-metrics', async () => {
-    const today = new Date().toISOString().split('T')[0]
+    // FIX: Use local date to avoid UTC rollover issues (e.g. 8PM VET is Tomorrow UTC)
+    // new Date().toLocaleDateString('en-CA') returns YYYY-MM-DD in local time
+    const today = new Date().toLocaleDateString('en-CA')
     
     // Execute all independent queries in parallel
     const [salesResult, stockResult, clientResult, trxResult] = await Promise.all([

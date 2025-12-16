@@ -6,29 +6,19 @@
       <!-- Sidebar / Tabs -->
       <div class="w-full md:w-64 border-r border-[var(--color-border-subtle)] bg-[var(--color-bg-subtle)]/30 p-4">
         <nav class="space-y-1">
-          <NuxtLink 
-            to="/app/settings"
-            :class="[
-              (!route.path.includes('/billing') && (!route.query.tab || route.query.tab === 'general'))
-                ? 'bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] font-bold'
-                : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)]',
-              'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all'
-            ]"
-          >
-            <component :is="tabs[0].icon" class="w-5 h-5" />
-            General
-          </NuxtLink>
-           <button 
-             @click="router.push('/app/settings?tab=team')"
+          <button 
+             v-for="tab in tabs" 
+             :key="tab.id"
+             @click="router.push(`/app/settings?tab=${tab.id}`)"
              :class="[
-               route.query.tab === 'team'
+               currentTab === tab.id
                 ? 'bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] font-bold'
                 : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)]',
-               'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all'
+               'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all text-left'
              ]"
            >
-            <component :is="tabs[1].icon" class="w-5 h-5" />
-            Equipo
+            <component :is="tab.icon" class="w-5 h-5" />
+            {{ tab.name }}
           </button>
           
           <NuxtLink 
@@ -53,6 +43,26 @@
 
       <!-- Content -->
       <div class="flex-1 p-4 md:p-8">
+        <!-- PROFILE TAB -->
+        <div v-if="currentTab === 'profile'" class="max-w-xl">
+           <h2 class="text-xl font-bold text-[var(--color-white)] mb-1">Mi Perfil</h2>
+           <p class="text-sm text-[var(--color-text-secondary)] mb-6">Gestiona tu información personal.</p>
+
+           <div class="space-y-4">
+             <div>
+               <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Nombre Completo</label>
+               <input v-model="profileForm.fullName" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] outline-none" placeholder="Luis Silva">
+               <p class="text-xs text-[var(--color-text-secondary)] mt-1">Este nombre aparecerá en los registros de auditoría.</p>
+             </div>
+
+             <div class="pt-4">
+                <button @click="updateProfile" :disabled="loadingProfile" class="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto justify-center">
+                  {{ loadingProfile ? 'Guardando...' : 'Guardar Perfil' }}
+                </button>
+             </div>
+           </div>
+        </div>
+
         <!-- GENERAL TAB -->
         <div v-if="currentTab === 'general'" class="max-w-xl">
           <h2 class="text-xl font-bold text-[var(--color-white)] mb-1">General</h2>
@@ -214,6 +224,9 @@ const BuildingOfficeIcon = h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke
 const UsersIcon = h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': 2 }, [
    h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' })
 ])
+const UserIcon = h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': 2 }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' })
+])
 
 import { usePermissions } from '~/composables/usePermissions'
 
@@ -231,17 +244,50 @@ const router = useRouter()
 
 // TABS 
 // Sync Query Param to Tab state
-const currentTab = ref('general')
+const currentTab = ref('profile') // Default to profile for better UX on first load? Or General. Let's stick to simple logic.
 
 watch(() => route.query.tab, (newTab) => {
     if (newTab === 'team') currentTab.value = 'team'
-    else currentTab.value = 'general'
+    else if (newTab === 'general') currentTab.value = 'general'
+    else currentTab.value = 'profile' // Default fallback
 }, { immediate: true })
 
-const tabs = [
-  { id: 'general', name: 'General', icon: BuildingOfficeIcon },
-  { id: 'team', name: 'Equipo', icon: UsersIcon }
-]
+const tabs = computed(() => {
+    // Only show General/Team if allowed. Profile is for everyone.
+    return [
+        { id: 'profile', name: 'Mi Perfil', icon: UserIcon },
+        canManageTeam.value ? { id: 'general', name: 'Organización', icon: BuildingOfficeIcon } : null,
+        { id: 'team', name: 'Equipo', icon: UsersIcon }
+    ].filter(Boolean)
+})
+
+// PROFILE
+const profileForm = reactive({ fullName: '' })
+const loadingProfile = ref(false)
+
+const loadProfile = async () => {
+    if (!user.value?.id) return
+    const { data } = await client.from('profiles').select('full_name').eq('id', user.value.id).single()
+    if (data) profileForm.fullName = data.full_name || ''
+}
+
+const updateProfile = async () => {
+    if (!user.value?.id) return
+    loadingProfile.value = true
+    try {
+        const { error } = await client.from('profiles').upsert({
+            id: user.value.id,
+            full_name: profileForm.fullName,
+            updated_at: new Date()
+        })
+        if (error) throw error
+        alert('Perfil actualizado')
+    } catch (e) {
+        alert('Error actualizando perfil: ' + e.message)
+    } finally {
+        loadingProfile.value = false
+    }
+}
 
 // GENERAL
 const generalForm = reactive({ name: '' })
@@ -250,7 +296,10 @@ const loadingGeneral = ref(false)
 
 // Ensure we fetch org when user is ready (fixes hard reload issue)
 watch(user, async (u) => {
-    if (u) await fetchOrganization()
+    if (u) {
+        await fetchOrganization()
+        loadProfile()
+    }
 }, { immediate: true })
 
 watch(() => organization.value, (newOrg) => {

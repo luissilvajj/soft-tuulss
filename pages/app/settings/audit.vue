@@ -99,7 +99,11 @@ const fetchLogs = async () => {
 const refresh = () => fetchLogs()
 
 onMounted(() => {
-    fetchLogs()
+    if (organization.value?.id) fetchLogs()
+})
+
+watch(() => organization.value?.id, (newId) => {
+    if (newId) fetchLogs()
 })
 
 const getActionClass = (action: string) => {

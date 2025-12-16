@@ -12,6 +12,25 @@
 
     <!-- Filters could go here -->
 
+    <!-- Filters -->
+    <div class="flex flex-col md:flex-row gap-4 mb-6">
+       <input 
+         v-model="search" 
+         type="text" 
+         placeholder="Buscar por usuario, detalles o ID..." 
+         class="flex-1 px-4 py-2 border border-[var(--color-border-subtle)] rounded-lg bg-[var(--color-bg-subtle)] focus:ring-2 focus:ring-[var(--color-accent-blue)] outline-none"
+       >
+       <select v-model="actionFilter" class="px-4 py-2 border border-[var(--color-border-subtle)] rounded-lg bg-[var(--color-bg-subtle)] outline-none">
+          <option value="">Todas las Acciones</option>
+          <option value="sale_created">Ventas</option>
+          <option value="product">Inventario (Todo)</option>
+          <option value="product_created">Crear Producto</option>
+          <option value="product_updated">Editar Producto</option>
+          <option value="product_restocked">Restock</option>
+          <option value="client">Clientes</option>
+       </select>
+    </div>
+
     <div class="glass-panel overflow-hidden">
       <div v-if="loading" class="p-8 text-center text-gray-400">
         <span class="inline-block animate-spin mr-2">⟳</span> Cargando registros...
@@ -29,7 +48,7 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-[var(--color-border-subtle)]">
-             <tr v-for="log in logs" :key="log.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors">
+             <tr v-for="log in filteredLogs" :key="log.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)] font-mono">
                     {{ new Date(log.created_at).toLocaleString() }}
                 </td>
@@ -97,6 +116,24 @@ const fetchLogs = async () => {
 }
 
 const refresh = () => fetchLogs()
+
+const search = ref('')
+const actionFilter = ref('')
+
+const filteredLogs = computed(() => {
+    return logs.value.filter(log => {
+        // Text Search
+        const searchLower = search.value.toLowerCase()
+        const userMatch = log.user?.full_name?.toLowerCase().includes(searchLower)
+        const detailsMatch = JSON.stringify(log.details).toLowerCase().includes(searchLower)
+        const matchesSearch = !search.value || userMatch || detailsMatch
+
+        // Action Filter (allow partial matching for groups like 'product')
+        const matchesAction = !actionFilter.value || log.action.includes(actionFilter.value)
+
+        return matchesSearch && matchesAction
+    })
+})
 
 onMounted(() => {
     if (organization.value?.id) fetchLogs()

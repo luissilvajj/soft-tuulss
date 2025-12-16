@@ -327,7 +327,7 @@
                 <!-- Checkout Button -->
                  <button 
                      @click="handleCheckout"
-                     :disabled="loading || currentSale.cart.length === 0 || (needsReference && !currentSale.paymentReference) || (currentSale.isMixedPayment && remainingDue > 0.05)"
+                     :disabled="loading || currentSale.cart.length === 0 || (currentSale.isMixedPayment && remainingDue > 0.05)"
                      class="w-full bg-black dark:bg-white text-white dark:text-black py-3 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-gray-200 dark:shadow-none"
                  >
                      {{ loading ? 'Procesando...' : 'Cobrar' }}

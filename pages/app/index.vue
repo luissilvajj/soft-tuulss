@@ -34,7 +34,7 @@
           <p class="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Ventas de Hoy</p>
           <div class="flex items-baseline mt-2">
             <span class="text-4xl font-black text-[var(--color-white)] tracking-tight">
-               {{ pending ? '...' : '$' + (dashboardData?.todaySales?.toLocaleString() || '0') }}
+               {{ pending ? '...' : '$' + (dashboardData?.todaySales?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00') }}
             </span>
           </div>
           <div class="mt-4 flex items-center text-sm font-medium text-emerald-500">

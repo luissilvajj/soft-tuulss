@@ -4,7 +4,10 @@ export const useAuditLogs = () => {
     const { organization } = useOrganization()
 
     const logAction = async (action: string, details: any = {}) => {
-        if (!organization.value?.id || !user.value?.id) return
+        if (!organization.value?.id || !user.value?.id) {
+            console.warn('Cannot log action: Missing Org ID or User ID', { org: organization.value?.id, user: user.value?.id })
+            return
+        }
 
         try {
             const { error } = await client.from('audit_logs').insert({
@@ -16,6 +19,8 @@ export const useAuditLogs = () => {
 
             if (error) {
                 console.error('Error creating audit log:', error)
+            } else {
+                console.log('Audit Log Created:', action)
             }
         } catch (e) {
             console.error('Exception creating audit log:', e)

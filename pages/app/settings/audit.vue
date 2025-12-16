@@ -8,6 +8,9 @@
       <button @click="refresh" class="btn btn-secondary text-sm">
         <span class="mr-2">↻</span> Actualizar
       </button>
+      <button @click="forceTest" class="btn btn-secondary text-sm ml-2 text-yellow-500">
+        Test Log
+      </button>
     </div>
 
     <!-- Filters could go here -->
@@ -138,6 +141,18 @@ const filteredLogs = computed(() => {
 onMounted(() => {
     if (organization.value?.id) fetchLogs()
 })
+
+const { logAction } = useAuditLogs()
+
+const forceTest = async () => {
+    try {
+        await logAction('test_action', { message: 'Manual test from Audit UI' })
+        alert('Intento de guardar log realizado. Revisa la consola y recarga.')
+        fetchLogs()
+    } catch (e) {
+        alert('Error: ' + e)
+    }
+}
 
 watch(() => organization.value?.id, (newId) => {
     if (newId) fetchLogs()

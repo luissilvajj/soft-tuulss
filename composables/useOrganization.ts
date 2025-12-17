@@ -7,6 +7,14 @@ export const useOrganization = () => {
     const loading = useState('org_loading', () => false)
 
     const fetchOrganization = async (force = false) => {
+        // Wait for user if not hydrated
+        if (!user.value) {
+            const { data } = await client.auth.getSession()
+            if (!data.session) return null // Really logged out
+            // Supabase user state should update automatically, but let's trust the session
+            if (!user.value) user.value = data.session.user as any // Manual hydration fallback
+        }
+
         if (!user.value || !user.value.id) return null
 
         // Return if already loaded and not forced

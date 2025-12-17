@@ -254,8 +254,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Número de Referencia ({{ paymentForm.type === 'pago_movil' ? 'Ultimos dígitos' : 'Completo' }})</label>
-                        <input v-model="paymentForm.reference" type="text" placeholder="Ej: 123456" class="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] focus:border-[var(--color-accent-blue)] focus:ring-1 focus:ring-[var(--color-accent-blue)] outline-none transition-all" required>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                            {{ paymentForm.type === 'pago_movil' ? 'Últimos 4 dígitos de la Referencia' : 'Número de Referencia Completo' }}
+                        </label>
+                        <input v-model="paymentForm.reference" type="text" :placeholder="paymentForm.type === 'pago_movil' ? 'Ej: 5678' : 'Ej: 12345678'" class="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] focus:border-[var(--color-accent-blue)] focus:ring-1 focus:ring-[var(--color-accent-blue)] outline-none transition-all" required>
                     </div>
 
                     <div>

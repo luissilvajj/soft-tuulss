@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
-    const { reference, date, amount, phone, type, organization_id } = body
+    const { reference, date, amount, phone, type, organization_id, plan } = body
 
     if (!organization_id) {
         throw createError({ statusCode: 400, statusMessage: 'Organization ID required' })
@@ -71,6 +71,7 @@ export default defineEventHandler(async (event) => {
         // Actualizar
         const { error } = await supabase.from('organizations').update({
             subscription_status: 'active',
+            subscription_plan: plan || 'pro', // Default to pro if missing
             trial_ends_at: newDate.toISOString()
             // updated_at removed as it does not exist
         }).eq('id', organization_id)

@@ -78,83 +78,93 @@
             </div> <!-- Close grid-cols-2 -->
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <!-- Plan Basic -->
+                <!-- Plan Emprendedor (Start) -->
                 <div class="border border-[var(--color-border-subtle)] rounded-xl p-6 bg-[var(--color-bg-subtle)] flex flex-col justify-between hover:border-[var(--color-text-secondary)] transition-colors">
                    <div>
                        <span class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Start</span>
-                       <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mt-2">Básico</h2>
+                       <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mt-2">Emprendedor</h2>
                        <div class="mt-2 flex items-baseline gap-1">
-                           <span class="text-3xl font-bold text-[var(--color-text-primary)]">$0</span>
+                           <span class="text-3xl font-bold text-[var(--color-text-primary)]">$20</span>
                            <span class="text-sm text-[var(--color-text-secondary)]">/mes</span>
                        </div>
                        <ul class="mt-6 space-y-3">
                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                              <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                             3 Usuarios
+                             2 Usuarios
                           </li>
                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                              <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                             Control de Inventario
+                             Inventario Ilimitado
+                          </li>
+                          <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                             <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             Punto de Venta (POS)
                           </li>
                        </ul>
                    </div>
-                   <button class="mt-6 w-full btn btn-secondary opacity-50 cursor-not-allowed">Plan Actual</button>
+                   <button @click="openPaymentModal('start', 20)" class="mt-6 w-full btn btn-secondary justify-center">
+                       Elegir Start
+                   </button>
                 </div>
 
-                <!-- Plan Pro -->
+                <!-- Plan Negocio (Growth) -->
                 <div class="relative border-2 border-[var(--color-accent-blue)] rounded-xl p-6 bg-[var(--color-bg-subtle)] flex flex-col justify-between shadow-xl shadow-blue-500/10 transform scale-105 z-10">
                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[var(--color-accent-blue)] text-white text-xs font-bold rounded-full uppercase tracking-wider shadow-lg">
                        Más Popular
                    </div>
                    <div>
                        <span class="text-xs font-bold text-[var(--color-accent-blue)] uppercase tracking-wider">Growth</span>
-                       <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mt-2">Pro</h2>
+                       <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mt-2">Negocio</h2>
                        <div class="mt-2 flex items-baseline gap-1">
-                           <span class="text-3xl font-bold text-[var(--color-text-primary)]">$29</span>
+                           <span class="text-3xl font-bold text-[var(--color-text-primary)]">$30</span>
                            <span class="text-sm text-[var(--color-text-secondary)]">/mes</span>
                        </div>
                        <ul class="mt-6 space-y-3">
                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium">
                              <svg class="w-4 h-4 text-[var(--color-accent-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                             Usuarios Ilimitados
+                             Hasta 5 Usuarios + Roles
                           </li>
                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium">
                              <svg class="w-4 h-4 text-[var(--color-accent-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                             Facturación PDF
+                             Facturación PDF Pro
                           </li>
                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-primary)] font-medium">
                              <svg class="w-4 h-4 text-[var(--color-accent-blue)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                             Soporte Prioritario
+                             Reportes Avanzados
                           </li>
                        </ul>
                    </div>
-                   <button @click="openPaymentModal('pro', 29)" class="mt-6 w-full btn btn-primary justify-center shadow-lg shadow-blue-500/20">
-                       Elegir Pro
+                   <button @click="openPaymentModal('growth', 30)" class="mt-6 w-full btn btn-primary justify-center shadow-lg shadow-blue-500/20">
+                       Elegir Growth
                    </button>
                 </div>
 
-                <!-- Plan Enterprise -->
+                <!-- Plan Empresarial (Scale) -->
                 <div class="border border-[var(--color-border-subtle)] rounded-xl p-6 bg-[var(--color-bg-subtle)] flex flex-col justify-between hover:border-[var(--color-text-secondary)] transition-colors">
                    <div>
-                       <span class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Business</span>
-                       <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mt-2">Enterprise</h2>
+                       <span class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Scale</span>
+                       <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mt-2">Empresarial</h2>
                        <div class="mt-2 flex items-baseline gap-1">
-                           <span class="text-3xl font-bold text-[var(--color-text-primary)]">$99</span>
+                           <span class="text-3xl font-bold text-[var(--color-text-primary)]">$60</span>
                            <span class="text-sm text-[var(--color-text-secondary)]">/mes</span>
                        </div>
                        <ul class="mt-6 space-y-3">
                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                             <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                             API Access
+                             <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             Usuarios Ilimitados
                           </li>
                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                             <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                             Dedicated Success Manager
+                             <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             <span class="font-bold text-white">Pagos Automáticos (API)</span>
+                          </li>
+                           <li class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                             <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                             Auditoría de Seguridad
                           </li>
                        </ul>
                    </div>
-                   <button @click="openPaymentModal('enterprise', 99)" class="mt-6 w-full btn btn-outline justify-center">
-                       Contáctanos
+                   <button @click="openPaymentModal('scale', 60)" class="mt-6 w-full btn btn-outline justify-center">
+                       Contáctanos / Elegir
                    </button>
                 </div>
             </div>

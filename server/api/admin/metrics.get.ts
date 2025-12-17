@@ -28,18 +28,20 @@ export default defineEventHandler(async (event) => {
         org.members?.forEach((m: any) => uniqueUserIds.add(m.user_id))
     })
 
-    // 3. Monthly Recurring Revenue (MRR) - placeholder for now
-    // In a real system, you'd calculate based on subscription_plan and pricing
-    // For now, let's assume Pro = $29/month
-    const { count: proOrgs, error: proError } = await supabase
-        .from('organizations')
-        .select('*', { count: 'exact', head: true })
-        .eq('subscription_status', 'active')
-        .eq('subscription_plan', 'pro')
+    // 3. Monthly Recurring Revenue (MRR)
+    // Fetch counts for each plan type
+    const { count: startOrgs } = await supabase.from('organizations').select('*', { count: 'exact', head: true }).eq('subscription_status', 'active').eq('subscription_plan', 'start')
+    const { count: growthOrgs } = await supabase.from('organizations').select('*', { count: 'exact', head: true }).eq('subscription_status', 'active').eq('subscription_plan', 'growth')
+    const { count: scaleOrgs } = await supabase.from('organizations').select('*', { count: 'exact', head: true }).eq('subscription_status', 'active').eq('subscription_plan', 'scale')
 
-    if (proError) throw createError({ statusCode: 500, statusMessage: proError.message })
+    // Legacy support
+    const { count: proOrgs } = await supabase.from('organizations').select('*', { count: 'exact', head: true }).eq('subscription_status', 'active').eq('subscription_plan', 'pro')
 
-    const mrr = (proOrgs || 0) * 29 // $29 per pro org
+    const mrr =
+        ((startOrgs || 0) * 20) +
+        ((growthOrgs || 0) * 30) +
+        ((scaleOrgs || 0) * 60) +
+        ((proOrgs || 0) * 29)
 
     return {
         totalOrgs: totalOrgs || 0,

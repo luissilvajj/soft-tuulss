@@ -12,8 +12,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
         await fetchOrganization()
     }
 
-    // If still no organization, auth guard will likely handle it, or user has no org
-    if (!organization.value) return
+    // If still no organization, redirect to onboarding to force creation
+    if (!organization.value) {
+        return navigateTo('/onboarding')
+    }
 
     const org = organization.value
     const now = new Date()

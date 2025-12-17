@@ -219,8 +219,43 @@
                 </div>
 
                 <form @submit.prevent="submitPayment" class="space-y-4">
+                    <!-- Payment Type Selector -->
                     <div>
-                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Número de Referencia (4-6 dígitos)</label>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Método de Pago</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" 
+                                @click="paymentForm.type = 'pago_movil'"
+                                :class="[
+                                    'px-4 py-2 text-sm font-bold rounded-lg border transition-all text-center',
+                                    paymentForm.type === 'pago_movil' 
+                                    ? 'bg-[var(--color-accent-blue)] border-[var(--color-accent-blue)] text-white' 
+                                    : 'bg-[var(--color-bg-secondary)] border-[var(--color-border-subtle)] text-[var(--color-text-secondary)] hover:border-[var(--color-text-primary)]'
+                                ]"
+                            >
+                                Pago Móvil
+                            </button>
+                            <button type="button" 
+                                @click="paymentForm.type = 'transferencia'"
+                                :class="[
+                                    'px-4 py-2 text-sm font-bold rounded-lg border transition-all text-center',
+                                    paymentForm.type === 'transferencia' 
+                                    ? 'bg-[var(--color-accent-blue)] border-[var(--color-accent-blue)] text-white' 
+                                    : 'bg-[var(--color-bg-secondary)] border-[var(--color-border-subtle)] text-[var(--color-text-secondary)] hover:border-[var(--color-text-primary)]'
+                                ]"
+                            >
+                                Transferencia
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Fields -->
+                    <div v-if="paymentForm.type === 'pago_movil'">
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Teléfono Origen</label>
+                        <input v-model="paymentForm.phone" type="text" placeholder="04141234567" class="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] focus:border-[var(--color-accent-blue)] focus:ring-1 focus:ring-[var(--color-accent-blue)] outline-none transition-all" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">Número de Referencia ({{ paymentForm.type === 'pago_movil' ? 'Ultimos dígitos' : 'Completo' }})</label>
                         <input v-model="paymentForm.reference" type="text" placeholder="Ej: 123456" class="w-full px-4 py-2 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] focus:border-[var(--color-accent-blue)] focus:ring-1 focus:ring-[var(--color-accent-blue)] outline-none transition-all" required>
                     </div>
 
@@ -236,12 +271,12 @@
 
                     <div class="pt-4">
                         <button type="submit" :disabled="submittingPayment" class="w-full py-3 px-4 bg-[var(--color-accent-blue)] hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                            {{ submittingPayment ? 'Verificando...' : 'Confirmar Pago' }}
+                            {{ submittingPayment ? 'Verificando con el Banco...' : 'Validar Pago Ahora' }}
                         </button>
                         <p class="text-xs text-center text-[var(--color-text-secondary)] mt-4">
-                            Un administrador verificará tu pago en breve (max 24h).
+                             Validación automática en tiempo real con Banco Plaza.
                         </p>
-                        <p v-if="successMessage" class="text-sm text-center text-green-500 font-bold mt-2">{{ successMessage }}</p>
+                        <p v-if="successMessage" class="text-sm text-center text-green-500 font-bold mt-2 animate-bounce">{{ successMessage }}</p>
                     </div>
                 </form>
             </div>
@@ -249,14 +284,9 @@
     </div>
 
      <!-- Debug Section (Temporary) -->
-     <div class="mt-8 p-4 bg-black text-green-400 font-mono text-xs rounded-xl overflow-auto">
-        <p class="font-bold text-white mb-2">DEBUG INFO (Take Screenshot)</p>
+     <div class="mt-8 p-4 bg-black text-green-400 font-mono text-xs rounded-xl overflow-auto hidden">
+        <p class="font-bold text-white mb-2">DEBUG INFO</p>
         <p>User Email: {{ user?.email }}</p>
-        <p>User ID: {{ user?.id }}</p>
-        <p>Org State (Composable): {{ organization }}</p>
-        <p>Direct API Result: {{ debugResult }}</p>
-        <p class="text-red-400" v-if="debugError">API Error: {{ debugError }}</p>
-        <p>BCV Rate: {{ bcvRate }}</p>
         <p>Loading: {{ loading }}</p>
      </div>
   </div>
@@ -277,9 +307,11 @@ const submittingPayment = ref(false)
 const successMessage = ref('')
 
 const paymentForm = ref({
+    type: 'pago_movil', // 'pago_movil' | 'transferencia'
     reference: '',
     date: new Date().toISOString().split('T')[0],
-    amount: ''
+    amount: '',
+    phone: ''
 })
 
 const totalBs = computed(() => {
@@ -291,6 +323,7 @@ const openPaymentModal = async (plan: string, price: number) => {
     selectedPrice.value = price
     showPaymentModal.value = true
     successMessage.value = ''
+    paymentForm.value.type = 'pago_movil' // Reset default
     
     // Fetch BCV Rate
     try {
@@ -307,24 +340,38 @@ const openPaymentModal = async (plan: string, price: number) => {
 
 const submitPayment = async () => {
     submittingPayment.value = true
+    successMessage.value = '' // Clear previous msgs
+    
     try {
-        await $fetch('/api/payments/report', {
+        const response = await $fetch<any>('/api/payments/verify', {
             method: 'POST',
             body: {
+                type: paymentForm.value.type,
                 reference: paymentForm.value.reference,
                 date: paymentForm.value.date,
                 amount: paymentForm.value.amount,
+                phone: paymentForm.value.phone,
                 plan: selectedPlan.value,
                 organization_id: organization.value?.id
             }
         })
         
-        successMessage.value = '¡Pago reportado con éxito! Te notificaremos al activarlo.'
+        successMessage.value = '¡Pago Aprobado! Tu suscripción se ha extendido.'
+        
+        // Refresh org data to see new dates
+        await fetchOrganization(true)
+        
         setTimeout(() => {
             showPaymentModal.value = false
-        }, 2000)
+        }, 3000)
     } catch (e: any) {
-        alert('Error reportando pago: ' + e.message)
+        // Parse error message carefully
+        const msg = e.data?.statusMessage || e.message || 'Error desconocido'
+        if (msg.includes('No Encontrado')) {
+             alert('❌ Pago no encontrado. Por favor verifica la referencia y el monto exacto.')
+        } else {
+             alert('Error: ' + msg)
+        }
     } finally {
         submittingPayment.value = false
     }

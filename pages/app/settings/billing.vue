@@ -180,19 +180,18 @@
                 <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">Datos para Pago Móvil</h3>
                 
                 <div class="space-y-6">
-                    <div class="p-4 bg-white/5 rounded-xl border border-[var(--color-border-subtle)]">
                         <p class="text-xs text-[var(--color-text-secondary)] uppercase font-bold mb-1">Banco</p>
-                        <p class="text-lg font-bold text-[var(--color-text-primary)]">Banco de Venezuela (0102)</p>
+                        <p class="text-lg font-bold text-[var(--color-text-primary)]">Banco Plaza (0138)</p>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-4">
                          <div class="p-4 bg-white/5 rounded-xl border border-[var(--color-border-subtle)]">
                             <p class="text-xs text-[var(--color-text-secondary)] uppercase font-bold mb-1">Teléfono</p>
-                            <p class="text-lg font-bold text-[var(--color-text-primary)]">0412-123-4567</p>
+                            <p class="text-lg font-bold text-[var(--color-text-primary)]">0424-167-2737</p>
                         </div>
                          <div class="p-4 bg-white/5 rounded-xl border border-[var(--color-border-subtle)]">
                             <p class="text-xs text-[var(--color-text-secondary)] uppercase font-bold mb-1">Cédula / RIF</p>
-                            <p class="text-lg font-bold text-[var(--color-text-primary)]">J-123456789</p>
+                            <p class="text-lg font-bold text-[var(--color-text-primary)]">J-501476906</p>
                         </div>
                     </div>
 

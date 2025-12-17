@@ -71,8 +71,8 @@ export default defineEventHandler(async (event) => {
         // Actualizar
         const { error } = await supabase.from('organizations').update({
             subscription_status: 'active',
-            trial_ends_at: newDate.toISOString(),
-            updated_at: new Date().toISOString()
+            trial_ends_at: newDate.toISOString()
+            // updated_at removed as it does not exist
         }).eq('id', organization_id)
 
         if (error) throw createError({ statusCode: 500, statusMessage: 'Error actualizando suscripción: ' + error.message })

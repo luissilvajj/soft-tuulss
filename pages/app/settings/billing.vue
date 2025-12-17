@@ -180,6 +180,7 @@
                 <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-6">Datos para Pago Móvil</h3>
                 
                 <div class="space-y-6">
+                    <div class="p-4 bg-white/5 rounded-xl border border-[var(--color-border-subtle)]">
                         <p class="text-xs text-[var(--color-text-secondary)] uppercase font-bold mb-1">Banco</p>
                         <p class="text-lg font-bold text-[var(--color-text-primary)]">Banco Plaza (0138)</p>
                     </div>

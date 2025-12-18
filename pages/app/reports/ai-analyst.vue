@@ -106,8 +106,7 @@
 import { marked } from 'marked' // We might need to install this or use a simple formatter
 
 definePageMeta({
-    layout: 'dashboard',
-    middleware: 'subscription' // Ensure Pro only
+    layout: 'dashboard'
 })
 
 const messages = ref([])

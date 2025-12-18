@@ -108,7 +108,7 @@
 </template>
 
 <script setup>
-definePageMeta({ layout: 'dashboard', middleware: 'subscription' })
+definePageMeta({ layout: 'dashboard' })
 
 const reportType = ref('sales')
 const dateRange = ref('month')

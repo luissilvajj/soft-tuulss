@@ -17,15 +17,15 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, statusMessage: 'Start and End dates are required' })
     }
 
-    // 0. Get Org
-    const { data: member } = await client
-        .from('organization_members')
-        .select('organization_id')
-        .eq('user_id', user.id)
-        .single()
+    // 0. Get Org (Robust Way via RPC)
+    const { data: rpcData, error: rpcError } = await client.rpc('get_my_main_organization')
 
-    if (!member) throw createError({ statusCode: 403, statusMessage: 'No Org' })
-    const orgId = member.organization_id
+    if (rpcError || !rpcData || !rpcData.organization_id) {
+        console.error('Report Error: Org Not Found via RPC', rpcError)
+        throw createError({ statusCode: 403, statusMessage: 'Organization Access Denied' })
+    }
+
+    const orgId = rpcData.organization_id
 
     const start = new Date(startDate).toISOString()
     const end = new Date(endDate).toISOString()

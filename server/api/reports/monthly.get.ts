@@ -7,16 +7,14 @@ export default defineEventHandler(async (event) => {
 
     const client = await serverSupabaseClient(event)
 
-    // 0. Get Organization ID (Securely)
-    // We reuse the logic or just fetch via RLS which is now fixed
-    const { data: member } = await client
-        .from('organization_members')
-        .select('organization_id')
-        .eq('user_id', user.id)
-        .single()
+    // 0. Get Organization ID (Securely via RPC)
+    const { data: rpcData, error: rpcError } = await client.rpc('get_my_main_organization')
 
-    if (!member) throw createError({ statusCode: 403, statusMessage: 'No Org Found' })
-    const orgId = member.organization_id
+    if (rpcError || !rpcData || !rpcData.organization_id) {
+        console.error('Monthly Report Error: Org Not Found via RPC', rpcError)
+        throw createError({ statusCode: 403, statusMessage: 'Organization Access Denied' })
+    }
+    const orgId = rpcData.organization_id
 
     // 1. Define Time Range (Last 30 Days vs Previous 30 Days)
     const now = new Date()

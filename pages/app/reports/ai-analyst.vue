@@ -20,7 +20,7 @@
             <div class="hidden md:block">
                <span class="bg-gradient-to-r from-emerald-500/20 to-blue-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                   <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                  DeepSeek V3 Powered
+                  Nexus Intelligence
                </span>
             </div>
         </div>

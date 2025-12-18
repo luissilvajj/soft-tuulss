@@ -34,6 +34,10 @@
     </div>
 
     <!-- MAIN CONTENT -->
+    <div v-if="errorMsg" class="bg-red-500/10 border border-red-500/50 text-red-500 p-4 rounded-xl mb-4 text-center font-bold">
+        ⚠️ {{ errorMsg }}
+    </div>
+
     <div v-if="data" class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
         
         <!-- KEY METRICS CARDS -->
@@ -114,6 +118,7 @@ const reportType = ref('sales')
 const dateRange = ref('month')
 const loading = ref(false)
 const data = ref(null)
+const errorMsg = ref('')
 
 // Computed for Summary Cards
 const formattedSummary = computed(() => {
@@ -208,8 +213,10 @@ async function generateReport() {
         data.value = await $fetch('/api/reports/summary', { params: query })
 
     } catch (e) {
-        console.error(e)
-        // ideally show toast
+        console.error('Report Generation Error:', e)
+        const msg = e.response?._data?.statusMessage || e.message || 'Error desconocido'
+        console.log('DEBUG MSG FROM BACKEND:', msg)
+        errorMsg.value = msg
     } finally {
         loading.value = false
     }

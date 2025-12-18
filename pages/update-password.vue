@@ -10,33 +10,16 @@
              </div>
              <span class="text-xl font-bold text-[var(--color-white)] tracking-tight">Soft Tuuls</span>
           </NuxtLink>
-          <h2 class="mt-8 text-3xl font-extrabold text-gradient tracking-tight">Bienvenido de nuevo</h2>
+          <h2 class="mt-8 text-3xl font-extrabold text-gradient tracking-tight">Actualizar contraseña</h2>
           <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
-            ¿No tienes cuenta?
-            <NuxtLink to="/signup" class="font-bold text-[var(--color-accent-blue)] hover:text-[var(--color-accent-violet)] transition-colors">
-              Regístrate gratis
-            </NuxtLink>
+            Ingresa tu nueva contraseña a continuación.
           </p>
         </div>
 
         <div class="mt-10">
-          <form @submit.prevent="handleLogin" class="space-y-6">
+          <form @submit.prevent="handleUpdatePassword" class="space-y-6">
             <div>
-              <label for="email" class="block text-sm font-bold text-[var(--color-text-secondary)]">Correo electrónico</label>
-              <div class="mt-2">
-                <input id="email" v-model="email" type="email" required class="appearance-none block w-full px-4 py-3 border border-[var(--color-border-subtle)] rounded-xl shadow-sm placeholder-[var(--color-text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent bg-[var(--color-bg-subtle)] text-[var(--color-white)] sm:text-sm transition-all" placeholder="tucorreo@empresa.com" />
-              </div>
-            </div>
-
-          <div>
-              <div class="flex items-center justify-between">
-                <label for="password" class="block text-sm font-bold text-[var(--color-text-secondary)]">Contraseña</label>
-                <div class="text-sm">
-                  <NuxtLink to="/forgot-password" class="font-semibold text-[var(--color-accent-blue)] hover:text-[var(--color-accent-violet)]">
-                    ¿Olvidaste tu contraseña?
-                  </NuxtLink>
-                </div>
-              </div>
+              <label for="password" class="block text-sm font-bold text-[var(--color-text-secondary)]">Nueva contraseña</label>
               <div class="mt-2 relative">
                 <input id="password" v-model="password" :type="showPassword ? 'text' : 'password'" required class="appearance-none block w-full px-4 py-3 border border-[var(--color-border-subtle)] rounded-xl shadow-sm placeholder-[var(--color-text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent bg-[var(--color-bg-subtle)] text-[var(--color-white)] sm:text-sm transition-all pr-10" placeholder="••••••••" />
                 <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--color-text-secondary)] hover:text-[var(--color-white)] cursor-pointer focus:outline-none">
@@ -55,12 +38,30 @@
               <button type="submit" :disabled="loading" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-500/20 text-sm font-bold text-white bg-gradient-to-r from-[var(--color-accent-blue)] to-[var(--color-accent-violet)] hover:from-indigo-500 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-accent-blue)] disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95">
                 <span v-if="loading" class="flex items-center gap-2">
                   <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                  Procesando...
+                  Actualizando...
                 </span>
-                <span v-else>Iniciar Sesión</span>
+                <span v-else>Guardar contraseña</span>
               </button>
             </div>
             
+            <div v-if="successMsg" class="rounded-xl bg-green-500/10 border border-green-500/20 p-4 animate-pulse">
+              <div class="flex">
+                 <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-bold text-green-500">{{ successMsg }}</h3>
+                  <div class="mt-2">
+                    <NuxtLink to="/login" class="font-semibold text-green-600 hover:text-green-500">
+                      Ir a Iniciar Sesión &rarr;
+                    </NuxtLink>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div v-if="errorMsg" class="rounded-xl bg-red-500/10 border border-red-500/20 p-4 animate-pulse">
               <div class="flex">
                 <div class="flex-shrink-0">
@@ -110,22 +111,25 @@ definePageMeta({
   layout: false
 })
 
-const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
 const errorMsg = ref('')
+const successMsg = ref('')
 
-const handleLogin = async () => {
+const handleUpdatePassword = async () => {
   try {
     loading.value = true
     errorMsg.value = ''
-    const { error } = await client.auth.signInWithPassword({
-      email: email.value,
+    successMsg.value = ''
+
+    const { error } = await client.auth.updateUser({
       password: password.value
     })
+
     if (error) throw error
-    router.push('/app')
+
+    successMsg.value = 'Tu contraseña ha sido actualizada correctamente.'
   } catch (error) {
     errorMsg.value = error.message
   } finally {

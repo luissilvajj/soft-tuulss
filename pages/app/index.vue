@@ -202,10 +202,10 @@ onMounted(async () => {
     // Check Org for redirection
     if (!organization.value) {
        await fetchOrganization()
-       if (!organization.value) {
-           // Double check count
-           const { count } = await supabase.from('organization_members').select('*', { count: 'exact', head: true })
-           if (count === 0) router.push('/onboarding')
+       // If still no organization after robust API fetch, then validly redirect
+       if (!organization.value || organization.value.error) {
+           console.log('Redirecting to onboarding because org is missing or error:', organization.value)
+           router.push('/onboarding')
        }
     }
 })

@@ -29,17 +29,22 @@ export default defineEventHandler(async (event) => {
     }
 
     // Strategy B: Admin Client Fallback (If RPC fails/missing)
+    let debugInfo = ''
     if (!orgId) {
-        console.warn('Reports: RPC failed, attempting Admin fallback...')
-        const config = useRuntimeConfig()
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
+        debugInfo += 'RPC No Data/Error; '
 
-        if (serviceKey && process.env.SUPABASE_URL) {
-            const adminClient = createClient(process.env.SUPABASE_URL, serviceKey, {
+        const config = useRuntimeConfig()
+        const serviceKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
+        const supabaseUrl = process.env.SUPABASE_URL || config.public?.supabase?.url
+
+        if (!serviceKey) debugInfo += 'No Service Key Found; '
+        if (!supabaseUrl) debugInfo += 'No Supabase URL Found; '
+
+        if (serviceKey && supabaseUrl) {
+            const adminClient = createClient(supabaseUrl, serviceKey, {
                 auth: { autoRefreshToken: false, persistSession: false }
             })
-
-            const { data: adminOrg } = await adminClient
+            const { data: adminOrg, error: adminError } = await adminClient
                 .from('organization_members')
                 .select('organization_id')
                 .eq('user_id', user.id)
@@ -48,13 +53,17 @@ export default defineEventHandler(async (event) => {
             if (adminOrg) {
                 orgId = adminOrg.organization_id
                 db = adminClient // UPGRADE to admin client for data fetching
-                console.log('Reports: Outputting via Admin Client')
+            } else {
+                debugInfo += `Admin Org Lookup Failed: ${adminError?.message || 'No Org'}; `
             }
         }
     }
 
     if (!orgId) {
-        throw createError({ statusCode: 403, statusMessage: 'Organization Access Denied (No Org Found)' })
+        throw createError({
+            statusCode: 403,
+            statusMessage: `Access Denied. Debug: ${debugInfo} User: ${user.id}`
+        })
     }
 
     const start = new Date(startDate).toISOString()

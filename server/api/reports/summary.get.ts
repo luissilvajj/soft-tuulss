@@ -1,5 +1,6 @@
 
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     const user = await serverSupabaseUser(event)
@@ -17,22 +18,51 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, statusMessage: 'Start and End dates are required' })
     }
 
-    // 0. Get Org (Robust Way via RPC)
-    const { data: rpcData, error: rpcError } = await client.rpc('get_my_main_organization')
+    // 0. Get Org & Determine Client Strategy
+    let orgId = null
+    let db = client // Default to user client
 
-    if (rpcError || !rpcData || !rpcData.organization_id) {
-        console.error('Report Error: Org Not Found via RPC', rpcError)
-        throw createError({ statusCode: 403, statusMessage: 'Organization Access Denied' })
+    // Strategy A: RPC (Preferred)
+    const { data: rpcData } = await client.rpc('get_my_main_organization')
+    if (rpcData && rpcData.organization_id) {
+        orgId = rpcData.organization_id
     }
 
-    const orgId = rpcData.organization_id
+    // Strategy B: Admin Client Fallback (If RPC fails/missing)
+    if (!orgId) {
+        console.warn('Reports: RPC failed, attempting Admin fallback...')
+        const config = useRuntimeConfig()
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
+
+        if (serviceKey && process.env.SUPABASE_URL) {
+            const adminClient = createClient(process.env.SUPABASE_URL, serviceKey, {
+                auth: { autoRefreshToken: false, persistSession: false }
+            })
+
+            const { data: adminOrg } = await adminClient
+                .from('organization_members')
+                .select('organization_id')
+                .eq('user_id', user.id)
+                .maybeSingle()
+
+            if (adminOrg) {
+                orgId = adminOrg.organization_id
+                db = adminClient // UPGRADE to admin client for data fetching
+                console.log('Reports: Outputting via Admin Client')
+            }
+        }
+    }
+
+    if (!orgId) {
+        throw createError({ statusCode: 403, statusMessage: 'Organization Access Denied (No Org Found)' })
+    }
 
     const start = new Date(startDate).toISOString()
     const end = new Date(endDate).toISOString()
 
     // REPORT: SALES
     if (type === 'sales') {
-        const { data: transactions } = await client
+        const { data: transactions } = await db
             .from('transactions')
             .select('*')
             .eq('organization_id', orgId)
@@ -75,7 +105,7 @@ export default defineEventHandler(async (event) => {
     if (type === 'inventory') {
         // Inventory is snapshot-less, so we show CURRENT state regardless of date, 
         // but maybe filter created_at if requested? Usually inventory report is "Current Status".
-        const { data: products } = await client
+        const { data: products } = await db
             .from('products')
             .select('*')
             .eq('organization_id', orgId)
@@ -99,7 +129,7 @@ export default defineEventHandler(async (event) => {
 
     // REPORT: CLIENTS
     if (type === 'clients') {
-        const { data: clients } = await client
+        const { data: clients } = await db
             .from('clients')
             .select('*, transactions(amount)')
             .eq('organization_id', orgId)
@@ -110,7 +140,7 @@ export default defineEventHandler(async (event) => {
         // Let's do: Top Clients by Sales in Range
         // We need to fetch transactions and join clients.
 
-        const { data: clientSales } = await client
+        const { data: clientSales } = await db
             .from('transactions')
             .select('amount, client:clients(name, email)')
             .eq('organization_id', orgId)

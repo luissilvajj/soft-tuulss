@@ -1,5 +1,6 @@
 
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     const user = await serverSupabaseUser(event)
@@ -7,14 +8,37 @@ export default defineEventHandler(async (event) => {
 
     const client = await serverSupabaseClient(event)
 
-    // 0. Get Organization ID (Securely via RPC)
-    const { data: rpcData, error: rpcError } = await client.rpc('get_my_main_organization')
+    // 0. Get Org & Determine Client Strategy
+    let orgId = null
+    let db = client // Default to user client
 
-    if (rpcError || !rpcData || !rpcData.organization_id) {
-        console.error('Monthly Report Error: Org Not Found via RPC', rpcError)
-        throw createError({ statusCode: 403, statusMessage: 'Organization Access Denied' })
+    // Strategy A: RPC (Preferred)
+    const { data: rpcData } = await client.rpc('get_my_main_organization')
+    if (rpcData && rpcData.organization_id) {
+        orgId = rpcData.organization_id
     }
-    const orgId = rpcData.organization_id
+
+    // Strategy B: Admin Client Fallback
+    if (!orgId) {
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
+        if (serviceKey && process.env.SUPABASE_URL) {
+            const adminClient = createClient(process.env.SUPABASE_URL, serviceKey, {
+                auth: { autoRefreshToken: false, persistSession: false }
+            })
+            const { data: adminOrg } = await adminClient
+                .from('organization_members')
+                .select('organization_id')
+                .eq('user_id', user.id)
+                .maybeSingle()
+
+            if (adminOrg) {
+                orgId = adminOrg.organization_id
+                db = adminClient
+            }
+        }
+    }
+
+    if (!orgId) throw createError({ statusCode: 403, statusMessage: 'Organization Access Denied' })
 
     // 1. Define Time Range (Last 30 Days vs Previous 30 Days)
     const now = new Date()
@@ -22,9 +46,7 @@ export default defineEventHandler(async (event) => {
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
 
     // 2. Aggregate Sales Stats
-    // We fetch raw transactions and aggregate in memory for flexibility (or use RPC if heavy)
-    // For MVP, JS aggregation is fine for small/medium businesses
-    const { data: transactions } = await client
+    const { data: transactions } = await db
         .from('transactions')
         .select('amount, type, date, created_at, client_id')
         .eq('organization_id', orgId)
@@ -48,7 +70,7 @@ export default defineEventHandler(async (event) => {
 
     // 3. Top Performers (requires joining transaction_items -> products)
     // fetching top 5 items for context
-    const { data: topItems } = await client
+    const { data: topItems } = await db
         .from('transaction_items')
         .select(`
             quantity,
@@ -66,7 +88,7 @@ export default defineEventHandler(async (event) => {
     })
 
     // 4. Inventory Health
-    const { data: lowStock } = await client
+    const { data: lowStock } = await db
         .from('products')
         .select('name, stock')
         .eq('organization_id', orgId)

@@ -136,30 +136,29 @@ const createOrganization = async () => {
     loading.value = true
     errorMsg.value = ''
     
-    // Call the database function we created in schema.sql
-    const { data, error } = await client.rpc('create_org_for_user', {
-      org_name: orgName.value
+    // Call the Server API instead of RPC (More robust)
+    const data = await $fetch('/api/org/create', {
+        method: 'POST',
+        body: { name: orgName.value }
     })
 
-    if (error) throw error
-
     // Success - Redirect to Dashboard
-    const newOrgId = data // RPC returns the UUID
-
     // Force fetch to ensure state is updated
     await fetchOrganization(true)
     
     // Small delay to ensure DB propagation
-    await new Promise(r => setTimeout(r, 500))
+    await new Promise(r => setTimeout(r, 800))
 
     if (organization.value) {
         router.push('/app')
     } else {
-        throw new Error('La organización se creó pero no se pudo cargar. Intenta recargar.')
+         // Fallback manual set to allow immediate entry if fetch lags
+         organization.value = { ...data, role: 'owner' }
+         router.push('/app')
     }
   } catch (error) {
     console.error(error)
-    errorMsg.value = error.message || 'Error al crear la organización'
+    errorMsg.value = error.statusMessage || error.message || 'Error al crear la organización'
   } finally {
     loading.value = false
   }

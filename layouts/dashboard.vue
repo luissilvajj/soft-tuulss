@@ -193,9 +193,10 @@ onMounted(async () => {
   // 2. EXECUTE RECOVERY (Ipso Facto) using confirmed ID
   await ensureGlobalState(userId)
 
-  // 3. Standard Fetch (for redundancy)
-  if (!organization.value) {
-     await fetchOrganization()
+  // 3. Standard Fetch (for redundancy) or Correct Fake State
+  if (!organization.value || organization.value.id === 'override') {
+     console.log('Dashboard: Fetching/Correcting Organization...')
+     await fetchOrganization(true)
   }
 })
 

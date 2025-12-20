@@ -1,5 +1,5 @@
-
 import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     // 1. Auth Check
@@ -43,7 +43,8 @@ export default defineEventHandler(async (event) => {
         .eq('type', 'sale')
         .gte('date', thirtyDaysAgo.toISOString())
 
-    const totalRevenue = salesData?.reduce((sum, t) => sum + Number(t.amount), 0) || 0
+    const totalRevenue = salesData?.reduce((sum: number, t: any) => sum + Number(t.amount), 0) || 0
+
 
     // Low Stock
     const { data: lowStockData } = await adminClient

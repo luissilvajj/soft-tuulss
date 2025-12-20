@@ -17,11 +17,10 @@
                 </h1>
                 <p class="text-[var(--color-text-secondary)] mt-1">Tu consultor inteligente disponible 24/7. Analiza tendencias y optimiza tu negocio.</p>
             </div>
-            <!-- Version Marker -->
             <div class="hidden md:block">
                <span class="bg-gradient-to-r from-emerald-500/20 to-blue-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                   <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                  DeepSeek v2
+                  DeepSeek v3
                </span>
             </div>
         </div>

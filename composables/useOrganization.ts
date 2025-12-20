@@ -26,8 +26,10 @@ export const useOrganization = () => {
             // Add timestamp to bust cache
             const data = await $fetch(`/api/me/organization?t=${new Date().getTime()}`)
 
-            if (data) {
+            if (data && !data.error) {
                 organization.value = data
+            } else {
+                organization.value = null
             }
         } catch (e) {
             console.error('Error fetching organization:', e)

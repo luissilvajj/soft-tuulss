@@ -82,23 +82,48 @@ const orgName = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
 
-const forceBypass = () => {
+const forceBypass = async () => {
+    // Attempt to hydrate user first
+    const { data } = await client.auth.getSession()
+    if (data.session) {
+        user.value = data.session.user
+    }
+    
     organization.value = { id: 'override', name: 'Emergency Access', role: 'owner' }
     router.push('/app')
 }
 
 onMounted(async () => {
-   // Check if user already has an organization (or pending invite)
    loading.value = true
    try {
+      // 0. FORCE SESSION HYDRATION
+      console.log('Onboarding: Hydrating Session...')
+      const { data } = await client.auth.getSession()
+      
+      if (!data.session) {
+          console.log('No session found. Redirecting to login.')
+          return router.push('/login')
+      }
+
+      // Manually update the composable state if empty
+      if (!user.value) {
+          console.log('User composable was empty. Updating from session.')
+          user.value = data.session.user
+      }
+
+      console.log('User ID:', user.value.id)
+
+      // 1. Try to CLAIM invites
       console.log('Onboarding: Checking invites...')
       const { error: claimError } = await client.rpc('claim_invites')
       if (claimError) console.error('Error claiming invites:', claimError)
 
+      // 2. Fetch Organization
       console.log('Onboarding: Fetching Org...')
       await fetchOrganization(true)
       console.log('Onboarding: Org Result:', organization.value)
 
+      // 3. If User has an Org, Redirect to App
       if (organization.value) {
          console.log('Redirecting to app...')
          router.push('/app')

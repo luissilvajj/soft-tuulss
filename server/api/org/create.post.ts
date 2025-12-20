@@ -34,8 +34,12 @@ export default defineEventHandler(async (event) => {
         .single()
 
     if (orgError) {
-        console.error('Org Creation Error:', orgError)
-        throw createError({ statusCode: 500, statusMessage: 'Failed to create organization record' })
+        console.error('Org Creation Error Full:', JSON.stringify(orgError, null, 2))
+        throw createError({
+            statusCode: 500,
+            statusMessage: `Failed to create organization: ${orgError.message}`,
+            data: orgError
+        })
     }
 
     // 2. Add User as Owner

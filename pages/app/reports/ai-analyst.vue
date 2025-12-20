@@ -158,16 +158,30 @@ async function sendMessage(textOverride = null) {
         }
     } catch (e) {
         console.error('Frontend Error:', e)
-        // Try to extract readable message
-        const serverMsg = e.data?.statusMessage || e.data?.message || e.message || 'Unknown Error'
-        messages.value.push({ 
-            role: 'assistant', 
-            content: `⚠️ **Error de Diagnóstico**:
-            
-            ${serverMsg}
-            
-            Raw: ${JSON.stringify(e.data || e, null, 2)}` 
-        })
+        const status = e.response?.status || e.data?.statusCode || 500
+        
+        if (status === 403) {
+             messages.value.push({ 
+                role: 'assistant', 
+                content: `🚨 **Acción Requerida**: No encontramos tu organización en la base de datos.
+                
+                Esto ocurre si el proceso de creación anterior no se completó en la nube.
+                
+                <a href="/onboarding" class="inline-block mt-2 bg-red-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-600 transition-colors">
+                    crear Organización Ahora
+                </a>`
+            })
+        } else {
+             const serverMsg = e.data?.statusMessage || e.data?.message || e.message || 'Unknown Error'
+             messages.value.push({ 
+                role: 'assistant', 
+                content: `⚠️ **Error de Diagnóstico (${status})**:
+                
+                ${serverMsg}
+                
+                Raw: ${JSON.stringify(e.data || e, null, 2)}` 
+            })
+        }
     } finally {
         loading.value = false
     }

@@ -42,6 +42,23 @@ export default defineEventHandler(async (event) => {
         })
     }
 
+    // 1.5. ENSURE PROFILE EXISTS (Fix for missing trigger/migrations)
+    // If the profile doesn't exist, the FK constraint on organization_members will fail.
+    const { error: profileError } = await adminClient
+        .from('profiles')
+        .upsert({
+            id: user.id,
+            full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+            avatar_url: user.user_metadata?.avatar_url,
+            updated_at: new Date().toISOString()
+        })
+
+    if (profileError) {
+        console.error('Profile Creation Error:', profileError)
+        // We log but try to proceed? No, member creation will definitely fail.
+        // Actually, let's try to proceed just in case upsert fails due to some other reason but row exists.
+    }
+
     // 2. Add User as Owner
     const { error: memberError } = await adminClient
         .from('organization_members')

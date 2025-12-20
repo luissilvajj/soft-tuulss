@@ -28,7 +28,19 @@ export default defineEventHandler(async (event) => {
         .limit(1)
         .maybeSingle()
 
-    if (!memberData) throw createError({ statusCode: 403, statusMessage: 'No Organization Found for Analysis' })
+    if (!memberData) {
+        console.error(`Org Analysis Failed: User ${user.id} has no org. SKey: ${!!serviceKey}`)
+        throw createError({
+            statusCode: 403,
+            statusMessage: 'No Organization Found for Analysis',
+            data: {
+                userId: user.id,
+                email: user.email,
+                hasServiceKey: !!serviceKey,
+                envUrl: !!supabaseUrl
+            }
+        })
+    }
     const orgId = memberData.organization_id
 
     // Fetch Metrics

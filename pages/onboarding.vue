@@ -56,14 +56,7 @@
       </div>
     </div>
 
-    <!-- Debug Section -->
-    <div class="fixed bottom-4 left-4 p-4 bg-black/80 text-green-400 text-xs rounded z-50 max-w-lg font-mono">
-      <p>User ID: {{ user?.id }}</p>
-      <p>Org State: {{ organization }}</p>
-      <p>Error: {{ errorMsg }}</p>
-      <button @click="fetchOrganization(true)" class="mt-2 bg-green-700 text-white px-2 py-1">Retry Fetch</button>
-      <button @click="forceBypass" class="mt-2 ml-2 bg-red-700 text-white px-2 py-1">FORCE ENTER</button>
-    </div>
+    <!-- Debug Section Removed -->
   </div>
 </template>
 

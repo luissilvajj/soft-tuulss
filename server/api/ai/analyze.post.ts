@@ -45,14 +45,15 @@ export default defineEventHandler(async (event) => {
     `
 
     try {
-        const response = await $fetch('https://api.deepseek.com/v1/chat/completions', {
+        console.log('Sending request to DeepSeek API...')
+        const response = await $fetch('https://api.deepseek.com/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`
             },
             body: {
-                model: 'deepseek-chat', // DeepSeek-V3
+                model: 'deepseek-chat',
                 messages: [
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userQuery }
@@ -68,10 +69,16 @@ export default defineEventHandler(async (event) => {
         }
 
     } catch (e: any) {
-        console.error('DeepSeek Error:', e)
+        console.error('DeepSeek Error Full Object:', JSON.stringify(e, null, 2))
+
+        let msg = e.message
+        if (e.response && e.response._data) {
+            msg = `API Error [${e.response.status}]: ${JSON.stringify(e.response._data)}`
+        }
+
         throw createError({
             statusCode: 502,
-            statusMessage: 'AI Service Unreachable: ' + (e.data?.error?.message || e.message)
+            statusMessage: 'DeepSeek Failed: ' + msg
         })
     }
 })

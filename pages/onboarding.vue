@@ -56,6 +56,15 @@
       </div>
     </div>
   </div>
+    <!-- Debug Section -->
+    <div class="fixed bottom-4 left-4 p-4 bg-black/80 text-green-400 text-xs rounded z-50 max-w-lg font-mono">
+      <p>User ID: {{ user?.id }}</p>
+      <p>Org State: {{ organization }}</p>
+      <p>Error: {{ errorMsg }}</p>
+      <button @click="fetchOrganization(true)" class="mt-2 bg-green-700 text-white px-2 py-1">Retry Fetch</button>
+      <button @click="forceBypass" class="mt-2 ml-2 bg-red-700 text-white px-2 py-1">FORCE ENTER</button>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -67,31 +76,36 @@ useAuthGuard()
 const client = useSupabaseClient()
 const router = useRouter()
 const user = useSupabaseUser()
+const { fetchOrganization, organization } = useOrganization()
 
 const orgName = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
 
+const forceBypass = () => {
+    organization.value = { id: 'override', name: 'Emergency Access', role: 'owner' }
+    router.push('/app')
+}
+
 onMounted(async () => {
    // Check if user already has an organization (or pending invite)
    loading.value = true
    try {
-      // 1. Try to CLAIM invites
+      console.log('Onboarding: Checking invites...')
       const { error: claimError } = await client.rpc('claim_invites')
       if (claimError) console.error('Error claiming invites:', claimError)
 
-      // 2. Fetch Organization
-      // We force fetch true to get the latest data after claim
-      const { fetchOrganization, organization } = useOrganization()
+      console.log('Onboarding: Fetching Org...')
       await fetchOrganization(true)
+      console.log('Onboarding: Org Result:', organization.value)
 
-      // 3. If User has an Org, Redirect to App
       if (organization.value) {
-         console.log('User already has org as ' + organization.value.role + '. Redirecting...')
+         console.log('Redirecting to app...')
          router.push('/app')
       }
    } catch (e) {
-      console.error(e)
+      console.error('Onboarding Exception:', e)
+      errorMsg.value = e.message
    } finally {
       loading.value = false
    }
@@ -115,23 +129,10 @@ const createOrganization = async () => {
     const newOrgId = data // RPC returns the UUID
 
     // Force fetch to ensure state is updated
-    const { fetchOrganization, organization } = useOrganization()
+    await fetchOrganization(true)
     
     // Small delay to ensure DB propagation
     await new Promise(r => setTimeout(r, 500))
-    await fetchOrganization(true)
-
-    // Fallback: If fetch failed (RLS lag), manually set the state
-    // We trust the RPC was successful and we are the owner.
-    if (!organization.value && newOrgId) {
-       console.log('Doing optimistic set for org', newOrgId)
-       organization.value = {
-          id: newOrgId,
-          name: orgName.value,
-          role: 'owner',
-          subscription_status: 'active'
-       }
-    }
 
     if (organization.value) {
         router.push('/app')

@@ -9,23 +9,55 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const userQuery = body.query || "Genera el reporte mensual de rendimiento."
 
-    // 2. Fetch Business Context (Reusing our internal API logic effectively)
-    // We can call the other handler or just recreate logic. Calling internal API is cleaner if overhead is low.
-    // For now, let's reuse the logic via a direct function call if we extracted it, but to save time, we'll hit the localhost API or simpler: 
-    // Just import the logic? No, let's fetch it via $fetch to keep it decoupled.
-    // Note: $fetch call to own API requires session cookie.
-    // Easier strategy: Logic is simple, let's just do the aggregation here or extract it later. 
-    // Actually, let's use the same aggregation logic for consistency.
+    // 2. Fetch Business Context (Direct DB Access to avoid HTTP loop issues)
+    const config = useRuntimeConfig()
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
+    const supabaseUrl = process.env.SUPABASE_URL
 
-    // ... (Aggregation logic similar to monthly.get.ts would go here, or we call the endpoint)
-    // For MVP efficiency, we will fetch the data:
-    const contextData = await $fetch('/api/reports/monthly', {
-        headers: event.headers // Pass headers for auth
-    }).catch(e => null)
+    if (!serviceKey || !supabaseUrl) throw createError({ statusCode: 500, statusMessage: 'Server Config Missing' })
 
-    if (!contextData) throw createError({ statusCode: 500, statusMessage: 'Failed to aggregate data' })
+    const adminClient = createClient(supabaseUrl, serviceKey, {
+        auth: { autoRefreshToken: false, persistSession: false }
+    })
 
-    // 3. DeepSeek API Call
+    // Get Org ID
+    const { data: memberData } = await adminClient
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', user.id)
+        .limit(1)
+        .maybeSingle()
+
+    if (!memberData) throw createError({ statusCode: 403, statusMessage: 'No Organization Found for Analysis' })
+    const orgId = memberData.organization_id
+
+    // Fetch Metrics
+    const now = new Date()
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+    // Sales (Last 30 Days)
+    const { data: salesData } = await adminClient
+        .from('transactions')
+        .select('amount')
+        .eq('organization_id', orgId)
+        .eq('type', 'sale')
+        .gte('date', thirtyDaysAgo.toISOString())
+
+    const totalRevenue = salesData?.reduce((sum, t) => sum + Number(t.amount), 0) || 0
+
+    // Low Stock
+    const { data: lowStockData } = await adminClient
+        .from('products')
+        .select('name, stock')
+        .eq('organization_id', orgId)
+        .lt('stock', 10)
+        .limit(5)
+
+    const contextData = {
+        summary: `Revenue (Last 30d): $${totalRevenue.toFixed(2)}`,
+        low_stock: lowStockData || [],
+        note: "Data fetched directly via Service Key"
+    }
     const apiKey = process.env.DEEPSEEK_API_KEY
     if (!apiKey) throw createError({ statusCode: 500, statusMessage: 'AI Service Not Configured' })
 

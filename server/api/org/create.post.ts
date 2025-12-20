@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
         .from('organizations')
         .insert({
             name: orgName,
-            subscription_status: 'trialing', // Default to trial
+            subscription_status: 'active', // FIXED: Constraint only allows active/inactive/past_due
             trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days
         })
         .select()

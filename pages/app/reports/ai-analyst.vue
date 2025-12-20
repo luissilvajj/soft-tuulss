@@ -17,10 +17,11 @@
                 </h1>
                 <p class="text-[var(--color-text-secondary)] mt-1">Tu consultor inteligente disponible 24/7. Analiza tendencias y optimiza tu negocio.</p>
             </div>
+            <!-- Version Marker -->
             <div class="hidden md:block">
                <span class="bg-gradient-to-r from-emerald-500/20 to-blue-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                   <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                  Un nombre de IA cachy
+                  DeepSeek v2
                </span>
             </div>
         </div>
@@ -157,9 +158,16 @@ async function sendMessage(textOverride = null) {
             messages.value.push({ role: 'assistant', content: data.analysis })
         }
     } catch (e) {
+        console.error('Frontend Error:', e)
+        // Try to extract readable message
+        const serverMsg = e.data?.statusMessage || e.data?.message || e.message || 'Unknown Error'
         messages.value.push({ 
             role: 'assistant', 
-            content: `⚠️ **Error de conexión**: ${e.statusMessage || 'No se pudo contactar con DeepSeek.'}. Verifica tu API Key.` 
+            content: `⚠️ **Error de Diagnóstico**:
+            
+            ${serverMsg}
+            
+            Raw: ${JSON.stringify(e.data || e, null, 2)}` 
         })
     } finally {
         loading.value = false

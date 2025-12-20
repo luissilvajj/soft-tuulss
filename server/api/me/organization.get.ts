@@ -10,71 +10,67 @@ export default defineEventHandler(async (event) => {
         }
 
         const client = await serverSupabaseClient(event)
-
-        // STRATEGY 1: RPC Function (The "Silver Bullet")
-        // This failsafe function runs on the DB with system privileges to bypass broken RLS
-        const { data: rpcData, error: rpcError } = await client.rpc('get_my_main_organization')
-
-        if (rpcData) {
-            return rpcData
-        }
-
-        // Only log error if it's NOT just "null" (meaning no org found, which is valid)
-        if (rpcError && rpcError.code !== 'PGRST116') {
-            console.error('RPC Error:', rpcError)
-        }
-
         const userId = user.id
 
-        // STRATEGY 2: Standard Select (Backwards compatibility / Fallback)
-        let { data, error } = await client
+        // --- STRATEGY 1: SERVICE KEY (GOD MODE) ---
+        // We try this FIRST because we know RLS/RPC migrations might be missing.
+        const config = useRuntimeConfig()
+        const serviceKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+        const url = process.env.SUPABASE_URL
+
+        if (serviceKey && url) {
+            // console.log('OrgFetch: Attempting Service Key Strategy')
+            const supabaseAdmin = createClient(url, serviceKey, {
+                auth: { autoRefreshToken: false, persistSession: false }
+            })
+
+            const { data: adminData, error: adminError } = await supabaseAdmin
+                .from('organization_members')
+                .select(`
+                    role,
+                    organization: organizations(*)
+                `)
+                .eq('user_id', userId)
+                .limit(1)
+                .maybeSingle()
+
+            if (adminData && adminData.organization) {
+                // console.log('OrgFetch: Success via Service Key')
+                return {
+                    ...adminData.organization,
+                    role: adminData.role
+                }
+            }
+            if (adminError) {
+                console.error('OrgFetch: Service Key Error:', adminError)
+            }
+        } else {
+            console.warn('OrgFetch: Missing Service Key env vars', { hasKey: !!serviceKey, hasUrl: !!url })
+        }
+
+
+        // --- STRATEGY 2: RPC (Legacy / Fallback) ---
+        // Only if Service Key failed or returned nothing
+        const { data: rpcData } = await client.rpc('get_my_main_organization')
+        if (rpcData) return rpcData
+
+
+        // --- STRATEGY 3: Standard RLS Select (Fallback) ---
+        const { data: rlsData } = await client
             .from('organization_members')
-            .select(`
-role,
-    organization: organizations(
-        id,
-        name,
-        logo_url,
-        subscription_status,
-        subscription_plan,
-        trial_ends_at,
-        current_period_end,
-        stripe_customer_id
-    )
-        `)
+            .select(`role, organization: organizations(*)`)
             .eq('user_id', userId)
             .limit(1)
             .maybeSingle()
 
-        if (!data || error) {
-            // STRATEGY 3: Service Key Fallback (Last Resort)
-            const config = useRuntimeConfig()
-            const serviceKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
-            const url = process.env.SUPABASE_URL
-
-            if (serviceKey && url) {
-                const supabaseAdmin = createClient(url, serviceKey, {
-                    auth: { autoRefreshToken: false, persistSession: false }
-                })
-
-                const adminRef = await supabaseAdmin
-                    .from('organization_members')
-                    .select('role, organization:organizations(*)')
-                    .eq('user_id', userId)
-                    .maybeSingle()
-
-                if (adminRef.data) data = adminRef.data
+        if (rlsData && rlsData.organization) {
+            return {
+                ...rlsData.organization,
+                role: rlsData.role
             }
         }
 
-        if (!data || !data.organization) {
-            return { error: 'No Organization Found', userId: userId }
-        }
-
-        return {
-            ...data.organization,
-            role: data.role
-        }
+        return null // Explicit null if nothing found (trigger Onboarding)
 
     } catch (e: any) {
         console.error('Server Exception fetchOrg:', e)

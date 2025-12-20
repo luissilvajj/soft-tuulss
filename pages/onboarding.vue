@@ -55,7 +55,7 @@
         </div>
       </div>
     </div>
-  </div>
+
     <!-- Debug Section -->
     <div class="fixed bottom-4 left-4 p-4 bg-black/80 text-green-400 text-xs rounded z-50 max-w-lg font-mono">
       <p>User ID: {{ user?.id }}</p>

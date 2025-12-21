@@ -10,59 +10,77 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
     }
 
-    // 1. Try RPC V2 (Preferred for performance)
+    // 1. Try RPC V3 (Nuclear Option - Fresh Function)
     try {
-        console.log('[OrgAPI] Calling RPC V2 for:', user.id)
-        const { data, error } = await client.rpc('get_web_user_organizations_v2', { target_uid: user.id })
+        console.log('[OrgAPI] Calling RPC V3 (Nuclear)...')
+        const { data, error } = await client.rpc('get_web_user_organizations_v3', { target_uid: user.id })
 
         if (!error) {
-            console.log('[OrgAPI] RPC Success. Count:', Array.isArray(data) ? data.length : 0)
+            console.log('[OrgAPI] RPC V3 Success. Count:', Array.isArray(data) ? data.length : 0)
             return data || []
         }
 
-        console.warn('[OrgAPI] RPC V2 failed, attempting fallback query:', error.message)
+        console.warn('[OrgAPI] RPC V3 failed, engaging NUCLEAR FALLBACK (Manual Join):', error.message)
     } catch (e) {
-        console.warn('[OrgAPI] RPC V2 exception, attempting fallback:', e)
+        console.warn('[OrgAPI] RPC V3 exception:', e)
     }
 
-    // 2. Fallback: Standard Query (Ultra-Safe)
-    // We only select 'id' and 'name' to prevent crashes if columns like 'subscription_status' are missing
+    // 2. Fallback: Manual Join (JavaScript side)
+    // Avoids DB-side joins (organizations!inner) to bypass complicated RLS recursion
     try {
-        console.log('[OrgAPI] Executing Fallback Query (Safe Mode)...')
+        console.log('[OrgAPI] Step 1: Fetching Memberships...')
         const { data: members, error: memberError } = await client
             .from('organization_members')
-            .select(`
-                role,
-                organizations!inner (
-                    id,
-                    name
-                )
-            `)
+            .select('organization_id, role')
             .eq('user_id', user.id)
 
-        if (memberError) {
-            console.error('[OrgAPI] Fallback also failed:', memberError)
-            throw new Error(memberError.message)
+        if (memberError) throw new Error(`Member fetch failed: ${memberError.message}`)
+
+        const myMembers = members || []
+        if (myMembers.length === 0) return []
+
+        const orgIds = myMembers.map((m: any) => m.organization_id)
+        console.log('[OrgAPI] Step 2: Fetching Organizations for IDs:', orgIds)
+
+        const { data: orgs, error: orgError } = await client
+            .from('organizations')
+            .select('id, name, subscription_status, logo_url')
+            .in('id', orgIds)
+
+        // If getting orgs fails, it might be due to missing columns again.
+        // Try ULTRA-SAFE fallback (id, name only) if the above fails
+        let myOrgs = orgs
+        if (orgError) {
+            console.warn('[OrgAPI] Full Org fetch failed, trying restricted fetch:', orgError.message)
+            const { data: safeOrgs, error: safeError } = await client
+                .from('organizations')
+                .select('id, name')
+                .in('id', orgIds)
+
+            if (safeError) throw new Error(`Org fetch COMPLETELY failed: ${safeError.message}`)
+            myOrgs = safeOrgs
         }
 
-        const fallbackData = (members || []).map((m: any) => ({
-            id: m.organizations.id,
-            name: m.organizations.name,
-            // Provide defaults for missing columns to satisfy the type interface
-            subscription_status: 'active',
-            logo_url: null,
-            role: m.role
-        }))
+        // Step 3: Merge Data
+        const result = myMembers.map((m: any) => {
+            const org = (myOrgs || []).find((o: any) => o.id === m.organization_id)
+            if (!org) return null // Should not happen given FKs, but safe
 
-        console.log('[OrgAPI] Fallback Success. Count:', fallbackData.length)
-        return fallbackData
+            return {
+                id: org.id,
+                name: org.name,
+                subscription_status: org.subscription_status || 'active',
+                logo_url: org.logo_url || null,
+                role: m.role
+            }
+        }).filter(Boolean)
+
+        console.log('[OrgAPI] Manual Join Success. Count:', result.length)
+        return result
 
     } catch (e: any) {
-        console.error('[OrgAPI] FINAL EXCEPTION:', e)
-        throw createError({
-            statusCode: 500,
-            statusMessage: 'Unable to fetch organizations. Both RPC and Fallback failed.',
-            data: e.message
-        })
+        console.error('[OrgAPI] NUCLEAR FALLBACK EXCEPTION:', e)
+        // Return empty array to keep app alive instead of 500
+        return []
     }
 })

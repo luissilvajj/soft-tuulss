@@ -44,22 +44,8 @@ export default defineEventHandler(async (event) => {
         console.log(`[AI Analyst] Strategy 1 (Members) Failed. Error: ${memberError?.message || 'No data'}`)
     }
 
-    // Strategy 2: Check Ownership (Fallback for migrated/early users)
-    if (!orgId) {
-        const { data: ownerData } = await adminClient
-            .from('organizations')
-            .select('id')
-            .eq('owner_id', user.id)
-            .limit(1)
-            .maybeSingle()
-
-        if (ownerData) {
-            orgId = ownerData.id
-            console.log(`[AI Analyst] Strategy 2 (Ownership) Success: ${orgId}`)
-        } else {
-            console.log(`[AI Analyst] Strategy 2 (Ownership) Failed`)
-        }
-    }
+    // Strategy 2: Check Ownership REMOVED (Column does not exist in schema)
+    // Proceeding to Strategy 3
 
     // Strategy 3: RPC (Legacy/Sidebar Logic)
     if (!orgId) {

@@ -11,58 +11,29 @@ export default defineEventHandler(async (event) => {
     }
 
     try {
-        // Step 1: Fetch Memberships (Join-Free to be safe)
-        const { data: members, error: membersError } = await client
-            .from('organization_members')
-            .select('organization_id, role')
-            .eq('user_id', user.id)
+        console.log('[OrgAPI] Calling RPC: get_web_user_organizations')
+        const { data, error } = await client.rpc('get_web_user_organizations')
 
-        if (membersError) {
-            console.error('[OrgAPI] Members Fetch Error:', membersError)
+        if (error) {
+            console.error('[OrgAPI] RPC Error:', error)
             throw createError({
                 statusCode: 500,
-                statusMessage: `DB Error members: ${membersError.message}`,
-                data: membersError
+                statusMessage: `RPC Error: ${error.message}`,
+                data: error
             })
         }
 
-        if (!members || members.length === 0) {
-            return []
-        }
+        console.log('[OrgAPI] RPC Success. Count:', Array.isArray(data) ? data.length : 0)
 
-        // Step 2: Fetch Organization Details manually
-        const orgIds = members.map((m: any) => m.organization_id)
-        const { data: orgs, error: orgsError } = await client
-            .from('organizations')
-            .select('id, name, subscription_status') // Explicitly simple columns
-            .in('id', orgIds)
-
-        if (orgsError) {
-            console.error('Orgs Fetch Error:', orgsError)
-            // Dont crash, just return what we can? No, crash so we know.
-            throw createError({ statusCode: 500, statusMessage: 'DB Error fetching org details', data: orgsError })
-        }
-
-        // Step 3: Merge in Memory
-        return members.map((m: any) => {
-            const org = orgs?.find((o: any) => o.id === m.organization_id)
-            if (!org) return null // Shouldnt happen unless data corruption
-
-            return {
-                id: org.id,
-                name: org.name || 'Unnamed Org',
-                subscription_status: org.subscription_status,
-                role: m.role
-            }
-        }).filter(Boolean) // Remove nulls
+        // RPC returns the exact JSON structure we want
+        return data || []
 
     } catch (e: any) {
         console.error('[OrgAPI] EXCEPTION:', e)
-        // RETURN 200 with Error details so Client can see it!
-        return {
-            error: true,
-            message: e.message || 'Unknown DB Error',
-            details: e
-        }
+        throw createError({
+            statusCode: e.statusCode || 500,
+            statusMessage: e.statusMessage || 'Internal Server Error',
+            data: e.message
+        })
     }
 })

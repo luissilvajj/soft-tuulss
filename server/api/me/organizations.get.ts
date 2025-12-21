@@ -18,8 +18,12 @@ export default defineEventHandler(async (event) => {
             .eq('user_id', user.id)
 
         if (membersError) {
-            console.error('Members Fetch Error:', membersError)
-            throw createError({ statusCode: 500, statusMessage: 'DB Error fetching members', data: membersError })
+            console.error('[OrgAPI] Members Fetch Error:', membersError)
+            throw createError({
+                statusCode: 500,
+                statusMessage: `DB Error members: ${membersError.message}`,
+                data: membersError
+            })
         }
 
         if (!members || members.length === 0) {

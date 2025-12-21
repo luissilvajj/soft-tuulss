@@ -20,13 +20,17 @@ export default defineEventHandler(async (event) => {
         auth: { autoRefreshToken: false, persistSession: false }
     })
 
-    // Get Org ID
-    const { data: memberData } = await adminClient
+    // Get Org ID (Robust Lookup)
+    const { data: memberData, error: memberError } = await adminClient
         .from('organization_members')
         .select('organization_id')
         .eq('user_id', user.id)
         .limit(1)
-        .maybeSingle()
+        .single() // Use single() to see real error if fails
+
+    if (memberError) {
+        console.error(`Org Lookup Error for user ${user.id}:`, memberError)
+    }
 
     if (!memberData) {
         console.error(`Org Analysis Failed: User ${user.id} has no org. SKey: ${!!serviceKey}`)

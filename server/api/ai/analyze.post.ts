@@ -21,31 +21,73 @@ export default defineEventHandler(async (event) => {
     })
 
     // Get Org ID (Robust Lookup)
+    // 0. Init Clients
+    const client = await serverSupabaseClient(event)
+
+    // Get Org ID (Robust Lookup)
+    let orgId = null
+
+    console.log(`[AI Analyst] Starting Org Lookup for User: ${user.id}`)
+
+    // Strategy 1: Check Members (Standard)
     const { data: memberData, error: memberError } = await adminClient
         .from('organization_members')
         .select('organization_id')
         .eq('user_id', user.id)
         .limit(1)
-        .single() // Use single() to see real error if fails
+        .maybeSingle()
 
-    if (memberError) {
-        console.error(`Org Lookup Error for user ${user.id}:`, memberError)
+    if (memberData) {
+        orgId = memberData.organization_id
+        console.log(`[AI Analyst] Strategy 1 (Members) Success: ${orgId}`)
+    } else {
+        console.log(`[AI Analyst] Strategy 1 (Members) Failed. Error: ${memberError?.message || 'No data'}`)
     }
 
-    if (!memberData) {
-        console.error(`Org Analysis Failed: User ${user.id} has no org. SKey: ${!!serviceKey}`)
+    // Strategy 2: Check Ownership (Fallback for migrated/early users)
+    if (!orgId) {
+        const { data: ownerData } = await adminClient
+            .from('organizations')
+            .select('id')
+            .eq('owner_id', user.id)
+            .limit(1)
+            .maybeSingle()
+
+        if (ownerData) {
+            orgId = ownerData.id
+            console.log(`[AI Analyst] Strategy 2 (Ownership) Success: ${orgId}`)
+        } else {
+            console.log(`[AI Analyst] Strategy 2 (Ownership) Failed`)
+        }
+    }
+
+    // Strategy 3: RPC (Legacy/Sidebar Logic)
+    if (!orgId) {
+        try {
+            const { data: rpcData, error: rpcError } = await client.rpc('get_my_main_organization')
+            if (rpcData && rpcData.id) {
+                orgId = rpcData.id
+                console.log(`[AI Analyst] Strategy 3 (RPC) Success: ${orgId}`)
+            } else {
+                console.log(`[AI Analyst] Strategy 3 (RPC) Failed. Data: ${JSON.stringify(rpcData)}, Error: ${rpcError?.message}`)
+            }
+        } catch (rpcEx) {
+            console.error('[AI Analyst] Strategy 3 (RPC) Exception:', rpcEx)
+        }
+    }
+
+    if (!orgId) {
+        console.error(`Org Analysis Failed: User ${user.id} has no org. Strategies 1, 2, & 3 failed.`)
         throw createError({
             statusCode: 403,
             statusMessage: 'No Organization Found for Analysis',
             data: {
                 userId: user.id,
                 email: user.email,
-                hasServiceKey: !!serviceKey,
-                envUrl: !!supabaseUrl
+                strategies_tried: ['members', 'ownership', 'rpc']
             }
         })
     }
-    const orgId = memberData.organization_id
 
     // Fetch Metrics
     const now = new Date()

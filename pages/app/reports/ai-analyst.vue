@@ -138,8 +138,13 @@ async function generateInitialReport() {
     await sendMessage("Genera el reporte mensual con análisis de ventas y recomendaciones.")
 }
 
-async function sendMessage(textOverride = null) {
-    const text = textOverride || inputQuery.value
+async function sendMessage(payload = null) {
+    let text = inputQuery.value
+
+    // If payload is a string (manual call), use it.
+    if (typeof payload === 'string') {
+        text = payload
+    }
     if (!text || loading.value) return
 
     // Add user message

@@ -1,79 +1,88 @@
 <template>
-    <div class="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-        <div class="max-w-2xl w-full space-y-8">
-            <div class="text-center">
-                <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
-                    Selecciona tu Organización
+    <div class="min-h-screen flex flex-col items-center justify-center bg-[var(--color-bg-dark)] p-4 relative overflow-hidden">
+        <!-- Background Elements -->
+        <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[var(--color-accent-blue)]/10 rounded-full blur-[128px]"></div>
+        <div class="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[var(--color-accent-violet)]/10 rounded-full blur-[128px]"></div>
+
+        <div class="max-w-md w-full relative z-10">
+            <div class="text-center mb-8">
+                <!-- Icon -->
+                <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-accent-blue)] to-[var(--color-accent-violet)] flex items-center justify-center mb-6 shadow-lg shadow-[var(--color-accent-blue)]/20">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                </div>
+                
+                <h2 class="text-3xl font-extrabold text-[var(--color-white)] tracking-tight">
+                    Selecciona tu Espacio
                 </h2>
-                <p class="mt-2 text-sm text-gray-600">
-                    Tienes acceso a las siguientes organizaciones. Elige una para continuar.
+                <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
+                    Accede a uno de tus espacios de trabajo
                 </p>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-2">
+            <div class="space-y-3">
+                <!-- Organization List -->
                 <button
                     v-for="org in userOrganizations"
                     :key="org.id"
                     @click="selectOrg(org)"
-                    class="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-8 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all bg-white shadow-sm hover:shadow-md"
+                    class="group relative w-full flex items-center justify-between p-4 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--glass-bg)] hover:bg-[var(--color-bg-subtle)] hover:border-[var(--color-border-strong)] transition-all duration-300"
                 >
-                    <div class="mx-auto h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center mb-4">
-                       <span class="text-xl font-bold text-indigo-600">{{ org.name[0].toUpperCase() }}</span>
+                    <!-- Left Side: Avatar + Info -->
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--color-bg-subtle)] to-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] flex items-center justify-center text-[var(--color-white)] font-bold text-lg group-hover:scale-110 transition-transform">
+                            {{ org.name[0].toUpperCase() }}
+                        </div>
+                        <div class="text-left">
+                            <span class="block text-base font-bold text-[var(--color-white)] group-hover:text-[var(--color-accent-blue)] transition-colors">
+                                {{ org.name }}
+                            </span>
+                            <span class="block text-xs text-[var(--color-text-secondary)] capitalize flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full" :class="org.subscription_status === 'active' || org.subscription_status === 'trialing' ? 'bg-emerald-500' : 'bg-gray-500'"></span>
+                                {{ org.role }}
+                            </span>
+                        </div>
                     </div>
-                    <span class="mt-2 block text-lg font-medium text-gray-900">
-                        {{ org.name }}
-                    </span>
-                    <span class="block text-sm text-gray-500 mt-1 capitalize">
-                        Role: {{ org.role }}
-                    </span>
+
+                    <!-- Right Side: Arrow -->
+                    <svg class="w-5 h-5 text-[var(--color-text-secondary)] group-hover:text-[var(--color-accent-blue)] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </button>
 
                 <!-- Create New Option -->
                 <button
                     v-if="userOrganizations.length < 3"
                     @click="goToCreate"
-                    class="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-8 text-center hover:border-indigo-400 hover:bg-indigo-50 focus:outline-none transition-all"
+                    class="w-full flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-[var(--color-border-subtle)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent-blue)] hover:text-[var(--color-accent-blue)] hover:bg-[var(--color-accent-blue)]/5 transition-all mt-4"
                 >
-                    <div class="mx-auto h-12 w-12 text-gray-400">
-                        <svg class="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v20c0 4.418 7.163 8 16 8 1.381 0 2.721-.087 4-.252M8 14c0 4.418 7.163 8 16 8s16-3.582 16-8M8 14c0-4.418 7.163-8 16-8s16 3.582 16 8m0 0v14m0-4v-4m0 0v-4m-4 4h4m0 0h4" />
-                        </svg>
-                    </div>
-                    <span class="mt-2 block text-sm font-medium text-gray-900">
-                        Crear nueva Organización
-                    </span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <span class="text-sm font-bold">Crear nueva organización</span>
                 </button>
-            </div>
 
-            <p v-if="userOrganizations.length >= 3" class="text-center text-xs text-red-500 mt-4">
-                Has alcanzado el límite de 3 organizaciones.
-            </p>
+                 <p v-if="userOrganizations.length >= 3" class="text-center text-xs text-red-400 mt-4 bg-red-900/10 py-2 rounded">
+                    Has alcanzado el límite de 3 organizaciones.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Bottom Link -->
+        <div class="absolute bottom-8 text-xs text-[var(--color-text-secondary)]">
+            Soft Tuuls &bull; v1.0
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
-    layout: 'auth' // Use auth or default layout? empty usually best for this. Let's assume auth like logic.
+    layout: 'empty' 
 })
 
 const { userOrganizations, switchOrganization } = useOrganization()
 const router = useRouter()
 
-// Redirect if strictly empty (should be handled by middleware but safety check)
-onMounted(() => {
-    if (userOrganizations.value.length === 0) {
-        // router.push('/onboarding') 
-        // We let the list load first.
-    }
-})
-
 const selectOrg = async (org: any) => {
     await switchOrganization(org.id)
-    // switchOrganization handles reload or redirect? The composable reloads window.
 }
 
 const goToCreate = () => {
-    router.push('/onboarding') // Assuming onboarding is where you create new ones
+    router.push('/onboarding')
 }
 </script>

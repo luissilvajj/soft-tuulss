@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
         const orgIds = members.map((m: any) => m.organization_id)
         const { data: orgs, error: orgsError } = await client
             .from('organizations')
-            .select('id, name, subscription_status') // Explicitly simple columns
+            .select('id, name') // Bare minimum to test if column issue
             .in('id', orgIds)
 
         if (orgsError) {

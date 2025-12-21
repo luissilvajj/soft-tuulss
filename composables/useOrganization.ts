@@ -4,7 +4,23 @@ export const useOrganization = () => {
 
     // Clean state for current organization
     const organization = useState<any>('current_org', () => null)
+    const userOrganizations = useState<any[]>('user_orgs', () => [])
     const loading = useState('org_loading', () => false)
+    const orgCookie = useCookie('softtuuls_org_id')
+
+    const switchOrganization = async (orgId: string) => {
+        if (!userOrganizations.value.length) await fetchOrganization()
+
+        const target = userOrganizations.value.find(o => o.id === orgId)
+        if (target) {
+            organization.value = target
+            orgCookie.value = orgId
+            // Reload window to refresh all data (cleanest way for now)
+            if (process.client) {
+                window.location.reload()
+            }
+        }
+    }
 
     const fetchOrganization = async (force = false) => {
         // Wait for user if not hydrated
@@ -18,19 +34,29 @@ export const useOrganization = () => {
         if (!user.value || !user.value.id) return null
 
         // Return if already loaded and not forced
-        if (organization.value && !force) return organization.value
+        if (organization.value && !force && userOrganizations.value.length) return organization.value
 
         loading.value = true
         try {
-            // Use Server API to bypass RLS issues
-            // Add timestamp to bust cache
-            const data = await $fetch(`/api/me/organization?t=${new Date().getTime()}`)
+            // 1. Fetch List of All Organizations
+            const list = await $fetch(`/api/me/organizations?t=${new Date().getTime()}`)
+            userOrganizations.value = list as any[]
 
-            if (data && !data.error) {
-                organization.value = data
+            if (list && list.length > 0) {
+                // 2. Determine Active Org
+                let active = list.find((o: any) => o.id === orgCookie.value)
+
+                // Fallback to first if cookie invalid
+                if (!active) {
+                    active = list[0]
+                    orgCookie.value = active.id
+                }
+
+                organization.value = active
             } else {
                 organization.value = null
             }
+
         } catch (e) {
             console.error('Error fetching organization:', e)
         } finally {
@@ -42,7 +68,9 @@ export const useOrganization = () => {
 
     return {
         organization,
+        userOrganizations,
         loading,
-        fetchOrganization
+        fetchOrganization,
+        switchOrganization
     }
 }

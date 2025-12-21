@@ -27,11 +27,8 @@
             isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         ]"
     >
-      <div class="h-16 flex items-center px-6 border-b border-[var(--color-border-subtle)] md:flex hidden">
-        <span class="text-xl font-bold text-[var(--color-white)] flex items-center gap-2">
-          <div class="w-6 h-6 rounded bg-gradient-to-br from-[var(--color-accent-blue)] to-[var(--color-accent-violet)]"></div>
-          Soft Tuuls
-        </span>
+      <div class="h-16 flex items-center px-4 border-b border-[var(--color-border-subtle)] md:flex hidden relative z-50">
+        <OrgSwitcher />
       </div>
       
       <!-- Mobile Logo in Menu (Optional or just spacer) -->
@@ -193,10 +190,10 @@ onMounted(async () => {
   // 2. EXECUTE RECOVERY (Ipso Facto) using confirmed ID
   await ensureGlobalState(userId)
 
-  // 3. Standard Fetch (for redundancy) or Correct Fake State
-  if (!organization.value || organization.value.id === 'override') {
-     console.log('Dashboard: Fetching/Correcting Organization...')
-     await fetchOrganization(true)
+  // 3. Organization is handled by useOrganization automatically
+  // Just ensure we have at least one load
+  if (!organization.value) {
+      await fetchOrganization()
   }
 })
 

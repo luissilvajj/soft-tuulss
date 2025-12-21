@@ -23,7 +23,11 @@ export default defineEventHandler(async (event) => {
         .eq('user_id', user.id)
 
     if (error) {
-        throw createError({ statusCode: 500, statusMessage: error.message })
+        console.error('Organizations List Error:', error)
+        throw createError({
+            statusCode: 500,
+            statusMessage: `DB Error: ${error.message} (${error.details || 'no details'})`
+        })
     }
 
     // Flatten structure

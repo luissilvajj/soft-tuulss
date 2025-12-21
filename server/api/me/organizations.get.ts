@@ -1,4 +1,5 @@
-import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseUser } from '#supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
     const user = await serverSupabaseUser(event)
@@ -6,10 +7,20 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
     }
 
-    const client = await serverSupabaseClient(event)
+    // Use Service Role to bypass RLS/Relationship issues
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
+    const supabaseUrl = process.env.SUPABASE_URL
+
+    if (!serviceKey || !supabaseUrl) {
+        throw createError({ statusCode: 500, statusMessage: 'Server Config Missing' })
+    }
+
+    const adminClient = createClient(supabaseUrl, serviceKey, {
+        auth: { autoRefreshToken: false, persistSession: false }
+    })
 
     // Fetch all memberships with org details
-    const { data, error } = await client
+    const { data, error } = await adminClient
         .from('organization_members')
         .select(`
             role,

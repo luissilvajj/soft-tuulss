@@ -11,38 +11,46 @@ export default defineEventHandler(async (event) => {
     }
 
     try {
-        const { data, error } = await client
+        // Step 1: Fetch Memberships (Join-Free to be safe)
+        const { data: members, error: membersError } = await client
             .from('organization_members')
-            .select(`
-                role,
-                organization: organizations (
-                    id,
-                    name,
-                    subscription_status
-                )
-            `)
+            .select('organization_id, role')
             .eq('user_id', user.id)
 
-        if (error) {
-            console.error('Organizations List Error:', error)
-            // Return empty list on error during list fetch - safer for UI than crashing
-            // But if it's a real DB error, we might want to know. 
-            // For now, let's throw 500 but with more info if dev.
-            throw createError({
-                statusCode: 500,
-                statusMessage: 'DB Error fetching organizations',
-                data: error
-            })
+        if (membersError) {
+            console.error('Members Fetch Error:', membersError)
+            throw createError({ statusCode: 500, statusMessage: 'DB Error fetching members', data: membersError })
         }
 
-        // Flatten structure
-        return data.map((m: any) => ({
-            id: m.organization?.id,
-            name: m.organization?.name || 'Unnamed Org',
-            // logo_url: m.organization?.logo_url, // Removed to prevent 500 if column missing
-            subscription_status: m.organization?.subscription_status,
-            role: m.role
-        }))
+        if (!members || members.length === 0) {
+            return []
+        }
+
+        // Step 2: Fetch Organization Details manually
+        const orgIds = members.map((m: any) => m.organization_id)
+        const { data: orgs, error: orgsError } = await client
+            .from('organizations')
+            .select('id, name, subscription_status') // Explicitly simple columns
+            .in('id', orgIds)
+
+        if (orgsError) {
+            console.error('Orgs Fetch Error:', orgsError)
+            // Dont crash, just return what we can? No, crash so we know.
+            throw createError({ statusCode: 500, statusMessage: 'DB Error fetching org details', data: orgsError })
+        }
+
+        // Step 3: Merge in Memory
+        return members.map((m: any) => {
+            const org = orgs?.find((o: any) => o.id === m.organization_id)
+            if (!org) return null // Shouldnt happen unless data corruption
+
+            return {
+                id: org.id,
+                name: org.name || 'Unnamed Org',
+                subscription_status: org.subscription_status,
+                role: m.role
+            }
+        }).filter(Boolean) // Remove nulls
 
     } catch (e: any) {
         console.error('Unhandled API Error:', e)

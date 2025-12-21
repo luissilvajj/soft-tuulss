@@ -8,13 +8,31 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
     }
 
-    // 2. Use Service Role Client (ADMIN)
-    // This bypasses RLS completely, solving the "Empty List" bugs forever.
-    // We strictly filter by the authenticated user's ID to ensure safety.
-    const adminClient = serverSupabaseServiceRole(event)
+    // 2. Use Service Role Client (ADMIN) - Manual Instantiation
+    // We manually create the client to ensure we are using the correct keys from RuntimeConfig
+    // This avoids "magic" module issues.
+
+    // Try to get keys from multiple sources
+    const config = useRuntimeConfig()
+    const serviceKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY
+    const supabaseUrl = config.public?.supabase?.url || process.env.SUPABASE_URL
+
+    if (!serviceKey || !supabaseUrl) {
+        console.error('[OrgAPI] KEY MISSING. URL:', !!supabaseUrl, 'Key:', !!serviceKey)
+        // If we don't have the key, we CANNOT proceed with admin fetch.
+        // Returning empty array to prevent 500 crash in frontend, but logging the critical error.
+        return []
+    }
+
+    const adminClient = createClient(supabaseUrl, serviceKey, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false
+        }
+    })
 
     try {
-        console.log('[OrgAPI] Admin Fetch for user:', user.id)
+        console.log('[OrgAPI] Admin Fetch (Manual Client) for user:', user.id)
 
         // Fetch data using Admin Privileges
         const { data: members, error } = await adminClient

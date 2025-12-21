@@ -6,6 +6,13 @@ export default defineEventHandler(async (event) => {
         const user = await serverSupabaseUser(event)
         if (!user) return { success: false, message: 'Unauthorized' }
 
+        // Debugging: Log user structure to ensure ID exists
+        console.log('DEBUG USER SERVER:', JSON.stringify({ id: user.id, email: user.email, meta: user.user_metadata }))
+
+        if (!user.id) {
+            return { success: false, message: 'User ID is missing from session' }
+        }
+
         const body = await readBody(event)
         const orgName = body.name
 

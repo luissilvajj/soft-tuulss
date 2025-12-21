@@ -98,9 +98,9 @@ onMounted(async () => {
           return router.push('/login')
       }
 
-      // Manually update the composable state if empty
-      if (!user.value) {
-          console.log('User composable was empty. Updating from session.')
+      // Manually force update the composable state to ensure we have the ID
+      if (data.session && data.session.user) {
+          console.log('Forcing User Hydration from Session...')
           user.value = data.session.user
       }
 

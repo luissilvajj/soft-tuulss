@@ -57,12 +57,14 @@
     </div>
 
     <!-- Debug Section (Temporary) -->
-    <div class="absolute bottom-4 left-4 text-xs text-white/50 font-mono z-50 bg-black/80 p-4 rounded">
+    <div class="absolute bottom-4 left-4 text-xs text-white/50 font-mono z-50 bg-black/80 p-4 rounded max-w-lg break-words">
         DEBUG INFO:<br>
         Loading: {{ loading }}<br>
         Orgs Count: {{ userOrganizations?.length }}<br>
-        Current Org: {{ organization?.name || 'None' }}<br>
-        Raw: {{ userOrganizations?.map(o => o.name).join(', ') }}
+        Error: <span class="text-red-400">{{ errorMsg }}</span><br>
+        <button @click="forceBypass" class="mt-2 bg-red-900/50 text-white px-2 py-1 rounded hover:bg-red-700">
+            FORCE ENTER (EMERGENCY)
+        </button>
     </div>
   </div>
 </template>

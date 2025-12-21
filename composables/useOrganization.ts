@@ -39,7 +39,14 @@ export const useOrganization = () => {
         loading.value = true
         try {
             // 1. Fetch List of All Organizations
-            const list = await $fetch<any[]>(`/api/me/organizations?t=${new Date().getTime()}`)
+            const response: any = await $fetch(`/api/me/organizations?t=${new Date().getTime()}`)
+
+            if (response.error) {
+                console.error('[useOrg] API Error:', response)
+                throw new Error(response.message || 'Server Error')
+            }
+
+            const list = Array.isArray(response) ? response : []
             userOrganizations.value = list
 
             if (list && list.length > 0) {

@@ -53,11 +53,12 @@ export default defineEventHandler(async (event) => {
         }).filter(Boolean) // Remove nulls
 
     } catch (e: any) {
-        console.error('Unhandled API Error:', e)
-        throw createError({
-            statusCode: e.statusCode || 500,
-            statusMessage: e.statusMessage || 'Internal Server Error',
-            data: e.message
-        })
+        console.error('[OrgAPI] EXCEPTION:', e)
+        // RETURN 200 with Error details so Client can see it!
+        return {
+            error: true,
+            message: e.message || 'Unknown DB Error',
+            details: e
+        }
     }
 })

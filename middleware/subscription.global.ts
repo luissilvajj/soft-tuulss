@@ -5,15 +5,23 @@ export default defineNuxtRouteMiddleware(async (to) => {
     // 2. Allow access to Billing Settings even if expired (to prevent lockout loop)
     if (to.path === '/app/settings/billing') return
 
-    const { organization, fetchOrganization } = useOrganization()
+    // Allow access to selection page
+    if (to.path === '/app/select-org') return
+
+    const { organization, fetchOrganization, userOrganizations } = useOrganization()
 
     // 3. Ensure organization data is loaded
     if (!organization.value) {
         await fetchOrganization()
     }
 
-    // If still no organization, redirect to onboarding to force creation
+    // Hande missing active organization
     if (!organization.value) {
+        // If we have organizations but none selected, go to selection
+        if (userOrganizations.value && userOrganizations.value.length > 0) {
+            return navigateTo('/app/select-org')
+        }
+        // If really no organizations, go to onboarding
         return navigateTo('/onboarding')
     }
 

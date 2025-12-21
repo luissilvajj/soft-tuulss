@@ -46,10 +46,17 @@ export const useOrganization = () => {
                 // 2. Determine Active Org
                 let active = list.find((o: any) => o.id === orgCookie.value)
 
-                // Fallback to first if cookie invalid
+                // Fallback Logic:
+                // Only auto-select if there is only ONE organization.
                 if (!active) {
-                    active = list[0]
-                    orgCookie.value = active.id
+                    if (list.length === 1) {
+                        active = list[0]
+                        orgCookie.value = active.id
+                    } else {
+                        // More than 1 org and no valid cookie? 
+                        // Leave active as undefined/null so middleware redirects to selection page
+                        active = null
+                    }
                 }
 
                 organization.value = active

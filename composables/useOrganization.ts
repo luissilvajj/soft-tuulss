@@ -39,8 +39,8 @@ export const useOrganization = () => {
         loading.value = true
         try {
             // 1. Fetch List of All Organizations
-            const list = await $fetch(`/api/me/organizations?t=${new Date().getTime()}`)
-            userOrganizations.value = list as any[]
+            const list = await $fetch<any[]>(`/api/me/organizations?t=${new Date().getTime()}`)
+            userOrganizations.value = list
 
             if (list && list.length > 0) {
                 // 2. Determine Active Org

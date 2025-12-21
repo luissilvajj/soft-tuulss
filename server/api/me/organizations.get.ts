@@ -11,8 +11,8 @@ export default defineEventHandler(async (event) => {
     }
 
     try {
-        console.log('[OrgAPI] Calling RPC: get_web_user_organizations')
-        const { data, error } = await client.rpc('get_web_user_organizations')
+        console.log('[OrgAPI] Calling RPC V2 for:', user.id)
+        const { data, error } = await client.rpc('get_web_user_organizations_v2', { target_uid: user.id })
 
         if (error) {
             console.error('[OrgAPI] RPC Error:', error)

@@ -116,10 +116,17 @@ onMounted(async () => {
       await fetchOrganization(true)
       console.log('Onboarding: Org Result:', organization.value)
 
-      // 3. If User has an Org, Redirect to App
+      // 3. Check for existing organizations (Active or Inactive)
       if (organization.value) {
          console.log('Redirecting to app...')
-         router.push('/app')
+         return router.push('/app')
+      }
+
+      // If we have organizations but NOT active (manual selection required), go to Selection
+      const { userOrganizations } = useOrganization() // Access list
+      if (userOrganizations.value && userOrganizations.value.length > 0) {
+          console.log('Orgs found. Redirecting to selection...')
+          return router.push('/app/select-org')
       }
    } catch (e) {
       console.error('Onboarding Exception:', e)

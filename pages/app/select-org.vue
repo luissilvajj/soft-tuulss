@@ -64,8 +64,14 @@
         </div>
         
         <!-- Bottom Link -->
-        <div class="absolute bottom-8 text-xs text-[var(--color-text-secondary)]">
+        <div class="absolute bottom-8 text-xs text-[var(--color-text-secondary)] text-center">
             Soft Tuuls &bull; v1.0
+            <br>
+            <span class="opacity-50 font-mono mt-2 block">
+                UID: {{ user?.id }}
+                <br>
+                Orgs: {{ userOrganizations?.length || 0 }}
+            </span>
         </div>
     </div>
 </template>
@@ -76,9 +82,18 @@ definePageMeta({
 })
 
 const { userOrganizations, switchOrganization } = useOrganization()
+const user = useSupabaseUser()
 const router = useRouter()
 
-const selectOrg = async (org: any) => {
+// Force refresh on mount to be sure
+onMounted(async () => {
+    console.log('SelectOrg: Mounted. ID:', user.value?.id)
+    if (userOrganizations.value.length === 0) {
+        console.log('SelectOrg: Fetching fresh list...')
+        const { fetchOrganization } = useOrganization() // get fetcher
+        await fetchOrganization(true) // Force load
+    }
+})
     await switchOrganization(org.id)
 }
 

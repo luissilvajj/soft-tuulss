@@ -30,6 +30,21 @@ export default defineEventHandler(async (event) => {
             auth: { autoRefreshToken: false, persistSession: false }
         })
 
+        // 0. CHECK IF USER ALREADY HAS AN ORG
+        // If they do, just return it! This fixes the "I already have one" confusion.
+        const { data: existingMember } = await adminClient
+            .from('organization_members')
+            .select('organization:organizations(*)')
+            .eq('user_id', user.id)
+            .eq('role', 'owner') // assuming we only care about owned orgs for now
+            .limit(1)
+            .maybeSingle()
+
+        if (existingMember && existingMember.organization) {
+            console.log('User already has org, returning existing:', existingMember.organization.id)
+            return { success: true, org: existingMember.organization, note: 'Existing Org Found' }
+        }
+
         // 1.5. ENSURE PROFILE EXISTS
         const { error: profileError } = await adminClient
             .from('profiles')

@@ -2,50 +2,59 @@ import { serverSupabaseUser } from '#supabase/server'
 import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event) => {
+    // 1. Authenticate
+    let user = null
     try {
-        const user = await serverSupabaseUser(event)
-        if (!user) return { success: false, message: 'Unauthorized' }
+        user = await serverSupabaseUser(event)
+    } catch (e) {
+        console.error('[OrgCreate] Auth Exception:', e)
+        return { success: false, message: 'Authentication Failed' }
+    }
 
-        // Debugging: Log user structure to ensure ID exists
-        console.log('DEBUG USER SERVER:', JSON.stringify({ id: user.id, email: user.email, meta: user.user_metadata }))
+    if (!user) return { success: false, message: 'Unauthorized' }
+    if (!user.id) {
+        console.error('[OrgCreate] User Missing ID:', JSON.stringify(user))
+        return { success: false, message: 'User ID is missing from session' }
+    }
 
-        if (!user.id) {
-            return { success: false, message: 'User ID is missing from session' }
-        }
+    // 2. Parse Body
+    const body = await readBody(event)
+    const orgName = body.name
+    if (!orgName) return { success: false, message: 'Name is required' }
 
-        const body = await readBody(event)
-        const orgName = body.name
+    // 3. Setup Admin Client (Robust)
+    const config = useRuntimeConfig()
+    const serviceKey = (config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY || '').trim()
+    const supabaseUrl = (config.public?.supabase?.url || process.env.SUPABASE_URL || '').trim()
 
-        if (!orgName) return { success: false, message: 'Name is required' }
+    if (!serviceKey || !supabaseUrl || serviceKey.startsWith('sb_secret')) {
+        console.error('[OrgCreate] MISCONFIGURED. URL:', !!supabaseUrl, 'Key:', !!serviceKey)
+        return { success: false, message: 'Server Configuration Error (Missing Key)' }
+    }
 
-        const config = useRuntimeConfig()
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
-        const supabaseUrl = process.env.SUPABASE_URL
+    const adminClient = createClient(supabaseUrl, serviceKey, {
+        auth: { autoRefreshToken: false, persistSession: false }
+    })
 
-        if (!serviceKey || !supabaseUrl) {
-            return { success: false, message: 'Server Misconfigured (Missing Key)' }
-        }
+    try {
+        console.log('[OrgCreate] Starting creation for user:', user.id)
 
-        const adminClient = createClient(supabaseUrl, serviceKey, {
-            auth: { autoRefreshToken: false, persistSession: false }
-        })
-
-        // 0. CHECK IF USER ALREADY HAS AN ORG
-        // If they do, just return it! This fixes the "I already have one" confusion.
+        // 4. CHECK IF USER ALREADY HAS AN ORG (Owner role)
         const { data: existingMember } = await adminClient
             .from('organization_members')
             .select('organization:organizations(*)')
             .eq('user_id', user.id)
-            .eq('role', 'owner') // assuming we only care about owned orgs for now
+            .eq('role', 'owner')
             .limit(1)
             .maybeSingle()
 
         if (existingMember && existingMember.organization) {
-            console.log('User already has org, returning existing:', existingMember.organization.id)
-            return { success: true, org: existingMember.organization, note: 'Existing Org Found' }
+            const org = existingMember.organization as any
+            console.log('[OrgCreate] User already has org:', org.id)
+            return { success: true, org: org, note: 'Existing Org Found' }
         }
 
-        // 1.5. ENSURE PROFILE EXISTS
+        // 5. ENSURE PROFILE
         const { error: profileError } = await adminClient
             .from('profiles')
             .upsert({
@@ -55,11 +64,9 @@ export default defineEventHandler(async (event) => {
                 updated_at: new Date().toISOString()
             })
 
-        if (profileError) {
-            console.error('Profile Creation Warning:', profileError)
-        }
+        if (profileError) console.warn('[OrgCreate] Profile Warning:', profileError)
 
-        // 1. Create Organization
+        // 6. CREATE ORG
         const { data: org, error: orgError } = await adminClient
             .from('organizations')
             .insert({
@@ -71,11 +78,11 @@ export default defineEventHandler(async (event) => {
             .single()
 
         if (orgError) {
-            console.error('Org Creation DB Error:', orgError)
-            return { success: false, message: orgError.message, details: orgError, step: 'create_org' }
+            console.error('[OrgCreate] Org DB Error:', orgError)
+            return { success: false, message: orgError.message }
         }
 
-        // 2. Add User as Owner
+        // 7. ADD MEMBER
         const { error: memberError } = await adminClient
             .from('organization_members')
             .insert({
@@ -85,19 +92,15 @@ export default defineEventHandler(async (event) => {
             })
 
         if (memberError) {
-            console.error('Member Creation DB Error:', memberError)
-            return { success: false, message: memberError.message, details: memberError, step: 'create_member' }
+            console.error('[OrgCreate] Member DB Error:', memberError)
+            return { success: false, message: memberError.message }
         }
 
+        console.log('[OrgCreate] Success:', org.id)
         return { success: true, org }
 
     } catch (e: any) {
-        console.error('CRITICAL ORG CREATION FAILURE:', e)
-        return {
-            success: false,
-            message: e.message || 'Unknown Server Error',
-            details: e.details || e,
-            step: 'unknown'
-        }
+        console.error('[OrgCreate] CRITICAL FAILURE:', e)
+        return { success: false, message: e.message || 'Unknown Server Error' }
     }
 })

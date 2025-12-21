@@ -198,7 +198,13 @@ onMounted(async () => {
 })
 
 const logout = async () => {
-  await client.auth.signOut()
-  router.push('/login')
+  try {
+    await client.auth.signOut()
+  } catch (e) {
+    console.warn('Logout warning:', e)
+  } finally {
+    // Force hard reload to clear all state/cache
+    window.location.href = '/login'
+  }
 }
 </script>

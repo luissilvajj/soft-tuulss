@@ -94,6 +94,7 @@ onMounted(async () => {
         await fetchOrganization(true) // Force load
     }
 })
+const selectOrg = async (org: any) => {
     await switchOrganization(org.id)
 }
 

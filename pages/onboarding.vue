@@ -56,7 +56,14 @@
       </div>
     </div>
 
-    <!-- Debug Section Removed -->
+    <!-- Debug Section (Temporary) -->
+    <div class="absolute bottom-4 left-4 text-xs text-white/50 font-mono z-50 bg-black/80 p-4 rounded">
+        DEBUG INFO:<br>
+        Loading: {{ loading }}<br>
+        Orgs Count: {{ userOrganizations?.length }}<br>
+        Current Org: {{ organization?.name || 'None' }}<br>
+        Raw: {{ userOrganizations?.map(o => o.name).join(', ') }}
+    </div>
   </div>
 </template>
 

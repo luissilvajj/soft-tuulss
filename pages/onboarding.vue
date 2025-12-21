@@ -137,10 +137,16 @@ const createOrganization = async () => {
     errorMsg.value = ''
     
     // Call the Server API instead of RPC (More robust)
-    const data = await $fetch('/api/org/create', {
+    const response = await $fetch('/api/org/create', {
         method: 'POST',
         body: { name: orgName.value }
     })
+
+    if (!response.success) {
+        throw new Error(`Error: ${response.message} (Step: ${response.step})`)
+    }
+
+    const data = response.org
 
     // Success - Redirect to Dashboard
     // Force fetch to ensure state is updated

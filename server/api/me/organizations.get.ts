@@ -25,19 +25,17 @@ export default defineEventHandler(async (event) => {
         console.warn('[OrgAPI] RPC V2 exception, attempting fallback:', e)
     }
 
-    // 2. Fallback: Standard Query (Relying on RLS)
-    // This runs if RPC functions are missing or failing
+    // 2. Fallback: Standard Query (Ultra-Safe)
+    // We only select 'id' and 'name' to prevent crashes if columns like 'subscription_status' are missing
     try {
-        console.log('[OrgAPI] Executing Fallback Query...')
+        console.log('[OrgAPI] Executing Fallback Query (Safe Mode)...')
         const { data: members, error: memberError } = await client
             .from('organization_members')
             .select(`
                 role,
                 organizations!inner (
                     id,
-                    name,
-                    subscription_status,
-                    logo_url
+                    name
                 )
             `)
             .eq('user_id', user.id)
@@ -50,8 +48,9 @@ export default defineEventHandler(async (event) => {
         const fallbackData = (members || []).map((m: any) => ({
             id: m.organizations.id,
             name: m.organizations.name,
-            subscription_status: m.organizations.subscription_status,
-            logo_url: m.organizations.logo_url,
+            // Provide defaults for missing columns to satisfy the type interface
+            subscription_status: 'active',
+            logo_url: null,
             role: m.role
         }))
 

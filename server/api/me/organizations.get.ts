@@ -18,7 +18,6 @@ export default defineEventHandler(async (event) => {
                 organization: organizations (
                     id,
                     name,
-                    logo_url,
                     subscription_status
                 )
             `)
@@ -40,7 +39,7 @@ export default defineEventHandler(async (event) => {
         return data.map((m: any) => ({
             id: m.organization?.id,
             name: m.organization?.name || 'Unnamed Org',
-            logo_url: m.organization?.logo_url,
+            // logo_url: m.organization?.logo_url, // Removed to prevent 500 if column missing
             subscription_status: m.organization?.subscription_status,
             role: m.role
         }))

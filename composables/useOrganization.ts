@@ -15,9 +15,20 @@ export const useOrganization = () => {
         if (target) {
             organization.value = target
             orgCookie.value = orgId
+
+            // Clear all data states to prevent bleeding
+            clearNuxtState('products_list')
+            clearNuxtState('clients_list')
+            clearNuxtState('sales_list')
+            clearNuxtState('inventory_products')
+            clearNuxtState('transactions_list')
+
             // Reload window to refresh all data (cleanest way for now)
             if (process.client) {
-                window.location.reload()
+                // frequent cookies need a tick
+                setTimeout(() => {
+                    window.location.reload()
+                }, 100)
             }
         }
     }

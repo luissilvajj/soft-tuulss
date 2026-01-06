@@ -12,7 +12,17 @@ export default defineEventHandler(async (event) => {
     }
 
     if (!user) return { success: false, message: 'Unauthorized' }
-    if (!user.id) {
+
+    // DEBUG: Log the entire user structure to see what's wrong
+    console.log('[OrgCreate] Authenticated User:', JSON.stringify({
+        id: user.id,
+        sub: user.sub,
+        email: user.email,
+        keys: Object.keys(user)
+    }, null, 2))
+
+    const userId = user.id || user.sub // Fallback to sub if id is missing
+    if (!userId) {
         console.error('[OrgCreate] User Missing ID:', JSON.stringify(user))
         return { success: false, message: 'User ID is missing from session' }
     }
@@ -37,13 +47,13 @@ export default defineEventHandler(async (event) => {
     })
 
     try {
-        console.log('[OrgCreate] Starting creation for user:', user.id)
+        console.log('[OrgCreate] Starting creation for user:', userId)
 
         // 4. CHECK IF USER ALREADY HAS AN ORG (Owner role)
         const { data: existingMember } = await adminClient
             .from('organization_members')
             .select('organization:organizations(*)')
-            .eq('user_id', user.id)
+            .eq('user_id', userId)
             .eq('role', 'owner')
             .limit(1)
             .maybeSingle()
@@ -58,7 +68,7 @@ export default defineEventHandler(async (event) => {
         const { error: profileError } = await adminClient
             .from('profiles')
             .upsert({
-                id: user.id,
+                id: userId,
                 full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
                 avatar_url: user.user_metadata?.avatar_url,
                 updated_at: new Date().toISOString()
@@ -87,7 +97,7 @@ export default defineEventHandler(async (event) => {
             .from('organization_members')
             .insert({
                 organization_id: org.id,
-                user_id: user.id,
+                user_id: userId,
                 role: 'owner'
             })
 

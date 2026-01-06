@@ -26,9 +26,14 @@ export const useOrganization = () => {
         // Wait for user if not hydrated
         if (!user.value) {
             const { data } = await client.auth.getSession()
-            if (!data.session) return null // Really logged out
-            // Supabase user state should update automatically, but let's trust the session
-            if (!user.value) user.value = data.session.user as any // Manual hydration fallback
+            if (!data.session) {
+                // Double check: ask for user directly (more robust than getSession sometimes)
+                const { data: userData } = await client.auth.getUser()
+                if (!userData.user) return null // Really logged out
+                user.value = userData.user as any
+            } else {
+                user.value = data.session.user as any
+            }
         }
 
         if (!user.value || !user.value.id) return null
@@ -39,8 +44,32 @@ export const useOrganization = () => {
         loading.value = true
         try {
             // 1. Fetch List of All Organizations
-            const list = await $fetch<any[]>(`/api/me/organizations?t=${new Date().getTime()}`)
-            userOrganizations.value = list
+            let list = await $fetch<any[]>(`/api/me/organizations?t=${new Date().getTime()}`).catch(e => {
+                console.warn('API Fetch failed, trying direct fallback', e)
+                return []
+            })
+
+            // FALLBACK: If API returns empty/error, try direct Client Fetch (RLS Validation)
+            // This bypasses server-side cookie race conditions
+            if (!list || list.length === 0) {
+                console.log('useOrganization: API empty, trying direct DB fetch...')
+                const { data: directMembers, error: directError } = await client
+                    .from('organization_members')
+                    .select('role, organization:organizations(*)')
+                    .eq('user_id', user.value.id)
+
+                if (directError) {
+                    console.error('useOrganization: Direct fetch error', directError)
+                } else if (directMembers && directMembers.length > 0) {
+                    console.log('useOrganization: Direct fetch success!', directMembers.length)
+                    list = directMembers.map((d: any) => ({
+                        ...d.organization,
+                        role: d.role
+                    })).filter(o => o && o.id) // Filter null inclusions
+                }
+            }
+
+            userOrganizations.value = list || []
 
             if (list && list.length > 0) {
                 // 2. Determine Active Org

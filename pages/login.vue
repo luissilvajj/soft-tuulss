@@ -125,7 +125,19 @@ const handleLogin = async () => {
       password: password.value
     })
     if (error) throw error
-    router.push('/app')
+    
+    // PRE-FETCH ORGANIZATION DATA to avoid race conditions in Middleware
+    const { fetchOrganization, userOrganizations } = useOrganization()
+    const org = await fetchOrganization(true) // Force refresh
+    
+    if (org) {
+       router.push('/app')
+    } else if (userOrganizations.value && userOrganizations.value.length > 0) {
+       router.push('/app/select-org')
+    } else {
+       router.push('/onboarding')
+    }
+    
   } catch (error) {
     errorMsg.value = error.message
   } finally {

@@ -32,3 +32,5 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_web_user_organizations TO authenticated;
+
+

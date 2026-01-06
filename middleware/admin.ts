@@ -2,7 +2,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const user = useSupabaseUser()
     const client = useSupabaseClient()
 
-    // 1. Check Authentication (Robust SPA Check)
+    // 1. Check Authentication
     if (!user.value) {
         const { data } = await client.auth.getSession()
         if (!data.session) {
@@ -10,13 +10,18 @@ export default defineNuxtRouteMiddleware(async (to) => {
         }
     }
 
-    // 2. Check Whitelist (The Wall)
-    // Re-fetch user in case we just hydrated the session
-    const currentUser = user.value || (await client.auth.getUser()).data.user
-    const allowedEmails = ['luisxsilva56@gmail.com']
+    // 2. Check Admin Role (DB - is_super_admin)
+    // We query the profile table. Note: This assumes RLS allows reading own profile.
+    const { data: profile } = await client
+        .from('profiles')
+        .select('is_super_admin')
+        .eq('id', user.value?.id)
+        .single() as { data: { is_super_admin: boolean } | null } // Type assertion to bypass 'never'
 
-    if (!currentUser?.email || !allowedEmails.includes(currentUser.email)) {
-        console.warn('Access attempt to /admin denied for:', currentUser?.email)
-        return navigateTo('/app') // Bounce back to normal app
+    if (!profile?.is_super_admin) {
+        // Fallback for safety during migration: Keep the original email as failsafe? 
+        // No, removing it is the goal. But let's log the attempt.
+        console.warn('Access attempt to /admin denied for:', user.value?.email)
+        return navigateTo('/app')
     }
 })

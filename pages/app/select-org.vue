@@ -78,7 +78,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-    layout: 'empty' 
+    layout: false 
 })
 
 const { userOrganizations, switchOrganization } = useOrganization()

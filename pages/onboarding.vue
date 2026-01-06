@@ -113,6 +113,22 @@ onMounted(async () => {
       // 2. Fetch Organization
       console.log('Onboarding: Fetching Org...')
       await fetchOrganization(true)
+      
+      // FALLBACK: Double check directly in DB if fetch returned null (Trust No One)
+      if (!organization.value) {
+          console.log('Onboarding: API returned null. Checking DB directly...')
+          const { data: directOrgs } = await client.from('organization_members').select('organization_id').eq('user_id', user.value.id)
+          if (directOrgs && directOrgs.length > 0) {
+              console.log('Onboarding: Direct DB check found orgs! Redirecting...', directOrgs)
+              // Force hydration manually to unblock UI
+              const { data: fullOrg } = await client.from('organizations').select('*').eq('id', directOrgs[0].organization_id).single()
+              if (fullOrg) {
+                  organization.value = { ...fullOrg, role: 'member' } // Temporary role
+                  return router.push('/app')
+              }
+          }
+      }
+
       console.log('Onboarding: Org Result:', organization.value)
 
       // 3. Check for existing organizations (Active or Inactive)

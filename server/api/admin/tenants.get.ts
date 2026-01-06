@@ -1,6 +1,19 @@
 import { createClient } from '@supabase/supabase-js'
+import { serverSupabaseUser } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
+    // SECURITY CHECK: Verify Requesting User
+    const user = await serverSupabaseUser(event)
+    const allowedEmails = ['luisxsilva56@gmail.com']
+
+    if (!user || !user.email || !allowedEmails.includes(user.email)) {
+        console.warn('Unauthorized admin access attempt:', user?.email || 'Anonymous')
+        throw createError({
+            statusCode: 403,
+            statusMessage: 'Forbidden: Admin access only.'
+        })
+    }
+
     const config = useRuntimeConfig()
     // Retrieve Service Key from runtime config OR process.env directly (Vercel fallback)
     const serviceKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY

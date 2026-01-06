@@ -220,19 +220,28 @@ const { data: dashboardData, pending } = await useAsyncData('dashboard-metrics',
     const [salesResult, stockResult, clientResult, trxResult] = await Promise.all([
         // 1. Today Sales - Get ALL columns to do manual conversion
         supabase.from('transactions')
-          .select('amount, currency, exchange_rate').eq('type', 'sale').gte('date', today),
+          .select('amount, currency, exchange_rate')
+          .eq('organization_id', organization.value.id) // FIXED: Scoped to Org
+          .eq('type', 'sale')
+          .gte('date', today),
           
         // 2. Low Stock
         supabase.from('products')
-          .select('*', { count: 'exact', head: true }).lt('stock', 10),
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organization.value.id) // FIXED: Scoped to Org
+          .lt('stock', 10),
           
         // 3. Client Count
         supabase.from('clients')
-          .select('*', { count: 'exact', head: true }),
+          .select('*', { count: 'exact', head: true })
+          .eq('organization_id', organization.value.id), // FIXED: Scoped to Org
           
         // 4. Recent Trx
         supabase.from('transactions')
-          .select('*').order('date', { ascending: false }).limit(5)
+          .select('*')
+          .eq('organization_id', organization.value.id) // FIXED: Scoped to Org
+          .order('date', { ascending: false })
+          .limit(5)
     ])
 
     const normalizeAmount = (trx) => {

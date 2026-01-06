@@ -18,7 +18,12 @@
       </div>
 
       <!-- Card -->
-      <div class="glass-panel p-8 shadow-2xl relative overflow-hidden">
+      <div v-if="checkingOrgs" class="glass-panel p-12 text-center shadow-2xl animate-pulse">
+           <svg class="mx-auto h-12 w-12 text-[var(--color-accent-blue)] animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+           <p class="mt-4 text-[var(--color-text-secondary)] font-medium">Buscando tus espacios...</p>
+      </div>
+
+      <div v-else class="glass-panel p-8 shadow-2xl relative overflow-hidden">
         <form class="space-y-6" @submit.prevent="createOrganization">
           <div>
             <label for="orgName" class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Nombre de la Organización</label>
@@ -72,6 +77,7 @@ const { fetchOrganization, organization } = useOrganization()
 
 const orgName = ref('')
 const loading = ref(false)
+const checkingOrgs = ref(true) // Start checks immediately
 const errorMsg = ref('')
 
 const forceBypass = async () => {
@@ -148,6 +154,10 @@ onMounted(async () => {
       errorMsg.value = e.message
    } finally {
       loading.value = false
+      // Only stop checking if we didn't redirect (meaning we stay here to show form)
+      if (!organization.value && (!userOrganizations.value || userOrganizations.value.length === 0)) {
+         checkingOrgs.value = false
+      }
    }
 })
 

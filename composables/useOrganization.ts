@@ -52,20 +52,28 @@ export const useOrganization = () => {
             // FALLBACK: If API returns empty/error, try direct Client Fetch (RLS Validation)
             // This bypasses server-side cookie race conditions
             if (!list || list.length === 0) {
-                console.log('useOrganization: API empty, trying direct DB fetch...')
-                const { data: directMembers, error: directError } = await client
-                    .from('organization_members')
-                    .select('role, organization:organizations(*)')
-                    .eq('user_id', user.value.id)
+                // Validate UUID to prevent Postgres 22P02 error
+                const userId = user.value?.id
+                const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-                if (directError) {
-                    console.error('useOrganization: Direct fetch error', directError)
-                } else if (directMembers && directMembers.length > 0) {
-                    console.log('useOrganization: Direct fetch success!', directMembers.length)
-                    list = directMembers.map((d: any) => ({
-                        ...d.organization,
-                        role: d.role
-                    })).filter(o => o && o.id) // Filter null inclusions
+                if (userId && uuidRegex.test(userId)) {
+                    console.log('useOrganization: API empty, trying direct DB fetch...')
+                    const { data: directMembers, error: directError } = await client
+                        .from('organization_members')
+                        .select('role, organization:organizations(*)')
+                        .eq('user_id', userId)
+
+                    if (directError) {
+                        console.error('useOrganization: Direct fetch error', directError)
+                    } else if (directMembers && directMembers.length > 0) {
+                        console.log('useOrganization: Direct fetch success!', directMembers.length)
+                        list = directMembers.map((d: any) => ({
+                            ...d.organization,
+                            role: d.role
+                        })).filter(o => o && o.id) // Filter null inclusions
+                    }
+                } else {
+                    console.warn('useOrganization: Skipping direct fetch, invalid user ID:', userId)
                 }
             }
 

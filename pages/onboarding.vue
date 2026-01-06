@@ -73,7 +73,7 @@ useAuthGuard()
 const client = useSupabaseClient()
 const router = useRouter()
 const user = useSupabaseUser()
-const { fetchOrganization, organization } = useOrganization()
+const { fetchOrganization, organization, userOrganizations } = useOrganization()
 
 const orgName = ref('')
 const loading = ref(false)
@@ -109,7 +109,13 @@ onMounted(async () => {
           user.value = data.session.user
       }
 
-      console.log('User ID:', user.value.id)
+      // CAPTURE ID LOCALLY TO PREVENT LOSS
+      const currentUserId = user.value?.id
+      console.log('User ID Captured:', currentUserId)
+
+      if (!currentUserId) {
+          throw new Error('User ID missing after hydration')
+      }
 
       // 1. Try to CLAIM invites
       console.log('Onboarding: Checking invites...')
@@ -122,8 +128,13 @@ onMounted(async () => {
       
       // FALLBACK: Double check directly in DB if fetch returned null (Trust No One)
       if (!organization.value) {
-          console.log('Onboarding: API returned null. Checking DB directly...')
-          const { data: directOrgs } = await client.from('organization_members').select('organization_id').eq('user_id', user.value.id)
+          console.log('Onboarding: API returned null. Checking DB directly...', currentUserId)
+          // Use Captured ID
+          const { data: directOrgs } = await client
+            .from('organization_members')
+            .select('organization_id')
+            .eq('user_id', currentUserId)
+          
           if (directOrgs && directOrgs.length > 0) {
               console.log('Onboarding: Direct DB check found orgs! Redirecting...', directOrgs)
               // Force hydration manually to unblock UI
@@ -144,7 +155,6 @@ onMounted(async () => {
       }
 
       // If we have organizations but NOT active (manual selection required), go to Selection
-      const { userOrganizations } = useOrganization() // Access list
       if (userOrganizations.value && userOrganizations.value.length > 0) {
           console.log('Orgs found. Redirecting to selection...')
           return router.push('/app/select-org')

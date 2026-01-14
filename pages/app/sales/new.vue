@@ -380,7 +380,7 @@ import { useSalesStore } from '~/stores/sales'
 import { useOrganization } from '~/composables/useOrganization'
 import type { Product } from '~/types/models'
 import { useToast } from "vue-toastification"
-import { useOnline } from '@vueuse/core'
+import { useOnline, watchDebounced } from '@vueuse/core'
 
 definePageMeta({ layout: 'dashboard' })
 
@@ -430,12 +430,16 @@ const availableMethods = computed(() => {
 const needsReference = computed(() => ['mobile_pay', 'transfer', 'zelle', 'card'].includes(salesStore.currentSale.paymentMethod))
 
 // --- Data Loading ---
-const fetchProducts = async () => {
+const fetchProducts = async (search = '') => {
     if (!organization.value?.id) return
     loadingProducts.value = true
     try {
         const { data, error } = await useFetch('/api/products', {
-            params: { organization_id: organization.value.id },
+            params: { 
+                organization_id: organization.value.id,
+                search: search,
+                limit: 24 // Increase limit for dropdown
+            },
             retry: 1
         })
 
@@ -447,7 +451,11 @@ const fetchProducts = async () => {
         
         if (data.value) {
             const response = data.value as any
-            allProducts.value = Array.isArray(response.data) ? response.data : []
+            const items = Array.isArray(response.data) ? response.data : []
+            // If searching, replace results. If not searching (initial load), set allProducts.
+            // Actually, for this dropdown, we can always just overwrite 'searchResults' state?
+            // Let's keep 'allProducts' as semantic for 'what we found'.
+            allProducts.value = items
         }
     } catch (e) {
         console.error('Exception fetching products:', e)
@@ -456,17 +464,32 @@ const fetchProducts = async () => {
     }
 }
 
-// ...
+// --- Lifecycle Hooks ---
+import { watchDebounced } from '@vueuse/core'
 
+onMounted(() => {
+    fetchExchangeRate()
+    // Initial fetch (empty search)
+    fetchProducts('')
+    searchInput.value?.focus()
+})
+
+watch(() => organization.value?.id, (newId) => {
+    if (newId) fetchProducts('')
+})
+
+// Debounced Search Watcher
+watchDebounced(
+  searchQuery,
+  (newQuery) => { 
+      fetchProducts(newQuery)
+  },
+  { debounce: 300, maxWait: 1000 }
+)
+
+// Computed Results (Now direct map since API handles logic)
 const searchResults = computed(() => {
-    if (!searchQuery.value) return []
-    const list = Array.isArray(allProducts.value) ? allProducts.value : []
-    const q = searchQuery.value.toLowerCase()
-    return list.filter(p => {
-        const nameMatch = p.name?.toLowerCase().includes(q)
-        const skuMatch = p.sku?.toString().toLowerCase().includes(q)
-        return nameMatch || skuMatch
-    }).slice(0, 8)
+    return allProducts.value
 })
 
 const selectNextResult = () => { if (focusedResultIndex.value < searchResults.value.length - 1) focusedResultIndex.value++ }
@@ -479,7 +502,15 @@ const handleAddProduct = (product: Product) => {
         toast.error('Sin stock disponible')
         return
     }
+    // Don't clear search query immediately if we want to add more? 
+    // Usually standard POS clears it.
     searchQuery.value = ''
+    // When clearing query, do we fetch all again? Or just empty list?
+    // If we want the dropdown to close, we should perhaps empty the results or check searchQuery length.
+    // The template checks 'v-if="searchQuery"'. So clearing it closes the dropdown.
+    // But we should probably reset the product list to default? Or leave it be.
+    // Let's reset to empty text fetch to restore "default suggestions" if desired, 
+    // OR just leave it. If the dropdown closes, it doesn't matter.
     focusedResultIndex.value = 0
     searchInput.value?.focus()
 }

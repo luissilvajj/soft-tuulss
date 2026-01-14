@@ -16,7 +16,14 @@ export default defineEventHandler(async (event) => {
     const offset = (page - 1) * limit
 
     if (!organizationId) {
-        throw createError({ statusCode: 400, message: 'Organization ID required' })
+        // Return empty result instead of error to handle hydration delays gracefully
+        return {
+            data: [],
+            total: 0,
+            page,
+            limit,
+            totalPages: 0
+        }
     }
 
     // Build query with RLS + Logical Deletion + Search

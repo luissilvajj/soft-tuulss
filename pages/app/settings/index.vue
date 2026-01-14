@@ -46,37 +46,15 @@
 
           <!-- Team Section -->
           <section class="glass-panel p-8">
-              <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+              <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
                   <span>👥</span> Equipo y Accesos
               </h2>
-              <div class="overflow-x-auto">
-                  <table class="min-w-full text-sm text-left">
-                      <thead class="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-stone-900">
-                          <tr>
-                              <th class="px-4 py-3">Usuario</th>
-                              <th class="px-4 py-3">Rol</th>
-                              <th class="px-4 py-3 text-right">Estado</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          <tr v-for="member in team" :key="member.id" class="border-b dark:border-gray-800">
-                              <td class="px-4 py-3 font-medium">
-                                  {{ member.profiles?.full_name || 'Usuario' }}
-                                  <div class="text-xs text-gray-500 font-normal">ID: {{ member.user_id }}</div>
-                              </td>
-                              <td class="px-4 py-3">
-                                  <span class="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase">
-                                      {{ member.role }}
-                                  </span>
-                              </td>
-                              <td class="px-4 py-3 text-right">
-                                  <span class="text-emerald-500">Activo</span>
-                              </td>
-                          </tr>
-                      </tbody>
-                  </table>
-              </div>
-              <p class="text-xs text-gray-500 mt-4">* Para agregar usuarios, contacta a soporte (MVP Limit).</p>
+              <p class="text-sm text-[var(--color-text-secondary)] mb-6">Gestiona los miembros de tu equipo, sus roles y permisos de acceso.</p>
+              
+              <NuxtLink to="/app/settings/team" class="btn btn-primary inline-flex items-center gap-2">
+                  Gestionar Equipo
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+              </NuxtLink>
           </section>
       </div>
   </div>

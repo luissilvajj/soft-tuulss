@@ -40,9 +40,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
         }
 
         // If really no organizations AND we have a user, go to onboarding
-        if (userOrganizations.value && userOrganizations.value.length === 0) {
-            return navigateTo('/onboarding')
-        }
+        // [FIX] Moving this check to Dashboard Layout to prevent redirect loops during hydration
+        // if (userOrganizations.value && userOrganizations.value.length === 0) {
+        //    return navigateTo('/onboarding')
+        // }
     }
 
     const org = organization.value

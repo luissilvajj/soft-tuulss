@@ -81,9 +81,10 @@ const container = ref(null)
 const activeIndex = ref(-1)
 
 const filteredClients = computed(() => {
-    if (!searchQuery.value) return clients.value.slice(0, 5) 
+    const list = Array.isArray(clients.value) ? clients.value : []
+    if (!searchQuery.value) return list.slice(0, 5) 
     const q = searchQuery.value.toLowerCase()
-    return clients.value.filter(c => 
+    return list.filter(c => 
         c.name?.toLowerCase().includes(q) || 
         c.identity_document?.toLowerCase().includes(q) ||
         c.email?.toLowerCase().includes(q)

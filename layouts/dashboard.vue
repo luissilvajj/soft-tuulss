@@ -219,7 +219,18 @@ onMounted(async () => {
     const userId = session.user.id
     await ensureGlobalState(userId)
 
-    if (!organization.value) await fetchOrganization()
+    // 3. Organization is handled by useOrganization automatically
+    // Just ensure we have at least one load
+    if (!organization.value) {
+        await fetchOrganization()
+    }
+
+    // [FIX] Final Safety Check: If after all recovery attempts we still have no org, go to Onboarding
+    const { userOrganizations } = useOrganization()
+    if (!organization.value && (!userOrganizations.value || userOrganizations.value.length === 0)) {
+        console.warn('Dashboard: No organizations found. Redirecting to Onboarding.')
+        return router.push('/onboarding')
+    }
 })
 
 const logout = async () => {

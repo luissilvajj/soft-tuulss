@@ -47,6 +47,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
 
     const org = organization.value
+
+    // [FIX] Prevent crash if org is still null (waiting for layout or hydration)
+    if (!org) return
+
     const now = new Date()
 
     // 5. Subscription Logic

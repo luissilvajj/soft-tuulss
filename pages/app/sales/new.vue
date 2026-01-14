@@ -446,7 +446,8 @@ const fetchProducts = async () => {
         }
         
         if (data.value) {
-            allProducts.value = data.value as any
+            const response = data.value as any
+            allProducts.value = Array.isArray(response.data) ? response.data : []
         }
     } catch (e) {
         console.error('Exception fetching products:', e)
@@ -455,42 +456,13 @@ const fetchProducts = async () => {
     }
 }
 
-// --- Exchange Rate Persistence ---
-const fetchExchangeRate = async () => {
-    if (salesStore.currentSale.exchangeRate > 0) return
-
-    try {
-        const data = await $fetch('/api/bcv-rate')
-        if (data && data.rate) {
-            salesStore.currentSale.exchangeRate = data.rate
-            return
-        }
-    } catch (e) { console.error('Error fetching BCV API rate', e) }
-
-    if (!organization.value?.id) return
-    try {
-        const { data } = await client.from('sys_exchange_rates')
-            .select('rate')
-            .eq('currency_pair', 'USD-VES')
-            .maybeSingle()
-        
-        if (data) salesStore.currentSale.exchangeRate = data.rate
-    } catch (e) { console.error('Error loading rate', e) }
-}
-
-onMounted(() => {
-    fetchExchangeRate()
-    searchInput.value?.focus()
-})
-
-watch(() => organization.value?.id, (newId) => {
-    if (newId) fetchProducts()
-}, { immediate: true })
+// ...
 
 const searchResults = computed(() => {
     if (!searchQuery.value) return []
+    const list = Array.isArray(allProducts.value) ? allProducts.value : []
     const q = searchQuery.value.toLowerCase()
-    return allProducts.value.filter(p => {
+    return list.filter(p => {
         const nameMatch = p.name?.toLowerCase().includes(q)
         const skuMatch = p.sku?.toString().toLowerCase().includes(q)
         return nameMatch || skuMatch

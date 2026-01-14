@@ -23,12 +23,26 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     // Hande missing active organization
     if (!organization.value) {
-        // If we have organizations but none selected, go to selection
+        const user = useSupabaseUser()
+
+        // If no user detected yet, don't redirect to onboarding (let auth middleware handle login)
+        // This prevents the "Flash of Onboarding" when user is null during hydration
+        if (!user.value) {
+            return
+        }
+
+        // Only redirect to selection/onboarding if we are SURE we have fetched orgs
+        // and found nothing.
+        const { userOrganizations } = useOrganization()
+
         if (userOrganizations.value && userOrganizations.value.length > 0) {
             return navigateTo('/app/select-org')
         }
-        // If really no organizations, go to onboarding
-        return navigateTo('/onboarding')
+
+        // If really no organizations AND we have a user, go to onboarding
+        if (userOrganizations.value && userOrganizations.value.length === 0) {
+            return navigateTo('/onboarding')
+        }
     }
 
     const org = organization.value

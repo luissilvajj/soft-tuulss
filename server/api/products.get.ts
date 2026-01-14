@@ -9,22 +9,40 @@ export default defineEventHandler(async (event) => {
     }
 
     const query = getQuery(event)
-    const organizationId = query.organization_id
+    const organizationId = query.organization_id as string
+    const page = parseInt(query.page as string || '1')
+    const limit = parseInt(query.limit as string || '10')
+    const search = query.search as string || ''
+    const offset = (page - 1) * limit
 
     if (!organizationId) {
         throw createError({ statusCode: 400, message: 'Organization ID required' })
     }
 
-    // [FIX] Relaxed filtering: Rely on RLS (Row Level Security) to filter by user's permission
-    // consistently with the Inventory page.
-    const { data, error } = await client
+    // Build query with RLS + Logical Deletion + Search
+    let dbQuery = client
         .from('products')
-        .select('*')
-    // .eq('organization_id', organizationId) <-- Removed to test visibility
+        .select('*', { count: 'exact' })
+        .eq('organization_id', organizationId)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1)
+
+    if (search) {
+        dbQuery = dbQuery.ilike('name', `%${search}%`)
+    }
+
+    const { data: products, error, count } = await dbQuery
 
     if (error) {
         throw createError({ statusCode: 500, message: error.message })
     }
 
-    return data
+    return {
+        data: products,
+        total: count,
+        page,
+        limit,
+        totalPages: count ? Math.ceil(count / limit) : 1
+    }
 })

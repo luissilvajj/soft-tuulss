@@ -187,15 +187,22 @@ const page = ref(1)
 const searchQuery = ref('')
 const limit = 10
 
-const { data, pending, refresh } = await useFetch('/api/products', {
+const { data, pending, refresh, error } = await useFetch('/api/products', {
     params: {
         page,
         limit,
         search: searchQuery,
         organization_id: computed(() => organization.value?.id)
     },
-    watch: [page, () => organization.value?.id]
+    watch: [page, () => organization.value?.id],
+    lazy: true,
+    server: false // Force client-side fetch to ensure auth/org state is hydrated
 })
+
+if (error.value) {
+    console.error('Inventory Fetch Error:', error.value)
+    toast.error('Error cargando inventario: ' + (error.value.data?.message || error.value.message))
+}
 
 const products = computed(() => data.value?.data || [])
 

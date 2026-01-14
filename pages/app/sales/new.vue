@@ -467,6 +467,29 @@ const fetchProducts = async (search = '') => {
 // --- Lifecycle Hooks ---
 import { watchDebounced } from '@vueuse/core'
 
+// --- Exchange Rate Persistence ---
+const fetchExchangeRate = async () => {
+    if (salesStore.currentSale.exchangeRate > 0) return
+
+    try {
+        const data = await $fetch('/api/bcv-rate')
+        if (data && data.rate) {
+            salesStore.currentSale.exchangeRate = data.rate
+            return
+        }
+    } catch (e) { console.error('Error fetching BCV API rate', e) }
+
+    if (!organization.value?.id) return
+    try {
+        const { data } = await client.from('sys_exchange_rates')
+            .select('rate')
+            .eq('currency_pair', 'USD-VES')
+            .maybeSingle()
+        
+        if (data) salesStore.currentSale.exchangeRate = data.rate
+    } catch (e) { console.error('Error loading rate', e) }
+}
+
 onMounted(() => {
     fetchExchangeRate()
     // Initial fetch (empty search)

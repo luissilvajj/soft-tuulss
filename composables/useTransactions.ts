@@ -8,8 +8,10 @@ export interface TransactionFilter {
     search?: string
 }
 
+import type { Database } from '~/types/database.types'
+
 export const useTransactions = () => {
-    const client = useSupabaseClient()
+    const client = useSupabaseClient<Database>()
     const { organization } = useOrganization()
 
     const loading = useState('transactions_loading', () => false)

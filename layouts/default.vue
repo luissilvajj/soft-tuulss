@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen font-sans transition-colors duration-300 bg-white dark:bg-[#020617] text-slate-900 dark:text-white">
+    <OfflineIndicator />
     <!-- Navbar (Global for non-landing pages unless overridden) -->
     <header v-if="!$route.path.includes('/app') && $route.path !== '/'" class="bg-white dark:bg-[#0f172a] border-b border-gray-200 dark:border-gray-800">
       <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">

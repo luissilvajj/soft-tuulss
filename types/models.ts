@@ -8,6 +8,10 @@ export interface Organization {
     current_period_end?: string
     stripe_customer_id?: string
     stripe_subscription_id?: string
+    fiscal_doc?: string
+    address?: string
+    phone?: string
+    receipt_footer?: string
     created_at: string
 }
 
@@ -91,3 +95,41 @@ export interface Transaction {
     client_name?: string // Helper
 }
 
+
+export interface CartItem {
+    product: Product
+    quantity: number
+    discount: number
+}
+
+// Payload for creating a sale
+export interface SalePayload {
+    clientId?: string
+    status: 'paid' | 'pending'
+    paymentMethod: string
+    paymentReference?: string
+    date: string
+    currency: 'USD' | 'VES'
+    exchangeRate: number
+    subtotal: number
+    taxIva: number
+    taxIgtf: number
+    discount: number
+    isExempt: boolean
+    total: number
+    paymentDetails: any // JSON structure varies
+    rawItems: {
+        productId: string
+        quantity: number
+        price: number
+        discount: number
+    }[]
+    itemsSnapshot: {
+        id: string
+        name: string
+        qty: number
+        price: number
+        discount: number
+    }[]
+    offline_flag?: boolean // Internal flag for offline sync
+}

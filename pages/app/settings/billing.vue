@@ -305,8 +305,11 @@
 </template>
 
 <script setup lang="ts">
+import { useToast } from "vue-toastification"
+
 const user = useSupabaseUser()
 const { organization, fetchOrganization, loading } = useOrganization()
+const toast = useToast()
 
 definePageMeta({ layout: 'dashboard' })
 
@@ -369,6 +372,7 @@ const submitPayment = async () => {
         })
         
         successMessage.value = '¡Pago Aprobado! Tu suscripción se ha extendido.'
+        toast.success('¡Pago Aprobado!')
         
         // Refresh org data to see new dates
         await fetchOrganization(true)
@@ -380,9 +384,9 @@ const submitPayment = async () => {
         // Parse error message carefully
         const msg = e.data?.statusMessage || e.message || 'Error desconocido'
         if (msg.includes('No Encontrado')) {
-             alert('❌ Pago no encontrado. Por favor verifica la referencia y el monto exacto.')
+             toast.error('❌ Pago no encontrado. Por favor verifica la referencia y el monto exacto.')
         } else {
-             alert('Error: ' + msg)
+             toast.error('Error: ' + msg)
         }
     } finally {
         submittingPayment.value = false
@@ -430,10 +434,10 @@ const fixAccount = async () => {
         const { error } = await useFetch('/api/fix-account', { method: 'POST' })
         if (error.value) throw error.value
         
-        alert('✅ Cuenta Reparada. Recargando...')
-        window.location.href = '/app'
+        toast.success('✅ Cuenta Reparada. Recargando...')
+        setTimeout(() => window.location.href = '/app', 1500)
     } catch (e) {
-        alert('Error reparando: ' + e.message)
+        toast.error('Error reparando: ' + (e as any).message)
     } finally {
         fixing.value = false
     }

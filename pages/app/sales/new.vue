@@ -14,17 +14,17 @@
         <div class="flex items-center gap-4">
             <div class="flex items-center bg-[var(--color-bg-subtle)] rounded-lg p-1">
                 <button 
-                    @click="currentSale.currency = 'USD'"
+                    @click="salesStore.currentSale.currency = 'USD'"
                     :class="[
                         'px-3 py-1 text-xs font-medium rounded-md transition-all',
-                        currentSale.currency === 'USD' ? 'bg-white text-black shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-900'
+                        salesStore.currentSale.currency === 'USD' ? 'bg-white text-black shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-900'
                     ]"
                 >USD</button>
                 <button 
-                    @click="currentSale.currency = 'VES'"
+                    @click="salesStore.currentSale.currency = 'VES'"
                     :class="[
                         'px-3 py-1 text-xs font-medium rounded-md transition-all',
-                        currentSale.currency === 'VES' ? 'bg-white text-black shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-900'
+                        salesStore.currentSale.currency === 'VES' ? 'bg-white text-black shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-900'
                     ]"
                 >VES</button>
             </div>
@@ -32,7 +32,7 @@
                 <span class="text-gray-400">Tasa:</span>
                 <div class="relative">
                     <input 
-                        v-model.number="currentSale.exchangeRate"
+                        v-model.number="salesStore.currentSale.exchangeRate"
                         type="number"
                         class="w-20 bg-transparent border-b border-gray-200 dark:border-gray-700 focus:border-black dark:focus:border-white outline-none text-right font-medium text-[var(--color-text-primary)]"
                     >
@@ -95,8 +95,8 @@
             <!-- Table -->
             <div class="flex-1 bg-white dark:bg-[#1C1C1E] border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col shadow-sm overflow-hidden">
                 <div class="p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-between items-center">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Items ({{ currentSale.cart.length }})</span>
-                    <button v-if="currentSale.cart.length > 0" @click="clearCurrentSale" class="text-xs text-red-600 hover:text-red-700 font-medium">Vaciar</button>
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Items ({{ salesStore.cart.length }})</span>
+                    <button v-if="salesStore.cart.length > 0" @click="salesStore.clearCart" class="text-xs text-red-600 hover:text-red-700 font-medium">Vaciar</button>
                 </div>
                 <div class="flex-1 overflow-y-auto">
                     <table class="w-full text-left text-sm">
@@ -111,7 +111,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
-                            <tr v-for="(item, index) in currentSale.cart" :key="item.product.id" class="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50">
+                            <tr v-for="(item, index) in salesStore.cart" :key="item.product.id" class="group hover:bg-gray-50/50 dark:hover:bg-gray-800/50">
                                 <td class="pl-4 py-3">
                                     <p class="font-medium text-gray-900 dark:text-white">{{ item.product.name }}</p>
                                     <p class="text-[10px] text-gray-400">Stock: {{ item.product.stock }}</p>
@@ -144,12 +144,12 @@
                                     {{ formatDisplayPrice((item.product.price * item.quantity) - (item.discount || 0)) }}
                                 </td>    
                                 <td class="py-3 text-center">
-                                    <button @click="removeFromCart(index)" class="text-gray-400 hover:text-red-500 transition-colors">
+                                    <button @click="salesStore.removeFromCart(index)" class="text-gray-400 hover:text-red-500 transition-colors">
                                         &times;
                                     </button>
                                 </td>
                             </tr>
-                             <tr v-if="currentSale.cart.length === 0">
+                             <tr v-if="salesStore.cart.length === 0">
                                 <td colspan="6" class="py-20 text-center text-gray-300 dark:text-gray-600">
                                     <svg class="w-12 h-12 mx-auto mb-3 text-gray-200 dark:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                                     <p class="text-sm">Carrito vacío</p>
@@ -167,7 +167,7 @@
                 <!-- Client -->
                 <div>
                      <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Cliente</label>
-                     <ClientSelector :key="clientSelectorKey" v-model="currentSale.clientId" @create-client="showClientModal = true" />
+                     <ClientSelector :key="clientSelectorKey" v-model="salesStore.currentSale.clientId" @create-client="showClientModal = true" />
                 </div>
 
                 <!-- Payment Method -->
@@ -179,13 +179,13 @@
                             @click="setPaymentMethod(method.id)"
                             :class="[
                                 'px-3 py-2 text-sm border rounded-md transition-all text-left flex items-center justify-between',
-                                currentSale.paymentMethod === method.id 
+                                salesStore.currentSale.paymentMethod === method.id 
                                     ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-medium ring-1 ring-blue-600' 
                                     : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                             ]"
                         >
                             {{ method.label }}
-                            <div v-if="currentSale.paymentMethod === method.id" class="w-2 h-2 rounded-full bg-blue-600"></div>
+                            <div v-if="salesStore.currentSale.paymentMethod === method.id" class="w-2 h-2 rounded-full bg-blue-600"></div>
                         </button>
                     </div>
 
@@ -195,11 +195,11 @@
                             <label class="text-xs font-semibold text-gray-500 uppercase">Desglose de Pago</label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <span class="text-xs text-blue-600 font-medium">Pago Mixto / Exacto</span>
-                                <input type="checkbox" v-model="currentSale.isMixedPayment" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <input type="checkbox" v-model="salesStore.currentSale.isMixedPayment" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                             </label>
                          </div>
                          
-                         <div v-if="currentSale.isMixedPayment" class="space-y-3 pt-2">
+                         <div v-if="salesStore.currentSale.isMixedPayment" class="space-y-3 pt-2">
                              <!-- USD Payment Input -->
                              <div>
                                  <div class="flex justify-between mb-1">
@@ -212,7 +212,7 @@
                                     >Completar</button>
                                  </div>
                                  <input 
-                                    v-model.number="currentSale.mixedPayment.usdAmount"
+                                    v-model.number="salesStore.currentSale.mixedPayment.usdAmount"
                                     type="number"
                                     step="0.01" 
                                     class="w-full bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-md px-3 py-2 text-sm font-mono focus:border-blue-500 outline-none"
@@ -228,20 +228,20 @@
                                         @click="fillRemainingVes" 
                                         class="text-[10px] uppercase font-bold text-blue-500 hover:text-blue-400 transition-colors"
                                     >
-                                        Completar ({{ formatPriceInBs(remainingDue * currentSale.exchangeRate) }})
+                                        Completar ({{ formatPriceInBs(remainingDue * salesStore.currentSale.exchangeRate) }})
                                     </button>
                                  </div>
                                  <input 
-                                    v-model.number="currentSale.mixedPayment.vesAmount"
+                                    v-model.number="salesStore.currentSale.mixedPayment.vesAmount"
                                     type="number"
                                     step="0.01"
                                     class="w-full bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-md px-3 py-2 text-sm font-mono focus:border-blue-500 outline-none"
                                     placeholder="0.00"
                                     @input="autoFillUsd"
                                  >
-                                 <div v-if="currentSale.mixedPayment.vesAmount > 0" class="text-right mt-1">
+                                 <div v-if="salesStore.currentSale.mixedPayment.vesAmount > 0" class="text-right mt-1">
                                      <span class="text-[10px] text-gray-400">
-                                         Equivale a: <span class="font-bold text-[var(--color-text-primary)]">${{ (currentSale.mixedPayment.vesAmount / (currentSale.exchangeRate || 1)).toFixed(2) }}</span>
+                                         Equivale a: <span class="font-bold text-[var(--color-text-primary)]">${{ (salesStore.currentSale.mixedPayment.vesAmount / (salesStore.currentSale.exchangeRate || 1)).toFixed(2) }}</span>
                                      </span>
                                  </div>
                              </div>
@@ -253,7 +253,7 @@
                                          ${{ remainingDue.toFixed(2) }}
                                      </span>
                                      <span v-if="remainingDue > 0.01" class="text-gray-400 ml-1">
-                                         (~{{ (remainingDue * currentSale.exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 }) }} Bs)
+                                         (~{{ (remainingDue * salesStore.currentSale.exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 }) }} Bs)
                                      </span>
                                  </div>
                              </div>
@@ -265,7 +265,7 @@
                 <div v-if="needsReference">
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Referencia</label>
                     <input 
-                        v-model="currentSale.paymentReference" 
+                        v-model="salesStore.currentSale.paymentReference" 
                         type="text" 
                         class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white outline-none font-mono text-[var(--color-text-primary)]"
                         placeholder="000000"
@@ -276,7 +276,7 @@
                  <div>
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Descuento Global ($)</label>
                     <input 
-                        v-model.number="currentSale.globalDiscount"
+                        v-model.number="salesStore.currentSale.globalDiscount"
                         type="number"
                         min="0"
                         class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md py-2 px-3 text-sm focus:ring-1 focus:ring-black dark:focus:ring-white outline-none font-mono text-[var(--color-text-primary)]"
@@ -287,12 +287,12 @@
                 <!-- Tax Toggles -->
                  <div class="flex flex-col gap-2">
                      <label class="flex items-center gap-2 cursor-pointer group">
-                        <input type="checkbox" v-model="currentSale.isExempt" class="rounded border-gray-300 text-black focus:ring-black">
+                        <input type="checkbox" v-model="salesStore.currentSale.isExempt" class="rounded border-gray-300 text-black focus:ring-black">
                         <span class="text-sm text-gray-600 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors">Venta Exenta de IVA</span>
                      </label>
                      <label class="flex items-center gap-2 cursor-pointer group">
                         <!-- INVERTED LOGIC: Default OFF. Check to INCLUDE tax. -->
-                        <input type="checkbox" v-model="currentSale.includeIgtf" class="rounded border-gray-300 text-black focus:ring-black">
+                        <input type="checkbox" v-model="salesStore.currentSale.includeIgtf" class="rounded border-gray-300 text-black focus:ring-black">
                         <span class="text-sm text-gray-600 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors">Cobrar IGTF (3%)</span>
                      </label>
                  </div>
@@ -303,9 +303,9 @@
                         <span class="text-gray-500">Subtotal</span>
                         <span class="font-medium">{{ formatDisplayPrice(financials.subtotal) }}</span>
                     </div>
-                     <div v-if="currentSale.globalDiscount > 0" class="flex justify-between text-sm text-green-600">
+                     <div v-if="salesStore.currentSale.globalDiscount > 0" class="flex justify-between text-sm text-green-600">
                         <span>Descuento</span>
-                        <span>-{{ formatDisplayPrice(currentSale.globalDiscount) }}</span>
+                        <span>-{{ formatDisplayPrice(salesStore.currentSale.globalDiscount) }}</span>
                     </div>
                     <div class="flex justify-between text-sm text-[var(--color-text-primary)]">
                         <span class="text-gray-500">IVA (16%)</span>
@@ -320,17 +320,17 @@
                         <span>{{ formatDisplayPrice(financials.total) }}</span>
                     </div>
                      <p class="text-right text-xs text-gray-400">
-                        ~ {{ currentSale.currency === 'USD' ? `Bs. ${(financials.total * currentSale.exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 })}` : `$ ${(financials.total).toLocaleString('en-US', { maximumFractionDigits: 2 })}` }}
+                        ~ {{ salesStore.currentSale.currency === 'USD' ? `Bs. ${(financials.total * salesStore.currentSale.exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 })}` : `$ ${(financials.total).toLocaleString('en-US', { maximumFractionDigits: 2 })}` }}
                      </p>
                 </div>
 
                 <!-- Checkout Button -->
                  <button 
                      @click="handleCheckout"
-                     :disabled="loading || currentSale.cart.length === 0 || (currentSale.isMixedPayment && remainingDue > 0.05)"
+                     :disabled="processingCheckout || salesStore.cart.length === 0 || (salesStore.currentSale.isMixedPayment && remainingDue > 0.05)"
                      class="w-full bg-black dark:bg-white text-white dark:text-black py-3 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-gray-200 dark:shadow-none"
                  >
-                     {{ loading ? 'Procesando...' : 'Cobrar' }}
+                     {{ processingCheckout ? 'Procesando...' : 'Cobrar' }}
                  </button>
             </div>
         </div>
@@ -376,34 +376,41 @@
 </template>
 
 <script setup lang="ts">
-import { useSales } from '~/composables/useSales'
+import { useSalesStore } from '~/stores/sales'
 import { useOrganization } from '~/composables/useOrganization'
 import type { Product } from '~/types/models'
+import { useToast } from "vue-toastification"
+import { useOnline } from '@vueuse/core'
 
 definePageMeta({ layout: 'dashboard' })
 
-const { createSale, loading, currentSale, addToCart, removeFromCart, updateCartItemQty, clearCurrentSale } = useSales()
+const salesStore = useSalesStore()
 const { organization } = useOrganization()
 const client = useSupabaseClient()
 const router = useRouter()
+const toast = useToast()
+const isOnline = useOnline()
 
 // --- Local UI State ---
 const searchQuery = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
 const focusedResultIndex = ref(0)
 const showClientModal = ref(false)
-const clientSelectorKey = ref(0) // Force re-render of selector
+const clientSelectorKey = ref(0) 
 const savingClient = ref(false)
 const newClient = ref({ name: '', email: '', phone: '', identity_document: '' })
 const allProducts = ref<Product[]>([])
 const loadingProducts = ref(false)
+const processingCheckout = ref(false)
+
+// Sync offline sales when coming online
+watch(isOnline, (online) => {
+    if (online) salesStore.syncOfflineSales()
+})
 
 // --- Computed Config ---
 const availableMethods = computed(() => {
-    // Payment Methods: Cash, Zelle, Transfer, Mobile Pay, Credit, Card
-    // Order requested: Most common first.
-    // Assuming: Cash $, Pago Movil, Zelle, Credit, Transfer
-    return currentSale.value.currency === 'VES' 
+    return salesStore.currentSale.currency === 'VES' 
         ? [ 
             { id: 'mobile_pay', label: 'Pago Móvil' }, 
             { id: 'cash', label: 'Efectivo Bs' }, 
@@ -420,7 +427,7 @@ const availableMethods = computed(() => {
           ]
 })
 
-const needsReference = computed(() => ['mobile_pay', 'transfer', 'zelle', 'card'].includes(currentSale.value.paymentMethod))
+const needsReference = computed(() => ['mobile_pay', 'transfer', 'zelle', 'card'].includes(salesStore.currentSale.paymentMethod))
 
 // --- Data Loading ---
 const fetchProducts = async () => {
@@ -434,7 +441,7 @@ const fetchProducts = async () => {
 
         if (error.value) {
             console.error('Error fetching products:', error.value)
-            alert('Error cargando inventario: ' + error.value.message)
+            toast.error('Error cargando inventario: ' + error.value.message)
             return
         }
         
@@ -450,28 +457,24 @@ const fetchProducts = async () => {
 
 // --- Exchange Rate Persistence ---
 const fetchExchangeRate = async () => {
-    // Keep existing rate if we have one (persistence)
-    if (currentSale.value.exchangeRate > 0) return
+    if (salesStore.currentSale.exchangeRate > 0) return
 
     try {
         const data = await $fetch('/api/bcv-rate')
         if (data && data.rate) {
-            currentSale.value.exchangeRate = data.rate
+            salesStore.currentSale.exchangeRate = data.rate
             return
         }
     } catch (e) { console.error('Error fetching BCV API rate', e) }
 
     if (!organization.value?.id) return
     try {
-        const { data } = await client.from('exchange_rates')
+        const { data } = await client.from('sys_exchange_rates')
             .select('rate')
-            .eq('organization_id', organization.value.id)
-            .eq('date', new Date().toISOString().split('T')[0])
-            .eq('currency_from', 'USD')
-            .eq('currency_to', 'VES')
+            .eq('currency_pair', 'USD-VES')
             .maybeSingle()
         
-        if (data) currentSale.value.exchangeRate = data.rate
+        if (data) salesStore.currentSale.exchangeRate = data.rate
     } catch (e) { console.error('Error loading rate', e) }
 }
 
@@ -499,9 +502,9 @@ const selectPrevResult = () => { if (focusedResultIndex.value > 0) focusedResult
 const addSelectedResult = () => { if (searchResults.value.length > 0) handleAddProduct(searchResults.value[focusedResultIndex.value]) }
 
 const handleAddProduct = (product: Product) => {
-    const success = addToCart(product)
+    const success = salesStore.addToCart(product)
     if (!success) {
-        alert('Sin stock disponible')
+        toast.error('Sin stock disponible')
         return
     }
     searchQuery.value = ''
@@ -510,9 +513,9 @@ const handleAddProduct = (product: Product) => {
 }
 
 const handleUpdateQty = (index: number, newQty: number) => {
-    const success = updateCartItemQty(index, newQty)
+    const success = salesStore.updateCartItemQty(index, newQty)
     if (success === false) {
-        // alert('Stock insuficiente') // Too noisy, just cap it
+        // toast.warning('Stock insuficiente')
     }
 }
 
@@ -523,80 +526,69 @@ const handleUpdateQtyInput = (index: number, val: string) => {
 }
 
 const setPaymentMethod = (id: string) => {
-    currentSale.value.paymentMethod = id
+    salesStore.currentSale.paymentMethod = id
 }
 
 // --- Mixed Payment Logic (Improved Auto-Fill) ---
 const autoFillVes = () => {
-    // Called when USD Amount changes by user
-    if (!currentSale.value.isMixedPayment) return
+    if (!salesStore.currentSale.isMixedPayment) return
     const totalDue = financials.value.total
-    const paidUSD = currentSale.value.mixedPayment.usdAmount
+    const paidUSD = salesStore.currentSale.mixedPayment.usdAmount
     const missingUSD = Math.max(0, totalDue - paidUSD)
-    const missingVes = missingUSD * currentSale.value.exchangeRate
-    currentSale.value.mixedPayment.vesAmount = parseFloat(missingVes.toFixed(2))
+    const missingVes = missingUSD * salesStore.currentSale.exchangeRate
+    salesStore.currentSale.mixedPayment.vesAmount = parseFloat(missingVes.toFixed(2))
 }
 
 const autoFillUsd = () => {
-    // Called when VES Amount changes by user
-    if (!currentSale.value.isMixedPayment) return
-    // This is trickier because of circular dependency if we aren't careful.
-    // But usually we just want to know how much USD is left if they pay X Bolivares.
-    // However, usually the FLOW is: "I have $20 cash, rest in Pago Movil".
-    // So usually USD is set first.
-    // But if they say "I have 500 Bs, rest in USD".
+    if (!salesStore.currentSale.isMixedPayment) return
     const totalDue = financials.value.total
-    const paidVES = currentSale.value.mixedPayment.vesAmount
-    const paidUSD_equiv = paidVES / (currentSale.value.exchangeRate || 1)
+    const paidVES = salesStore.currentSale.mixedPayment.vesAmount
+    const paidUSD_equiv = paidVES / (salesStore.currentSale.exchangeRate || 1)
     const missingUSD = Math.max(0, totalDue - paidUSD_equiv)
-    currentSale.value.mixedPayment.usdAmount = parseFloat(missingUSD.toFixed(2))
+    salesStore.currentSale.mixedPayment.usdAmount = parseFloat(missingUSD.toFixed(2))
 }
 
 const fillRemainingVes = () => {
     const totalDue = financials.value.total
-    const paidUSD = currentSale.value.mixedPayment.usdAmount
+    const paidUSD = salesStore.currentSale.mixedPayment.usdAmount
     const missingUSD = Math.max(0, totalDue - paidUSD)
-    currentSale.value.mixedPayment.vesAmount = parseFloat((missingUSD * currentSale.value.exchangeRate).toFixed(2))
+    salesStore.currentSale.mixedPayment.vesAmount = parseFloat((missingUSD * salesStore.currentSale.exchangeRate).toFixed(2))
 }
 
 const fillRemainingUsd = () => {
-     // If they cleared USD and want to fill it
      const totalDue = financials.value.total
-     currentSale.value.mixedPayment.usdAmount = totalDue
-     currentSale.value.mixedPayment.vesAmount = 0
+     salesStore.currentSale.mixedPayment.usdAmount = totalDue
+     salesStore.currentSale.mixedPayment.vesAmount = 0
 }
 
 const formatPriceInBs = (val: number) => `Bs. ${val.toLocaleString('es-VE', { maximumFractionDigits: 2 })}`
 
 // Calculate IGTF Base
 const igtfBaseAmount = computed(() => {
-    if (currentSale.value.isMixedPayment) {
-        return currentSale.value.mixedPayment.usdAmount
+    if (salesStore.currentSale.isMixedPayment) {
+        return salesStore.currentSale.mixedPayment.usdAmount
     }
-    // Logic Request: "Default include IGTF only in Dollar part".
-    // If not mixed, and payment is USD Cash (or selected to include), base is Total.
-    if (currentSale.value.includeIgtf) {
-         // Base is Subtotal + IVA - Discount.
-         const sub = currentSale.value.cart.reduce((sum, item) => sum + (item.product.price * item.quantity) - (item.discount || 0), 0)
-         const tax = !currentSale.value.isExempt ? sub * 0.16 : 0
-         const globalDisc = currentSale.value.globalDiscount
+    if (salesStore.currentSale.includeIgtf) {
+         const sub = salesStore.cart.reduce((sum, item) => sum + (item.product.price * item.quantity) - (item.discount || 0), 0)
+         const tax = !salesStore.currentSale.isExempt ? sub * 0.16 : 0
+         const globalDisc = salesStore.currentSale.globalDiscount
          return Math.max(0, sub + tax - globalDisc)
     }
     return 0
 })
 
 const remainingDue = computed(() => {
-    if (!currentSale.value.isMixedPayment) return 0
+    if (!salesStore.currentSale.isMixedPayment) return 0
     const totalDue = financials.value.total
-    const paidUSD = currentSale.value.mixedPayment.usdAmount
-    const paidVES_in_USD = currentSale.value.mixedPayment.vesAmount / (currentSale.value.exchangeRate || 1)
+    const paidUSD = salesStore.currentSale.mixedPayment.usdAmount
+    const paidVES_in_USD = salesStore.currentSale.mixedPayment.vesAmount / (salesStore.currentSale.exchangeRate || 1)
     return Math.max(0, totalDue - (paidUSD + paidVES_in_USD))
 })
 
 // --- Financial ---
 const formatDisplayPrice = (amount: number) => {
-    if (currentSale.value.currency === 'VES') {
-        const rate = currentSale.value.exchangeRate || 1
+    if (salesStore.currentSale.currency === 'VES') {
+        const rate = salesStore.currentSale.exchangeRate || 1
         const converted = amount * rate
         return `Bs. ${converted.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     }
@@ -604,21 +596,16 @@ const formatDisplayPrice = (amount: number) => {
 }
 
 const financials = computed(() => {
-    // Base Calculation (Always USD)
-    let subtotalUSD = currentSale.value.cart.reduce((sum, item) => sum + (item.product.price * item.quantity) - (item.discount || 0), 0)
+    let subtotalUSD = salesStore.cart.reduce((sum, item) => sum + (item.product.price * item.quantity) - (item.discount || 0), 0)
     
-    // Tax Logic
-    let taxIvaUSD = !currentSale.value.isExempt ? subtotalUSD * 0.16 : 0
+    let taxIvaUSD = !salesStore.currentSale.isExempt ? subtotalUSD * 0.16 : 0
 
-    // Discount Global
-    let globalDisc = currentSale.value.globalDiscount
+    let globalDisc = salesStore.currentSale.globalDiscount
 
-    // IGTF Logic
-    // If Checked: Apply 3% to the Base.
     let igtfBase = 0
-    if (currentSale.value.includeIgtf) {
-         if (currentSale.value.isMixedPayment) {
-             igtfBase = currentSale.value.mixedPayment.usdAmount
+    if (salesStore.currentSale.includeIgtf) {
+         if (salesStore.currentSale.isMixedPayment) {
+             igtfBase = salesStore.currentSale.mixedPayment.usdAmount
          } else {
              igtfBase = subtotalUSD + taxIvaUSD - globalDisc
          }
@@ -636,40 +623,39 @@ const financials = computed(() => {
     }
 })
 
-
-
 const handleCheckout = async () => {
-    if (currentSale.value.cart.length === 0) return
+    if (salesStore.cart.length === 0) return
+    processingCheckout.value = true
     
     try {
-        const paymentDetails = currentSale.value.isMixedPayment ? {
-            usd_amount: currentSale.value.mixedPayment.usdAmount,
-            ves_amount: currentSale.value.mixedPayment.vesAmount,
+        const paymentDetails = salesStore.currentSale.isMixedPayment ? {
+            usd_amount: salesStore.currentSale.mixedPayment.usdAmount,
+            ves_amount: salesStore.currentSale.mixedPayment.vesAmount,
             igtf_base: igtfBaseAmount.value
-        } : (currentSale.value.currency === 'USD' ? { usd_amount: financials.value.total } : { ves_amount: financials.value.total * currentSale.value.exchangeRate })
+        } : (salesStore.currentSale.currency === 'USD' ? { usd_amount: financials.value.total } : { ves_amount: financials.value.total * salesStore.currentSale.exchangeRate })
 
-        await createSale({
-            clientId: currentSale.value.clientId || undefined,
-            status: currentSale.value.status,
-            paymentMethod: currentSale.value.paymentMethod,
-            paymentReference: currentSale.value.paymentReference,
-            date: currentSale.value.date,
+        await salesStore.processSale({
+            clientId: salesStore.currentSale.clientId || undefined,
+            status: salesStore.currentSale.status,
+            paymentMethod: salesStore.currentSale.paymentMethod,
+            paymentReference: salesStore.currentSale.paymentReference,
+            date: salesStore.currentSale.date,
             currency: 'USD',
-            exchangeRate: currentSale.value.exchangeRate,
-            isExempt: currentSale.value.isExempt,
+            exchangeRate: salesStore.currentSale.exchangeRate,
+            isExempt: salesStore.currentSale.isExempt,
             subtotal: financials.value.subtotal,
             taxIva: financials.value.taxIva,
             taxIgtf: financials.value.taxIgtf,
-            discount: currentSale.value.globalDiscount, // Pass Global Discount
+            discount: salesStore.currentSale.globalDiscount, // Pass Global Discount
             total: financials.value.total,
             paymentDetails: paymentDetails,
-            rawItems: currentSale.value.cart.map(i => ({
+            rawItems: salesStore.cart.map(i => ({
                 productId: i.product.id,
                 quantity: i.quantity,
                 price: i.product.price,
                 discount: i.discount
             })),
-            itemsSnapshot: currentSale.value.cart.map(i => ({
+            itemsSnapshot: salesStore.cart.map(i => ({
                 id: i.product.id,
                 name: i.product.name,
                 qty: i.quantity,
@@ -678,10 +664,12 @@ const handleCheckout = async () => {
             }))
         })
         
-        alert('Venta Completada')
-        router.push('/app/sales')
+        // toast handled in store
+        // router.push('/app/sales') // Optional: stay on POS for speed
     } catch (e: any) {
-        alert(e.message)
+        toast.error(e.message)
+    } finally {
+        processingCheckout.value = false
     }
 }
 
@@ -696,14 +684,14 @@ const saveClient = async () => {
 
         if (error) throw error
         
-        alert('Cliente creado exitosamente')
+        toast.success('Cliente creado exitosamente')
         showClientModal.value = false
         newClient.value = { name: '', email: '', phone: '', identity_document: '' }
         clientSelectorKey.value++ 
-        if (data) currentSale.value.clientId = data.id
+        if (data) salesStore.currentSale.clientId = data.id
 
     } catch (e: any) {
-        alert('Error creando cliente: ' + e.message)
+        toast.error('Error creando cliente: ' + e.message)
     } finally {
         savingClient.value = false
     }

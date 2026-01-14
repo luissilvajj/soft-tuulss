@@ -22,7 +22,7 @@
               <div v-for="sale in sales" :key="sale.id" class="bg-[var(--color-bg-dark)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3 shadow-sm">
                   <div class="flex justify-between items-start">
                        <div>
-                          <p class="font-bold text-[var(--color-heading)]">{{ sale.client_name || 'Cliente Casual' }}</p>
+                          <p class="font-bold text-[var(--color-heading)]">{{ getClientName(sale) }}</p>
                           <p class="text-xs text-[var(--color-text-secondary)] font-mono">{{ new Date(sale.created_at || '').toLocaleDateString() }}</p>
                        </div>
                        <span class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-1 text-[10px] font-bold rounded-full">
@@ -64,9 +64,9 @@
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-[var(--color-accent-blue)] font-bold text-xs shrink-0">
-                                    {{ (sale.client_name || 'C').charAt(0).toUpperCase() }}
+                                    {{ getClientName(sale).charAt(0).toUpperCase() }}
                                 </div>
-                                <span class="font-bold text-[var(--color-heading)] truncate max-w-[150px]">{{ sale.client_name || 'Cliente Casual' }}</span>
+                                <span class="font-bold text-[var(--color-heading)] truncate max-w-[150px]">{{ getClientName(sale) }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)] capitalize">
@@ -117,21 +117,21 @@
 </template>
 
 <script setup lang="ts">
-import { useSales } from '~/composables/useSales'
+import { useTransactions } from '~/composables/useTransactions'
 import { useOrganization } from '~/composables/useOrganization'
-import type { Sale } from '~/types/models'
+import type { Transaction } from '~/types/models'
 
 definePageMeta({
   layout: 'dashboard'
 })
 
-const { sales, fetchSales, loading } = useSales()
+const { transactions: sales, fetchTransactions, loading } = useTransactions()
 const { organization } = useOrganization()
 
 const showDetailModal = ref(false)
-const selectedSale = ref<Sale | null>(null)
+const selectedSale = ref<Transaction | null>(null)
 
-const openDetailModal = (sale: Sale) => {
+const openDetailModal = (sale: Transaction) => {
     selectedSale.value = sale
     showDetailModal.value = true
 }
@@ -155,22 +155,24 @@ const getPaymentMethodLabel = (method: string) => {
     return map[method] || method
 }
 
+// Helper to safely get client name from join or fallback
+const getClientName = (sale: any) => {
+    return sale.client?.name || sale.client_name || 'Cliente Casual'
+}
+
 const formatAmount = (sale: any) => {
     const amount = Number(sale.amount) || 0
-    // If currency is explicitly VES, show Bs.
-    // Also support legacy heuristic if needed? No, user wants strict rule for "venta en bolivares"
     if (sale.currency === 'VES') {
         return `Bs. ${amount.toFixed(2)}`
     }
-    // Default to USD
     return `$${amount.toFixed(2)}`
 }
 
 onMounted(() => {
-  if (organization.value?.id) fetchSales()
+  if (organization.value?.id) fetchTransactions({ type: 'sale' })
 })
 
 watch(() => organization.value, (newOrg) => {
-    if (newOrg?.id) fetchSales()
+    if (newOrg?.id) fetchTransactions({ type: 'sale' })
 }, { immediate: true })
 </script>

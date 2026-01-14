@@ -124,12 +124,15 @@
 </template>
 
 <script setup>
+import { useToast } from "vue-toastification"
+
 definePageMeta({
   layout: 'admin',
   middleware: 'admin' // Protected
 })
 
 const { data: tenants, pending, error, refresh } = await useFetch('/api/admin/tenants')
+const toast = useToast()
 
 const getDaysLeft = (dateStr) => {
     if (!dateStr) return 0
@@ -148,10 +151,10 @@ const extendTrial = async (org) => {
             method: 'POST',
             body: { orgId: org.id, action: 'extend_trial', days }
         })
-        alert('Trial extendido exitosamente')
+        toast.success('Trial extendido exitosamente')
         refresh() // Refresh list
     } catch (e) {
-        alert('Error: ' + e.message)
+        toast.error('Error: ' + e.message)
     }
 }
 
@@ -163,10 +166,10 @@ const setPlan = async (org, plan) => {
             method: 'POST',
             body: { orgId: org.id, action: 'set_plan', plan }
         })
-        alert(`Plan ${plan} activado`)
+        toast.success(`Plan ${plan} activado`)
         refresh() // Refresh list
     } catch (e) {
-        alert('Error: ' + e.message)
+        toast.error('Error: ' + e.message)
     }
 }
 
@@ -178,10 +181,10 @@ const deleteOrg = async (org) => {
             method: 'POST',
             body: { orgId: org.id, action: 'delete_org' }
         })
-        alert('Organización eliminada')
+        toast.success('Organización eliminada')
         refresh()
     } catch (e) {
-        alert('Error: ' + e.message)
+        toast.error('Error: ' + e.message)
     }
 }
 </script>

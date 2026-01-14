@@ -1,521 +1,149 @@
 <template>
-  <div>
-    <h1 class="text-3xl font-bold tracking-tight text-gradient mb-8">Configuración</h1>
+  <div class="max-w-4xl mx-auto pb-20">
+      <h1 class="text-3xl font-bold tracking-tight text-gradient mb-8">Configuración</h1>
 
-    <div class="glass-panel p-0 overflow-hidden min-h-[500px] flex flex-col md:flex-row">
-      <!-- Sidebar / Tabs -->
-      <div class="w-full md:w-64 border-r border-[var(--color-border-subtle)] bg-[var(--color-bg-subtle)]/30 p-4">
-        <nav class="space-y-1">
-          <button 
-             v-for="tab in tabs" 
-             :key="tab.id"
-             @click="router.push(`/app/settings?tab=${tab.id}`)"
-             :class="[
-               currentTab === tab.id
-                ? 'bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] font-bold'
-                : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)]',
-               'w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all text-left'
-             ]"
-           >
-            <component :is="tab.icon" class="w-5 h-5" />
-            {{ tab.name }}
-          </button>
-          
-          <NuxtLink 
-            v-if="canManageTeam"
-            to="/app/settings/audit"
-            class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)] transition-all"
-            active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] font-bold !text-[var(--color-accent-blue)]"
-          >
-             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            Auditoría
-          </NuxtLink>
-          <NuxtLink 
-            to="/app/settings/billing"
-            class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-subtle)] hover:text-[var(--color-white)] transition-all"
-            active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] font-bold !text-[var(--color-accent-blue)]"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-            Facturación
-          </NuxtLink>
-        </nav>
-      </div>
-
-      <!-- Content -->
-      <div class="flex-1 p-4 md:p-8">
-        <!-- PROFILE TAB -->
-        <div v-if="currentTab === 'profile'" class="max-w-xl">
-           <h2 class="text-xl font-bold text-[var(--color-white)] mb-1">Mi Perfil</h2>
-           <p class="text-sm text-[var(--color-text-secondary)] mb-6">Gestiona tu información personal.</p>
-
-           <div class="space-y-4">
-             <div>
-               <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Nombre Completo</label>
-               <input v-model="profileForm.fullName" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] outline-none" placeholder="Luis Silva">
-               <p class="text-xs text-[var(--color-text-secondary)] mt-1">Este nombre aparecerá en los registros de auditoría.</p>
-             </div>
-
-             <div class="pt-4">
-                <button @click="updateProfile" :disabled="loadingProfile" class="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto justify-center">
-                  {{ loadingProfile ? 'Guardando...' : 'Guardar Perfil' }}
-                </button>
-             </div>
-           </div>
-        </div>
-
-        <!-- GENERAL TAB -->
-        <div v-if="currentTab === 'general'" class="max-w-xl">
-          <h2 class="text-xl font-bold text-[var(--color-white)] mb-1">General</h2>
-          <p class="text-sm text-[var(--color-text-secondary)] mb-6">Información básica de tu organización.</p>
-
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Nombre de la Organización</label>
-              <input v-model="generalForm.name" type="text" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] outline-none" placeholder="Velo Code">
-            </div>
-            
-            <div class="pt-4 flex items-center gap-4">
-               <button @click="updateOrgName" :disabled="loadingGeneral || !currentOrgId" class="btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto justify-center">
-                 {{ loadingGeneral ? 'Guardando...' : 'Guardar Cambios' }}
-               </button>
-               <span v-if="!currentOrgId" class="text-xs text-yellow-500 flex items-center gap-1">
-                  <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                  Cargando ID...
-               </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- TEAM TAB -->
-        <div v-if="currentTab === 'team'">
-           <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-              <div>
-                <h2 class="text-xl font-bold text-[var(--color-white)] mb-1">Equipo</h2>
-                <p class="text-sm text-[var(--color-text-secondary)]">Gestiona quien tiene acceso.</p>
+      <div class="space-y-8">
+          <!-- Identity Section -->
+          <section class="glass-panel p-8">
+              <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                  <span>🏢</span> Identidad de la Empresa
+              </h2>
+              
+              <div class="mb-8">
+                  <label class="block text-sm font-bold text-gray-500 mb-4">Logotipo (Ticket & App)</label>
+                  <LogoUploader v-model="form.logo_url" />
               </div>
-              <button @click="showInviteModal = true" class="btn btn-secondary text-xs px-3 py-2 w-full md:w-auto justify-center">
-                 + Invitar Miembro
-              </button>
-           </div>
 
-           <!-- Mobile Card View -->
-           <div class="block md:hidden space-y-4">
-              <div v-for="member in members" :key="member.user_id" class="bg-[var(--color-bg-subtle)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3">
-                  <div class="flex items-center gap-3">
-                     <div class="h-10 w-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-sm font-bold text-white uppercase shadow-md">
-                        {{ member.email?.charAt(0) || 'U' }}
-                     </div>
-                     <div class="flex-1 overflow-hidden">
-                        <p class="text-sm font-medium text-[var(--color-white)] truncate">{{ member.email }}</p>
-                        <span :class="[
-                             member.role === 'owner' ? 'bg-purple-500/10 text-purple-400' : 
-                             member.role === 'admin' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400',
-                             'text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded'
-                          ]">
-                             {{ member.role }}
-                        </span>
-                     </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                      <label class="block text-sm font-bold text-gray-500 mb-2">Nombre Comercial</label>
+                      <input v-model="form.name" type="text" class="input-std" placeholder="Ej. Panadería La Estrella">
                   </div>
-                  
-                  <div v-if="canManageTeam && member.role !== 'owner'" class="pt-3 border-t border-[var(--color-border-subtle)] flex justify-end">
-                      <button 
-                         @click="promoteUser(member)"
-                         class="text-[var(--color-accent-blue)] text-xs font-bold px-3 py-1.5 bg-[var(--color-accent-blue)]/10 rounded-lg hover:bg-[var(--color-accent-blue)]/20 transition-colors"
-                      >
-                         {{ member.role === 'admin' ? 'Degradar a Miembro' : 'Promover a Admin' }}
-                      </button>
+                  <div>
+                      <label class="block text-sm font-bold text-gray-500 mb-2">Doc. Fiscal (RIF/NIT)</label>
+                      <input v-model="form.fiscal_doc" type="text" class="input-std" placeholder="Ej. J-12345678-9">
+                  </div>
+                  <div class="md:col-span-2">
+                      <label class="block text-sm font-bold text-gray-500 mb-2">Dirección Fiscal</label>
+                      <input v-model="form.address" type="text" class="input-std" placeholder="Ej. Av. Principal, Local 1">
+                  </div>
+                   <div>
+                      <label class="block text-sm font-bold text-gray-500 mb-2">Teléfono</label>
+                      <input v-model="form.phone" type="text" class="input-std" placeholder="Ej. +58 412 1234567">
+                  </div>
+                   <div class="md:col-span-2">
+                      <label class="block text-sm font-bold text-gray-500 mb-2">Mensaje en Ticket</label>
+                      <input v-model="form.receipt_footer" type="text" class="input-std" placeholder="Ej. ¡Gracias por su compra! No se aceptan devoluciones pasadas 24h.">
                   </div>
               </div>
-           </div>
 
-           <!-- Desktop Table View -->
-           <div class="hidden md:block overflow-hidden rounded-xl border border-[var(--color-border-subtle)]">
-              <table class="min-w-full divide-y divide-[var(--color-border-subtle)]">
-                <thead class="bg-[var(--color-bg-dark)]">
-                   <tr>
-                      <th class="px-6 py-3 text-left text-xs font-bold text-[var(--color-text-secondary)] uppercase">Usuario</th>
-                      <th class="px-6 py-3 text-left text-xs font-bold text-[var(--color-text-secondary)] uppercase">Rol</th>
-                      <th class="px-6 py-3 text-right text-xs font-bold text-[var(--color-text-secondary)] uppercase">Acciones</th>
-                   </tr>
-                </thead>
-                <tbody class="divide-y divide-[var(--color-border-subtle)] bg-[var(--glass-bg)]">
-                   <tr v-for="member in members" :key="member.user_id" class="hover:bg-[var(--color-bg-subtle)]/50">
-                      <td class="px-6 py-4 whitespace-nowrap">
-                         <div class="flex items-center">
-                            <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white uppercase">
-                               {{ member.email?.charAt(0) || 'U' }}
-                            </div>
-                            <div class="ml-3">
-                               <p class="text-sm font-medium text-[var(--color-white)]">{{ member.email }}</p>
-                            </div>
-                         </div>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap">
-                         <span :class="[
-                            member.role === 'owner' ? 'bg-purple-500/10 text-purple-400' : 
-                            member.role === 'admin' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400',
-                            'px-2 py-1 text-xs font-bold rounded-md uppercase'
-                         ]">
-                            {{ member.role }}
-                         </span>
-                      </td>
-                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                         <!-- Only show edit if not self and (I am owner OR I am admin editing member) -->
-                         <button 
-                            v-if="canManageTeam && member.role !== 'owner'" 
-                            @click="promoteUser(member)"
-                            class="text-[var(--color-accent-blue)] hover:underline text-xs"
-                         >
-                            {{ member.role === 'admin' ? 'Degradar a Miembro' : 'Hacer Admin' }}
-                         </button>
-                      </td>
-                   </tr>
-                </tbody>
-              </table>
-           </div>
-        </div>
+              <div class="mt-8 flex justify-end">
+                  <button @click="saveSettings" class="btn btn-primary" :disabled="saving">
+                      {{ saving ? 'Guardando...' : 'Guardar Cambios' }}
+                  </button>
+              </div>
+          </section>
+
+          <!-- Team Section -->
+          <section class="glass-panel p-8">
+              <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                  <span>👥</span> Equipo y Accesos
+              </h2>
+              <div class="overflow-x-auto">
+                  <table class="min-w-full text-sm text-left">
+                      <thead class="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-stone-900">
+                          <tr>
+                              <th class="px-4 py-3">Usuario</th>
+                              <th class="px-4 py-3">Rol</th>
+                              <th class="px-4 py-3 text-right">Estado</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr v-for="member in team" :key="member.id" class="border-b dark:border-gray-800">
+                              <td class="px-4 py-3 font-medium">
+                                  {{ member.profiles?.full_name || 'Usuario' }}
+                                  <div class="text-xs text-gray-500 font-normal">ID: {{ member.user_id }}</div>
+                              </td>
+                              <td class="px-4 py-3">
+                                  <span class="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase">
+                                      {{ member.role }}
+                                  </span>
+                              </td>
+                              <td class="px-4 py-3 text-right">
+                                  <span class="text-emerald-500">Activo</span>
+                              </td>
+                          </tr>
+                      </tbody>
+                  </table>
+              </div>
+              <p class="text-xs text-gray-500 mt-4">* Para agregar usuarios, contacta a soporte (MVP Limit).</p>
+          </section>
       </div>
-    </div>
-
-    <!-- Invite Modal -->
-    <AppModal :show="showInviteModal" @close="resetInvite" title="Invitar Miembro" description="El usuario debe estar registrado en la app previamente.">
-        <div v-if="inviteStatus === 'success'" class="text-center py-6 animate-fade-in-up">
-            <div class="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/20">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            </div>
-            <h3 class="text-xl font-bold text-[var(--color-white)] mb-2">¡Invitación Enviada!</h3>
-            <p class="text-[var(--color-text-secondary)] mb-6 text-sm">
-                Hemos agregado a <span class="text-[var(--color-white)] font-bold">{{ inviteEmail }}</span> al equipo correctamente.
-            </p>
-            <button @click="resetInvite" class="btn btn-primary w-full justify-center">
-                Entendido
-            </button>
-        </div>
-
-        <div v-else class="space-y-4">
-           <div>
-              <label class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Correo Electrónico</label>
-              <input v-model="inviteEmail" @keyup.enter="inviteUser" type="email" class="w-full px-4 py-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-dark)] text-[var(--color-white)] focus:ring-2 focus:ring-[var(--color-accent-blue)] outline-none transition-all placeholder-[var(--color-text-secondary)]/50" placeholder="usuario@ejemplo.com">
-           </div>
-           
-           <div v-if="inviteStatus === 'error'" class="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2">
-               <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-               <span>{{ inviteFeedback }}</span>
-           </div>
-
-           <div class="flex justify-end gap-3 pt-4">
-              <button @click="resetInvite" class="btn btn-secondary" :disabled="inviting">Cancelar</button>
-              <button @click="inviteUser" :disabled="inviting || !inviteEmail" class="btn btn-primary opacity-90 hover:opacity-100">
-                 <svg v-if="inviting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                 {{ inviting ? 'Enviando...' : 'Enviar Invitación' }}
-              </button>
-           </div>
-        </div>
-    </AppModal>
-
   </div>
 </template>
 
-<script setup>
-// Simple Icon Components to update
-const BuildingOfficeIcon = h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': 2 }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011 1v4a1 1 0 01-1 1h-3a1 1 0 01-1-1v-4a1 1 0 011-1h2' })
-])
-const UsersIcon = h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': 2 }, [
-   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' })
-])
-const UserIcon = h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': 2 }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' })
-])
+<style scoped>
+.input-std {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all;
+}
+</style>
 
-import { usePermissions } from '~/composables/usePermissions'
+<script setup lang="ts">
+import { useOrganization } from '~/composables/useOrganization'
+import { useToast } from "vue-toastification"
+import type { Database } from '~/types/database.types'
 
-definePageMeta({
-  layout: 'dashboard'
-})
+definePageMeta({ layout: 'dashboard', middleware: 'admin-auth' })
 
-const client = useSupabaseClient()
-const user = useSupabaseUser()
 const { organization, fetchOrganization } = useOrganization()
-const { canManageTeam } = usePermissions()
+const client = useSupabaseClient<Database>()
+const toast = useToast()
 
-const route = useRoute()
-const router = useRouter()
+const form = ref<any>({})
+const team = ref<any[]>([])
+const saving = ref(false)
 
-// TABS 
-// Sync Query Param to Tab state
-const currentTab = ref('profile') // Default to profile for better UX on first load? Or General. Let's stick to simple logic.
-
-watch(() => route.query.tab, (newTab) => {
-    if (newTab === 'team') currentTab.value = 'team'
-    else if (newTab === 'general') currentTab.value = 'general'
-    else currentTab.value = 'profile' // Default fallback
-}, { immediate: true })
-
-const tabs = computed(() => {
-    // Only show General/Team if allowed. Profile is for everyone.
-    return [
-        { id: 'profile', name: 'Mi Perfil', icon: UserIcon },
-        canManageTeam.value ? { id: 'general', name: 'Organización', icon: BuildingOfficeIcon } : null,
-        { id: 'team', name: 'Equipo', icon: UsersIcon }
-    ].filter(Boolean)
-})
-
-// PROFILE
-const profileForm = reactive({ fullName: '' })
-const loadingProfile = ref(false)
-
-const loadProfile = async () => {
-    if (!user.value?.id) return
-    const { data } = await client.from('profiles').select('full_name').eq('id', user.value.id).single()
-    if (data) profileForm.fullName = data.full_name || ''
-}
-
-const updateProfile = async () => {
-    let userId = user.value?.id
-    
-    if (!userId) {
-        // Fallback fetch
-        const { data } = await client.auth.getUser()
-        userId = data.user?.id
-    }
-
-    if (!userId) {
-        alert('Error: No se pudo identificar al usuario. Recarga la página.')
-        return
-    }
-
-    loadingProfile.value = true
-    try {
-        const { error } = await client.from('profiles').upsert({
-            id: userId,
-            full_name: profileForm.fullName,
-            updated_at: new Date()
-        })
-        if (error) throw error
-        alert('Perfil actualizado')
-    } catch (e) {
-        alert('Error actualizando perfil: ' + e.message)
-    } finally {
-        loadingProfile.value = false
-    }
-}
-
-// GENERAL
-const generalForm = reactive({ name: '' })
-const currentOrgId = ref(null) // Cache ID to avoid null errors if state flickers
-const loadingGeneral = ref(false)
-
-// Ensure we fetch org when user is ready (fixes hard reload issue)
-watch(user, async (u) => {
-    if (u) {
-        await fetchOrganization()
-        loadProfile()
+// Init Form
+watch(() => organization.value, (org) => {
+    if (org) {
+        form.value = { ...org }
     }
 }, { immediate: true })
 
-watch(() => organization.value, (newOrg) => {
-   if (newOrg) {
-      generalForm.name = newOrg.name
-      currentOrgId.value = newOrg.id
-   }
-}, { immediate: true })
-
-const updateOrgName = async () => {
-   // Robust check: If we don't have the ID, try to fetch it one last time
-   if (!currentOrgId.value) {
-      if (organization.value?.id) {
-          currentOrgId.value = organization.value.id
-      } else {
-          // Attempt Force Fetch
-          await fetchOrganization(true)
-          if (organization.value?.id) {
-             currentOrgId.value = organization.value.id
-          } else {
-             alert('Error: No se ha detectado el ID de la organización. Por favor recarga la página.')
-             return
-          }
-      }
-   }
-
-   loadingGeneral.value = true
-   try {
-      const { error } = await client.from('organizations')
-         .update({ name: generalForm.name })
-         .eq('id', currentOrgId.value)
-      
-      if (error) throw error
-      await fetchOrganization(true) // Force refresh to update UI
-      alert('Información guardada')
-   } catch (e) {
-      alert(e.message)
-   } finally {
-      loadingGeneral.value = false
-   }
-}
-
-const ensureOrgId = async () => {
-    // 0. Guard against missing user
-    if (!user.value?.id) {
-        console.warn('ensureOrgId: No user ID available')
-        return
-    }
-
-    // 1. Try Local State
-    if (currentOrgId.value) return
-
-    // 2. Try Global State
-    if (organization.value?.id) {
-        currentOrgId.value = organization.value.id
-        generalForm.name = organization.value.name
-        return
-    }
-
-    // 3. RAW DB FALLBACK (The "Ipso Facto" fix)
-    console.log('Orphaned State detected. Executing RAW recovery...')
-    const { data, error } = await client
-        .from('organization_members')
-        .select(`
-            organization:organizations ( id, name, subscription_status ),
-            role
-        `)
-        .eq('user_id', user.value.id)
-        .limit(1)
-        .maybeSingle()
-    
-    if (data && data.organization) {
-        console.log('Recovery Successful:', data.organization)
-        // Update Local
-        currentOrgId.value = data.organization.id
-        generalForm.name = data.organization.name
-        
-        // Update Global (optimistic)
-        organization.value = {
-            ...data.organization,
-            role: data.role
-        }
-    } else {
-        console.error('Recovery Failed:', error)
-    }
-}
-
-// TEAM
-const members = ref([])
-const showInviteModal = ref(false)
-const inviteEmail = ref('')
-const inviting = ref(false)
-const inviteStatus = ref('idle') // idle, success, error
-const inviteFeedback = ref('')
-
-const fetchMembers = async () => {
-   const orgId = currentOrgId.value || organization.value?.id
-   
-   if (!orgId) {
-       console.warn('fetchMembers: No ID available yet.')
-       return
-   }
-
-   console.log('Fetching members for Org:', orgId)
-   
-   // Removed 'email' as it is not in public.profiles. 
-   // Ideally we should sync email or use a view, but for now we fallback to name.
-   const { data, error } = await client.from('organization_members')
-      .select(`
-         user_id,
-         role,
-         profile:profiles ( full_name, avatar_url )
-      `)
-      .eq('organization_id', orgId)
-   
-   if (error) {
-       console.error('Error fetching members:', error)
-       return
-   }
-   
-   if (data) {
-      members.value = data.map(m => ({
-         user_id: m.user_id,
-         role: m.role,
-         email: m.profile?.full_name || 'Sin Nombre' 
-      }))
-   }
-}
-
-const resetInvite = () => {
-    showInviteModal.value = false
-    inviteStatus.value = 'idle'
-    inviteFeedback.value = ''
-    inviteEmail.value = ''
-    fetchMembers() // Refresh list on close
-}
-
-const inviteUser = async () => {
-   if (!inviteEmail.value) return
-   inviting.value = true
-   inviteStatus.value = 'idle'
-   inviteFeedback.value = ''
-   
-   try {
-      console.log('--- INVITE START ---')
-      let orgId = currentOrgId.value || organization.value?.id
-      
-      // Robust Org ID Check
-      if (!orgId || orgId === 'undefined') {
-         // Re-attempting logic...
-         const u = useSupabaseUser()
-         if (u.value?.id) await ensureOrgId()
-         orgId = currentOrgId.value
-      }
-
-      if (!orgId || orgId === 'undefined') {
-         throw new Error('No se pudo detectar la organización. Recarga la página por favor (F5).')
-      }
-
-      console.log('Sending API Request to invite:', inviteEmail.value)
-      
-      await $fetch('/api/invite', {
-          method: 'POST',
-          body: {
-              email: inviteEmail.value,
-              orgId: orgId
-          }
-      })
-      
-      console.log('Invite Success')
-      inviteStatus.value = 'success'
-      await fetchMembers() // Update list immediately behind modal
-   } catch (e) {
-      console.error('Invite Exception:', e)
-      inviteStatus.value = 'error'
-      // Extract specific error from Nuxt/Fetch error object
-      inviteFeedback.value = e.data?.message || e.response?._data?.message || e.message || 'Error al invitar usuario.'
-   } finally {
-      inviting.value = false
-      console.log('--- INVITE END ---')
-   }
-}
-
-const promoteUser = async (member) => {
-   if (!confirm('¿Estás seguro de cambiar el rol de este usuario?')) return
-   
-   const newRole = member.role === 'admin' ? 'member' : 'admin'
-   try {
-        const { error } = await client.from('organization_members')
-            .update({ role: newRole })
-            .eq('organization_id', currentOrgId.value || organization.value?.id)
-            .eq('user_id', member.user_id)
-
-        if (error) throw error
-        fetchMembers()
-   } catch (e) {
-        alert(e.message)
-   }
-}
-
+// Fetch Team
 onMounted(async () => {
-    await ensureOrgId()
     await fetchOrganization()
-    fetchMembers()
+    if (organization.value?.id) {
+        const { data } = await client
+            .from('organization_members')
+            .select('*, profiles(full_name, avatar_url)')
+            .eq('organization_id', organization.value.id)
+        team.value = data || []
+    }
 })
 
+const saveSettings = async () => {
+    saving.value = true
+    try {
+        const { error } = await client
+            .from('organizations')
+            .update({
+                name: form.value.name,
+                fiscal_doc: form.value.fiscal_doc,
+                address: form.value.address,
+                phone: form.value.phone,
+                receipt_footer: form.value.receipt_footer
+            } as any)
+            .eq('id', organization.value!.id)
+
+        if (error) throw error
+        
+        toast.success('Configuración guardada')
+        await fetchOrganization() // Refresh Store
+    } catch (e: any) {
+        toast.error(e.message)
+    } finally {
+        saving.value = false
+    }
+}
 </script>

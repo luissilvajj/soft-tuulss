@@ -3,20 +3,26 @@ import { useOrganization } from './useOrganization'
 export const usePermissions = () => {
     const { organization } = useOrganization()
 
-    const isAdmin = computed(() => {
-        // Strict Role Check: Only Owner or Admin can edit
-        const role = organization.value?.role
-        return role === 'owner' || role === 'admin'
-    })
+    const userRole = computed(() => organization.value?.role || 'member')
 
+    const isOwner = computed(() => userRole.value === 'owner')
+    const isAdmin = computed(() => ['owner', 'admin'].includes(userRole.value))
+    const isCashier = computed(() => userRole.value === 'cashier')
+
+    // Capabilities
     const canEditInventory = computed(() => isAdmin.value)
-    const canManageTeam = computed(() => isAdmin.value)
+    const canManageTeam = computed(() => isOwner.value) // Strict owner
     const canViewFinancials = computed(() => isAdmin.value)
+    const canProcessRefunds = computed(() => isAdmin.value) // Example
 
     return {
+        userRole,
+        isOwner,
         isAdmin,
+        isCashier,
         canEditInventory,
         canManageTeam,
-        canViewFinancials
+        canViewFinancials,
+        canProcessRefunds
     }
 }

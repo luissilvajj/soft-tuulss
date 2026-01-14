@@ -1,281 +1,116 @@
 <template>
-  <div class="relative">
-    <!-- Welcome Header -->
-    <div class="mb-10 relative z-10">
-      <h1 class="text-4xl font-extrabold text-[var(--color-white)] tracking-tight">
-        Hola, <span class="text-[var(--color-accent-blue)] relative inline-block">
-            {{ displayName }}
-            <svg class="absolute -bottom-2 left-0 w-full h-2 text-[var(--color-accent-blue)]/30" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="4" fill="none"/></svg>
-        </span>
-      </h1>
-      <p class="mt-2 text-[var(--color-text-secondary)] font-medium">Aquí tienes el resumen de tu negocio para hoy.</p>
-    </div>
-
-    <!-- Quick Actions (Mobile/Tablet visible) -->
-    <div class="flex gap-4 mb-8 overflow-x-auto pb-2 md:hidden">
-       <NuxtLink to="/app/sales/new" class="flex-shrink-0 bg-[var(--color-accent-blue)] text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 flex items-center gap-2">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-          Nueva Venta
-       </NuxtLink>
-       <NuxtLink to="/app/inventory" class="flex-shrink-0 bg-[var(--color-surface-glass)] text-[var(--color-text-secondary)] px-6 py-3 rounded-xl font-bold border border-[var(--color-border-subtle)] flex items-center gap-2">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-          Nuevo Producto
-       </NuxtLink>
-    </div>
-
-    <!-- KPI Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 relative z-10">
-      <!-- Card: Today Sales -->
-      <div class="glass-panel p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
-        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-           <svg class="w-24 h-24 text-[var(--color-accent-green)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.69 1.64 1.83 1.64.95 0 1.63-.61 1.63-1.48 0-1.33-2.15-1.7-3.41-2.19-1.42-.55-2.67-1.43-2.67-3.2 0-1.76 1.34-2.83 2.93-3.17V4h2.67v1.9c1.67.36 2.92 1.48 3.1 3.23h-1.92c-.12-.89-.72-1.45-1.7-1.45-.88 0-1.48.56-1.48 1.4 0 1.25 2.15 1.63 3.39 2.14 1.44.61 2.7 1.46 2.7 3.31.03 1.88-1.37 2.98-3.09 3.36z"/></svg>
-        </div>
-        <div class="relative z-10">
-          <p class="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Ventas de Hoy</p>
-          <div class="flex items-baseline mt-2">
-            <span class="text-4xl font-black text-[var(--color-white)] tracking-tight">
-               {{ pending ? '...' : '$' + (dashboardData?.todaySales?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00') }}
-            </span>
-          </div>
-          <div class="mt-4 flex items-center text-sm font-medium text-emerald-500">
-             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-             <span>Actualizado ahora</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card: Low Stock -->
-      <div class="glass-panel p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
-         <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-           <svg class="w-24 h-24 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm2 4h12v2H6zm2 4h8v2H8z"/></svg>
-        </div>
-        <div class="relative z-10">
-          <p class="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Stock Bajo</p>
-          <div class="flex items-baseline mt-2">
-            <span class="text-4xl font-black text-[var(--color-white)] tracking-tight">
-               {{ pending ? '...' : (dashboardData?.lowStockCount || '0') }}
-            </span>
-            <span class="ml-2 text-lg text-[var(--color-text-secondary)] font-medium">productos</span>
-          </div>
-           <div class="mt-4 flex items-center text-sm font-medium text-red-500" v-if="!pending && dashboardData?.lowStockCount > 0">
-             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-             <span>Requiere atención</span>
-          </div>
-          <div class="mt-4 text-sm font-medium text-emerald-500" v-else>
-             <span>Todo en orden</span>
-          </div>
-        </div>
-      </div>
-
-       <!-- Card: Clients -->
-      <div class="glass-panel p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
-         <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-           <svg class="w-24 h-24 text-[var(--color-accent-blue)]" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-        </div>
-        <div class="relative z-10">
-          <p class="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Total Clientes</p>
-          <div class="flex items-baseline mt-2">
-            <span class="text-4xl font-black text-[var(--color-white)] tracking-tight">
-               {{ pending ? '...' : (dashboardData?.clientCount || '0') }}
-            </span>
-          </div>
-          <div class="mt-4 flex items-center text-sm font-medium text-[var(--color-text-secondary)]">
-             <span>Base de datos activa</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Activity Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-       <!-- Main Activity Table -->
-       <div class="lg:col-span-2 glass-panel overflow-hidden">
-          <div class="px-6 py-5 border-b border-[var(--color-border-subtle)] flex justify-between items-center bg-[var(--color-bg-dark)]/50">
-             <h3 class="text-lg font-bold text-[var(--color-white)]">Actividad Reciente</h3>
-             <NuxtLink to="/app/sales" class="text-sm font-bold text-[var(--color-accent-blue)] hover:text-white transition-colors">Ver todo</NuxtLink>
-          </div>
-          
-          <div v-if="pending" class="p-8 text-center text-[var(--color-text-secondary)]">
-             Cargando datos...
-          </div>
-          
-          <ul role="list" class="divide-y divide-[var(--color-border-subtle)]" v-else-if="dashboardData?.recentTransactions?.length > 0">
-            <li v-for="trx in dashboardData.recentTransactions" :key="trx.id" class="px-6 py-4 hover:bg-[var(--color-bg-subtle)]/50 transition-colors flex items-center justify-between group">
-               <div class="flex items-center gap-4">
-                  <div :class="[
-                     trx.type === 'sale' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600',
-                     'w-10 h-10 rounded-full flex items-center justify-center'
-                  ]">
-                     <svg v-if="trx.type === 'sale'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                     <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
-                  </div>
-                  <div>
-                     <p class="text-sm font-bold text-[var(--color-white)] group-hover:text-[var(--color-accent-blue)] transition-colors">{{ trx.type === 'sale' ? 'Nueva Venta' : 'Gasto Registrado' }}</p>
-                     <p class="text-xs text-[var(--color-text-secondary)]">{{ new Date(trx.date).toLocaleDateString() }}</p>
-                  </div>
-               </div>
-               <span :class="[
-                  trx.type === 'sale' ? 'text-emerald-600' : 'text-[var(--color-white)]',
-                  'font-bold'
-               ]">
-                  {{ trx.type === 'sale' ? '+' : '-' }} ${{ trx.formattedAmount }}
-               </span>
-            </li>
-          </ul>
-           <div v-else class="p-8 text-center">
-              <div class="w-16 h-16 bg-[var(--color-bg-dark)] rounded-full flex items-center justify-center mx-auto mb-4 border border-[var(--color-border-subtle)]">
-                 <svg class="w-8 h-8 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              </div>
-              <p class="text-[var(--color-text-secondary)] font-medium">No hay actividad reciente.</p>
-           </div>
+  <div>
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+       <div>
+         <h1 class="text-3xl font-bold tracking-tight text-gradient">Dashboard Financiero</h1>
+         <p class="text-[var(--color-text-secondary)]">Visión general normalizada a USD.</p>
        </div>
+       <button @click="refresh" class="btn bg-white dark:bg-slate-800 border" :disabled="pending">
+          Refresh
+       </button>
+    </div>
 
-       <!-- Quick Actions Panel (Desktop) -->
-       <div class="hidden lg:flex flex-col gap-4">
-          <div class="glass-panel p-6 relative overflow-hidden">
-             
-             <h3 class="text-lg font-bold text-[var(--color-white)] mb-2">Acciones Rápidas</h3>
-             <p class="text-[var(--color-text-secondary)] text-sm mb-6">Gestiona tu negocio de forma eficiente.</p>
-             
-             <div class="space-y-3">
-                <NuxtLink to="/app/sales/new" class="w-full flex items-center justify-between bg-[var(--color-bg-subtle)] hover:bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] p-4 rounded-xl transition-all group cursor-pointer no-underline text-[var(--color-text-primary)] shadow-sm hover:shadow-md">
-                   <div class="flex items-center gap-3">
-                      <div class="bg-[var(--color-accent-blue)] p-2 rounded-lg text-white shadow-lg shadow-blue-500/20">
-                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                      </div>
-                      <span class="font-bold text-[var(--color-white)]">Registrar Venta</span>
-                   </div>
-                   <svg class="w-5 h-5 text-[var(--color-text-secondary)] group-hover:text-[var(--color-accent-blue)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </NuxtLink>
+    <!-- Permission Feedback -->
+    <div v-if="!canViewFinancials" class="p-4 bg-red-100 text-red-700 rounded-lg">
+        ⛔ Acceso Restringido. Contacta al dueño.
+    </div>
 
-                <NuxtLink to="/app/inventory" class="w-full flex items-center justify-between bg-[var(--color-bg-subtle)] hover:bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] p-4 rounded-xl transition-all group cursor-pointer no-underline text-[var(--color-text-primary)] shadow-sm hover:shadow-md">
-                   <div class="flex items-center gap-3">
-                      <div class="bg-[var(--color-accent-violet)] p-2 rounded-lg text-white shadow-lg shadow-purple-500/20">
-                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                      </div>
-                      <span class="font-bold text-[var(--color-white)]">Inventario</span>
-                   </div>
-                   <svg class="w-5 h-5 text-white/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </NuxtLink>
-             </div>
-          </div>
-       </div>
+    <div v-else>
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="glass-panel p-6 relative overflow-hidden">
+                <div class="absolute right-0 top-0 p-4 opacity-10">
+                    <svg class="w-16 h-16 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"></path></svg>
+                </div>
+                <p class="text-sm font-medium text-gray-500">Ventas de Hoy</p>
+                <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">${{ formatMoney(data?.kpis?.todaySales || 0) }}</p>
+                <p class="text-xs text-emerald-500 mt-1 font-bold">{{ data?.kpis?.todayCount || 0 }} transacciones</p>
+            </div>
+
+            <div class="glass-panel p-6 relative overflow-hidden">
+                <div class="absolute right-0 top-0 p-4 opacity-10">
+                   <svg class="w-16 h-16 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
+                </div>
+                <p class="text-sm font-medium text-gray-500">Ticket Promedio</p>
+                <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">${{ formatMoney(data?.kpis?.avgTicket || 0) }}</p>
+            </div>
+            
+            <div class="glass-panel p-6 relative overflow-hidden">
+                <p class="text-sm font-medium text-gray-500">Estado</p>
+                <div class="mt-2 text-xl font-mono text-gray-600 dark:text-gray-300">
+                    {{ userRole.toUpperCase() }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="glass-panel p-6 min-h-[400px]">
+            <h3 class="font-bold text-lg mb-4">Tendencia de Ingresos (USD Real)</h3>
+            <ClientOnly fallback="Cargando gráfica...">
+                <apexchart 
+                    width="100%" 
+                    height="350" 
+                    type="area" 
+                    :options="chartOptions" 
+                    :series="series"
+                ></apexchart>
+            </ClientOnly>
+        </div>
     </div>
   </div>
 </template>
 
-<script setup>
-definePageMeta({ layout: 'dashboard' })
-const supabase = useSupabaseClient()
-useAuthGuard()
-const router = useRouter()
-const { organization, fetchOrganization } = useOrganization()
+<script setup lang="ts">
+import { useOrganization } from '~/composables/useOrganization'
+import { usePermissions } from '~/composables/usePermissions'
 
-const userName = ref('Empresario')
-const userSession = useSupabaseUser()
-
-// Computed property to ensure we always show something
-const displayName = computed(() => {
-    // If we have a robust name, use it.
-    if (userName.value && userName.value !== 'Empresario') return userName.value
-    // Fallback to metadata if available instantly
-    if (userSession.value?.user_metadata?.full_name) {
-       return userSession.value.user_metadata.full_name.split(' ')[0]
-    }
-    return 'Empresario'
+definePageMeta({ 
+    layout: 'dashboard',
+    middleware: 'admin-auth' // Protect the route
 })
 
-// Initialize name purely from session (Instant)
-if (userSession.value?.user_metadata?.full_name) {
-   userName.value = userSession.value.user_metadata.full_name.split(' ')[0]
-}
+const { organization } = useOrganization()
+const { canViewFinancials, userRole } = usePermissions()
 
-// Ensure Org is loaded (in background if possible, but we need it for routing check)
-// usage of onMounted for redirect logic is acceptable, but let's try to verify early
-onMounted(async () => {
-    // Check missing name in DB if metadata failed
-    if (userName.value === 'Empresario' && userSession.value?.id) {
-        const { data } = await supabase.from('profiles').select('full_name').eq('id', userSession.value.id).single()
-        if (data?.full_name) userName.value = data.full_name.split(' ')[0]
-    }
-    
-    // Check Org for redirection
-    if (!organization.value) {
-       await fetchOrganization()
-       // If still no organization after robust API fetch, then validly redirect
-       if (!organization.value || organization.value.error) {
-           console.log('Redirecting to onboarding because org is missing or error:', organization.value)
-           router.push('/onboarding')
-       }
-    }
+// Data fetching handles waiting for organization
+const { data, pending, refresh } = await useFetch('/api/reports/dashboard', {
+    params: { 
+        refresh: 'true',
+        organization_id: computed(() => organization.value?.id) 
+    },
+    // Only fetch if admin
+    immediate: canViewFinancials.value,
+    watch: [() => organization.value?.id]
 })
 
-// Use Async Data for Parallel Fetching of Dashboard Metrics
-const { data: dashboardData, pending } = await useAsyncData('dashboard-metrics', async () => {
-    // FIX: Use local date to avoid UTC rollover issues (e.g. 8PM VET is Tomorrow UTC)
-    // new Date().toLocaleDateString('en-CA') returns YYYY-MM-DD in local time
-    const today = new Date().toLocaleDateString('en-CA')
-    
-    // Execute all independent queries in parallel
-    const [salesResult, stockResult, clientResult, trxResult] = await Promise.all([
-        // 1. Today Sales - Get ALL columns to do manual conversion
-        supabase.from('transactions')
-          .select('amount, currency, exchange_rate')
-          .eq('organization_id', organization.value.id) // FIXED: Scoped to Org
-          .eq('type', 'sale')
-          .gte('date', today),
-          
-        // 2. Low Stock
-        supabase.from('products')
-          .select('*', { count: 'exact', head: true })
-          .eq('organization_id', organization.value.id) // FIXED: Scoped to Org
-          .lt('stock', 10),
-          
-        // 3. Client Count
-        supabase.from('clients')
-          .select('*', { count: 'exact', head: true })
-          .eq('organization_id', organization.value.id), // FIXED: Scoped to Org
-          
-        // 4. Recent Trx
-        supabase.from('transactions')
-          .select('*')
-          .eq('organization_id', organization.value.id) // FIXED: Scoped to Org
-          .order('date', { ascending: false })
-          .limit(5)
-    ])
+const formatMoney = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
-    const normalizeAmount = (trx) => {
-        let amount = trx.amount || 0
-        let rate = trx.exchange_rate || 1
-        
-        // Heuristic: If VES or likely VES (>1000 and rate > 20)
-        const isVes = trx.currency === 'VES' || (amount > 1000 && rate > 20)
-        
-        if (isVes && rate) {
-            return amount / rate
+const series = computed(() => data.value?.chart?.series || [])
+
+const chartOptions = computed(() => ({
+    chart: {
+        id: 'sales-chart',
+        fontFamily: 'Inter, sans-serif',
+        toolbar: { show: false },
+        background: 'transparent'
+    },
+    colors: ['#10B981'],
+    stroke: { curve: 'smooth', width: 2 },
+    xaxis: {
+        categories: data.value?.chart?.categories || [],
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        labels: { style: { colors: '#94a3b8' } }
+    },
+    yaxis: {
+        labels: { 
+            style: { colors: '#94a3b8' },
+            formatter: (val) => `$${val.toFixed(0)}`
         }
-        return amount
-    }
-
-    const todaySales = salesResult.data?.reduce((acc, curr) => acc + normalizeAmount(curr), 0) || 0
-    const lowStockCount = stockResult.count || 0
-    const clientCount = clientResult.count || 0
-    const recentTransactions = trxResult.data || []
-    
-    // Patch recent transactions for display
-    const formattedRecent = recentTransactions.map(t => ({
-        ...t,
-        formattedAmount: normalizeAmount(t).toFixed(2)
-    }))
-
-    return {
-        todaySales,
-        lowStockCount,
-        clientCount,
-        recentTransactions: formattedRecent
-    }
-}, {
-    lazy: true, 
-    server: false 
-})
+    },
+    grid: { show: true, borderColor: '#33415520' },
+    dataLabels: { enabled: false },
+    theme: { mode: 'dark' } 
+}))
 </script>

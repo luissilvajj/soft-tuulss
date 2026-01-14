@@ -1,7 +1,9 @@
 import type { Client } from '~/types/models'
 
+import type { Database } from '~/types/database.types'
+
 export const useClients = () => {
-    const client = useSupabaseClient()
+    const client = useSupabaseClient<Database>()
     const { organization } = useOrganization()
 
     const loading = useState('clients_loading', () => false)

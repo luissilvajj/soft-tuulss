@@ -110,27 +110,50 @@
 
     <!-- Modals (Simple Re-implementation or Reuse) -->
     <!-- Using existing components logic structure -->
-    <AppModal :show="showModal" :title="isEditing ? 'Editar' : 'Nuevo'" @close="closeModal">
+    <AppModal :show="showModal" :title="isEditing ? 'Editar Producto' : 'Nuevo Producto'" @close="closeModal">
          <div class="space-y-4">
-            <input v-model="form.name" class="input-std" placeholder="Nombre">
-            <input v-model="form.sku" class="input-std" placeholder="SKU">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Nombre del Producto</label>
+                <input v-model="form.name" class="input-std" placeholder="Ej. iPhone 13 Pro">
+            </div>
+            <div>
+                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">SKU (Código Único)</label>
+                 <input v-model="form.sku" class="input-std" placeholder="Ej. IP13PRO-128">
+            </div>
             <div class="grid grid-cols-2 gap-4">
-                <input v-model.number="form.price" type="number" class="input-std" placeholder="Precio">
-                <!-- Stock/Cost read only on edit usually, or constrained -->
-                <input v-if="!isEditing" v-model.number="form.stock" type="number" class="input-std" placeholder="Stock Inicial">
-                <input v-if="!isEditing" v-model.number="form.cost" type="number" class="input-std" placeholder="Costo Inicial">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Precio de Venta</label>
+                    <input v-model.number="form.price" type="number" step="0.01" class="input-std" placeholder="0.00">
+                </div>
+                <!-- Stock/Cost only on create -->
+                <div v-if="!isEditing">
+                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Stock Inicial</label>
+                    <input v-model.number="form.stock" type="number" class="input-std" placeholder="0">
+                </div>
+            </div>
+            <div v-if="!isEditing">
+                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Costo Unitario (Referencial)</label>
+                 <input v-model.number="form.cost" type="number" step="0.01" class="input-std" placeholder="0.00">
             </div>
          </div>
          <template #actions>
-            <button @click="saveProduct" class="btn btn-primary" :disabled="formSaving">Guardar</button>
+            <button @click="saveProduct" class="btn btn-primary" :disabled="formSaving">
+                {{ formSaving ? 'Guardando...' : 'Guardar Producto' }}
+            </button>
          </template>
     </AppModal>
 
     <AppModal :show="showRestock" title="Reponer Inventario" @close="showRestock = false">
          <div class="space-y-4 p-2">
             <p>Producto: <b>{{ selectedProduct?.name }}</b></p>
-            <input v-model.number="restock.qty" type="number" class="input-std" placeholder="Cantidad a agregar">
-            <input v-model.number="restock.cost" type="number" class="input-std" placeholder="Nuevo Costo Unitario">
+            <div>
+                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Cantidad a Agregar</label>
+                 <input v-model.number="restock.qty" type="number" class="input-std" placeholder="0">
+            </div>
+            <div>
+                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Nuevo Costo Unitario</label>
+                 <input v-model.number="restock.cost" type="number" step="0.01" class="input-std" placeholder="0.00">
+            </div>
             <p class="text-xs text-gray-500">El costo promedio se recalculará automáticamente.</p>
          </div>
           <template #actions>
@@ -216,7 +239,9 @@ const saveProduct = async () => {
         if (isEditing.value) {
             await updateProd(form.value.id, { name: form.value.name, sku: form.value.sku, price: form.value.price })
         } else {
-            await createProd({ ...form.value, organization_id: organization.value!.id })
+             // CRITICAL FIX: Ensure 'id' is NOT sent as empty string for new items
+             const { id, ...newProduct } = form.value
+             await createProd({ ...newProduct, organization_id: organization.value!.id })
         }
         toast.success('Guardado')
         closeModal()

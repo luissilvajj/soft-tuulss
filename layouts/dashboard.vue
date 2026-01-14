@@ -96,10 +96,45 @@
       </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="flex-1 md:ml-64 p-4 md:p-8 pt-20 md:pt-8 transition-colors duration-300">
+    <!-- Main Content (Added padding-bottom for mobile nav) -->
+    <main class="flex-1 md:ml-64 p-4 md:p-8 pt-20 md:pt-8 pb-24 md:pb-8 transition-colors duration-300">
       <slot />
     </main>
+
+    <!-- Mobile Bottom Navigation (Fixed) -->
+    <div class="md:hidden fixed bottom-0 left-0 w-full bg-[var(--glass-bg)] backdrop-blur-xl border-t border-[var(--color-border-subtle)] z-50 pb-safe">
+        <div class="grid grid-cols-5 h-16 items-center">
+            <!-- Alert: Using grid-cols-5 to include 'AI' in the center or 'More' at end -->
+            
+            <NuxtLink to="/app" active-class="text-[var(--color-accent-blue)]" class="flex flex-col items-center justify-center gap-1 text-[var(--color-text-secondary)]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span class="text-[10px] font-bold">Inicio</span>
+            </NuxtLink>
+
+            <NuxtLink to="/app/sales" active-class="text-[var(--color-accent-blue)]" class="flex flex-col items-center justify-center gap-1 text-[var(--color-text-secondary)]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-[10px] font-bold">Ventas</span>
+            </NuxtLink>
+
+            <!-- Center Action Button (New Sale) -->
+            <div class="relative -top-5">
+                 <NuxtLink to="/app/sales/new" class="flex items-center justify-center w-14 h-14 bg-[var(--color-accent-blue)] rounded-full shadow-lg shadow-blue-500/40 text-white transform hover:scale-105 transition-all">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                 </NuxtLink>
+            </div>
+
+            <NuxtLink to="/app/inventory" active-class="text-[var(--color-accent-blue)]" class="flex flex-col items-center justify-center gap-1 text-[var(--color-text-secondary)]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <span class="text-[10px] font-bold">Stock</span>
+            </NuxtLink>
+
+            <!-- Menu / More (Triggers Sidebar) -->
+            <button @click="isMobileMenuOpen = true" class="flex flex-col items-center justify-center gap-1 text-[var(--color-text-secondary)]">
+                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                 <span class="text-[10px] font-bold">Menú</span>
+            </button>
+        </div>
+    </div>
   </div>
 </template>
 
@@ -128,7 +163,7 @@ const ensureGlobalState = async (userId) => {
         console.error('RecoverGlobalState: Missing User ID')
         return
     }
-    console.log('Dashboard: Attempting Global State Recovery...')
+    // console.log('Dashboard: Attempting Global State Recovery...')
     
     // 1. Recover Organization
     if (!organization.value) {
@@ -143,7 +178,7 @@ const ensureGlobalState = async (userId) => {
             .maybeSingle()
         
         if (orgData && orgData.organization) {
-            console.log('Dashboard: Organization Recovered', orgData.organization)
+            // console.log('Dashboard: Organization Recovered', orgData.organization)
             orgName.value = orgData.organization.name
             userRole.value = orgData.role || 'Usuario'
             // Hydrate global state for others
@@ -169,7 +204,7 @@ const ensureGlobalState = async (userId) => {
           .single()
       
       if (profile) {
-          console.log('Dashboard: Profile Recovered', profile)
+          // console.log('Dashboard: Profile Recovered', profile)
           userName.value = profile.full_name || 'Usuario'
       }
     }
@@ -177,25 +212,14 @@ const ensureGlobalState = async (userId) => {
 
 // Ensure org is loaded
 onMounted(async () => {
-  // 1. Get Session directly (Most robust way)
-  const { data: { session } } = await client.auth.getSession()
-  
-  if (!session?.user) {
-      console.warn('Dashboard: No active session. Redirecting.')
-      return router.push('/login')
-  }
+    // 1. Get Session directly
+    const { data: { session } } = await client.auth.getSession()
+    if (!session?.user) return // Let middleware handle redirect if needed
 
-  const userId = session.user.id
-  console.log('Dashboard: Session confirmed for user', userId)
+    const userId = session.user.id
+    await ensureGlobalState(userId)
 
-  // 2. EXECUTE RECOVERY (Ipso Facto) using confirmed ID
-  await ensureGlobalState(userId)
-
-  // 3. Organization is handled by useOrganization automatically
-  // Just ensure we have at least one load
-  if (!organization.value) {
-      await fetchOrganization()
-  }
+    if (!organization.value) await fetchOrganization()
 })
 
 const logout = async () => {
@@ -204,8 +228,14 @@ const logout = async () => {
   } catch (e) {
     console.warn('Logout warning:', e)
   } finally {
-    // Force hard reload to clear all state/cache
     window.location.href = '/login'
   }
 }
 </script>
+
+<style scoped>
+/* Safe Area for iPhones with Home Bar */
+.pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+</style>

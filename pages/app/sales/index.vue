@@ -6,7 +6,7 @@
         <h1 class="text-3xl font-bold tracking-tight text-gradient">Ventas</h1>
         <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Gestiona y rastrea todas tus operaciones de venta.</p>
       </div>
-      <NuxtLink to="/app/sales/new" class="btn btn-primary shadow-lg hover:shadow-xl transform transition-all duration-300">
+      <NuxtLink id="tour-new-sale-btn" to="/app/sales/new" class="btn btn-primary shadow-lg hover:shadow-xl transform transition-all duration-300">
         <span class="relative flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Nueva Venta
@@ -94,17 +94,19 @@
         </div>
 
         <!-- Empty State -->
-        <div v-else class="flex flex-col items-center justify-center py-20 px-4 text-center">
-            <div class="w-24 h-24 bg-[var(--color-bg-dark)] rounded-full flex items-center justify-center mb-6 shadow-inner">
-                 <svg class="w-10 h-10 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-            </div>
-            <h3 class="text-xl font-bold text-[var(--color-white)] mb-2">No hay ventas registradas</h3>
-            <p class="text-[var(--color-text-secondary)] max-w-sm mb-8">
-                Tus operaciones de venta aparecerán aquí. ¡Comienza hoy!
-            </p>
-            <NuxtLink to="/app/sales/new" class="btn btn-primary">
-                Crear Primera Venta
-            </NuxtLink>
+        <!-- Empty State -->
+        <div v-else class="py-12">
+            <EmptyState 
+                title="No hay ventas registradas" 
+                description="Tus operaciones de venta aparecerán aquí. ¡Comienza hoy!"
+                actionLabel="Crear Primera Venta"
+                actionId="tour-empty-sale"
+                @action="router.push('/app/sales/new')"
+            >
+                <template #icon>
+                     <svg class="w-10 h-10 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </template>
+            </EmptyState>
         </div>
     </div>
     <!-- Detail Modal -->

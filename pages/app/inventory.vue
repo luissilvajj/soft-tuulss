@@ -29,8 +29,23 @@
         </div>
     </div>
 
+    <!-- Empty State -->
+    <div v-if="!loading && products.length === 0 && searchQuery === ''" class="py-12">
+        <EmptyState 
+            title="Tu inventario está vacío" 
+            description="Para comenzar a vender, primero necesitas agregar productos a tu inventario. ¡Es muy fácil!"
+            actionLabel="Crear Primer Producto"
+            actionId="tour-add-product"
+            @action="openModal"
+        >
+            <template #icon>
+                <svg class="w-10 h-10 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+            </template>
+        </EmptyState>
+    </div>
+
     <!-- Data Table -->
-    <div class="glass-panel overflow-hidden relative min-h-[400px]">
+    <div v-else class="glass-panel overflow-hidden relative min-h-[400px]">
         <div v-if="pending" class="absolute inset-0 bg-white/50 dark:bg-black/50 z-10 flex items-center justify-center">
             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>

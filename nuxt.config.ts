@@ -46,7 +46,8 @@ export default defineNuxtConfig({
     }
   },
   css: [
-    '~/assets/css/velo-theme.css'
+    '~/assets/css/velo-theme.css',
+    'driver.js/dist/driver.css'
   ],
   supabase: {
     redirect: false,

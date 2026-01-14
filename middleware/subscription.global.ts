@@ -34,23 +34,28 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const org = organization.value
     const now = new Date()
 
-    // 4. Trial Logic
-    // If trial_ends_at is in the future, ACCESS GRANTED
-    if (org.trial_ends_at && new Date(org.trial_ends_at) > now) {
+    // 5. Subscription Logic
+    const status = org.subscription_status || 'active' // Default to active if null (MVP)
+    const validStatuses = ['active', 'trialing']
+
+    if (validStatuses.includes(status)) {
         return
     }
 
-    // 5. Subscription Logic
-    // If status is active or trialing (stripe status), ACCESS GRANTED
-    // const validStatuses = ['active', 'trialing']
-    // if (validStatuses.includes(org.subscription_status)) {
-    //    return
-    // }
+    // Grace Period Logic (for past_due)
+    if (status === 'past_due') {
+        const failureDate = org.last_payment_failure ? new Date(org.last_payment_failure) : new Date(org.updated_at || now)
+        const daysSinceFailure = (now.getTime() - failureDate.getTime()) / (1000 * 3600 * 24)
 
-    // EMERGENCY OVERRIDE: Allow access if org exists to unblock user
-    return
+        // 5 days grace
+        if (daysSinceFailure < 5) {
+            return // Allow access (Nagware will show)
+        }
+    }
 
-    // 6. Access Denied -> Redirect to Billing
-    // Force redirect to billing page if trial expired and no active sub
-    return navigateTo('/app/settings/billing')
+    // 6. Hard Block (Kill Switch)
+    // Redirect to billing if not in permitted paths
+    if (!to.path.startsWith('/app/settings')) {
+        return navigateTo('/app/settings/billing')
+    }
 })

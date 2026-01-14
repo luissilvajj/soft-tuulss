@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen bg-[var(--color-bg-dark)] flex font-sans transition-colors duration-300">
+    <SubscriptionWarning />
     
     <!-- Mobile Header -->
     <div class="md:hidden fixed top-0 w-full z-30 bg-[var(--glass-bg)] backdrop-blur-xl border-b border-[var(--color-border-subtle)] h-16 flex items-center justify-between px-4">

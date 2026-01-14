@@ -12,6 +12,7 @@ export interface Organization {
     address?: string
     phone?: string
     receipt_footer?: string
+    last_payment_failure?: string
     created_at: string
 }
 

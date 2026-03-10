@@ -50,13 +50,13 @@ const logout = async () => {
             v-for="item in navigation" 
             :key="item.name" 
             :to="item.href"
-            active-class="bg-primary-50 text-primary-600"
-            class="group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-primary-600"
+            active-class="bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
+            class="group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-section hover:text-text-heading"
           >
             <component 
               :is="item.icon" 
               class="mr-3 h-5 w-5 flex-shrink-0" 
-              :class="[ $route.path === item.href ? 'text-primary-600' : 'text-gray-400 group-hover:text-primary-600' ]" 
+              :class="[ $route.path === item.href ? 'text-primary-600 dark:text-primary-400' : 'text-text-secondary group-hover:text-text-heading' ]" 
             />
             {{ item.name }}
           </NuxtLink>
@@ -73,14 +73,14 @@ const logout = async () => {
              </div>
         </div>
         <div class="flex items-center group cursor-pointer" @click="logout">
-          <div class="h-9 w-9 flex-shrink-0 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold">
+          <div class="h-9 w-9 flex-shrink-0 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-700 dark:text-primary-400 font-bold">
             {{ user?.email?.charAt(0).toUpperCase() || 'U' }}
           </div>
           <div class="ml-3">
-            <p class="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+            <p class="text-sm font-medium text-text-heading">
               {{ user?.email?.split('@')[0] || 'Usuario' }}
             </p>
-            <p class="text-xs text-gray-500 group-hover:text-gray-700">Cerrar Sesión</p>
+            <p class="text-xs text-text-secondary group-hover:text-text-heading transition-colors">Cerrar Sesión</p>
           </div>
         </div>
       </div>
@@ -110,13 +110,13 @@ const logout = async () => {
         v-for="item in navigation" 
         :key="item.name" 
         :to="item.href"
-        active-class="text-primary-600"
-        class="flex flex-col items-center p-2 text-gray-400 hover:text-primary-500"
+        active-class="text-primary-600 dark:text-primary-400"
+        class="flex flex-col items-center p-2 text-text-secondary transition-colors hover:text-text-heading"
       >
         <component 
           :is="item.icon" 
           class="h-6 w-6" 
-          :class="[ $route.path === item.href ? 'text-primary-600' : '' ]"
+          :class="[ $route.path === item.href ? 'text-primary-600 dark:text-primary-400' : '' ]"
         />
         <span class="mt-1 text-[10px] font-medium">{{ item.name }}</span>
       </NuxtLink>

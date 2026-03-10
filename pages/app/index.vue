@@ -52,12 +52,12 @@
                 </div>
             </div>
             
-            <div class="bg-primary-600 rounded-xl border border-primary-500 p-6 shadow-sm relative overflow-hidden text-white">
-                <p class="text-sm font-medium text-white/80">Estado</p>
+            <div class="bg-primary-600 dark:bg-primary-900/40 rounded-xl border border-primary-500 dark:border-primary-500/30 p-6 shadow-sm relative overflow-hidden text-white dark:text-primary-400 transition-colors">
+                <p class="text-sm font-medium text-white/80 dark:text-primary-400/80">Estado</p>
                 <div class="mt-2 text-2xl font-bold tracking-tight">
                     {{ userRole.toUpperCase() }}
                 </div>
-                <p class="text-xs text-white/60 mt-1">Suscripción Activa</p>
+                <p class="text-xs text-white/60 dark:text-primary-400/60 mt-1">Suscripción Activa</p>
             </div>
         </div>
 

@@ -16,9 +16,9 @@ const isSyncing = ref(false); // Mock for now
 <template>
   <div class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
     :class="[
-      !isOnline ? 'bg-gray-100 text-gray-500' : 
-      isSyncing ? 'bg-warning-50 text-warning-600' : 
-      'bg-success-50 text-success-600'
+      !isOnline ? 'bg-surface-subtle border border-surface-border text-text-secondary' : 
+      isSyncing ? 'bg-status-warning/10 text-status-warning' : 
+      'bg-status-success/10 text-status-success'
     ]"
   >
     <!-- Offline State -->
@@ -35,7 +35,7 @@ const isSyncing = ref(false); // Mock for now
 
     <!-- Online & Synced State -->
     <template v-else>
-      <div class="h-2 w-2 rounded-full bg-success-500"></div>
+      <div class="h-2 w-2 rounded-full bg-status-success"></div>
       <span class="hidden sm:inline">Online</span>
     </template>
   </div>

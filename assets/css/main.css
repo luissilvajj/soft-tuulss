@@ -21,10 +21,10 @@
   }
 
   .dark {
-    --color-surface-ground: #0f172a; /* Slate 900 */
-    --color-surface-section: #1e293b; /* Slate 800 */
-    --color-surface-subtle: #334155; /* Slate 700 */
-    --color-surface-border: #475569; /* Slate 600 */
+    --color-surface-ground: #1e293b; /* Slate 800 - Elevated cards/sidebar */
+    --color-surface-section: #334155; /* Slate 700 */
+    --color-surface-subtle: #0f172a; /* Slate 900 - Environment bg */
+    --color-surface-border: #334155; /* Slate 700 */
 
     --color-text-heading: #f8fafc; /* Slate 50 */
     --color-text-body: #cbd5e1; /* Slate 300 */

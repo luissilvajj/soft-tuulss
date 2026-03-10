@@ -406,6 +406,13 @@
         </BaseButton>
       </template>
     </AppModal>
+
+    <!-- Success Modal -->
+    <SaleDetailModal 
+      v-if="showSuccessModal && lastSale" 
+      :sale="lastSale" 
+      @close="resetCheckout" 
+    />
   </div>
 </template>
 
@@ -444,6 +451,16 @@ const clientSelectorKey = ref(0)
 const paymentReference = ref('')
 const savingClient = ref(false)
 const newClient = ref({ name: '', email: '', phone: '', identity_document: '' })
+const showSuccessModal = ref(false)
+const lastSale = ref<any>(null)
+
+const resetCheckout = () => {
+    showSuccessModal.value = false
+    lastSale.value = null
+    clientSelectorKey.value++ 
+    salesStore.currentSale.globalDiscount = 0
+    salesStore.currentSale.isMixedPayment = false
+}
 
 // Sync offline sales when coming online
 watch(isOnline, (online) => {
@@ -751,12 +768,16 @@ const handleCheckout = async () => {
             })
         }
 
-        await salesStore.processSale(payload as any)
+        const res = await salesStore.processSale(payload as any)
         toast.success(`Venta procesada exitosamente`)
-        // Reset local Inputs attached to logic that Store might not clear deeply if not destroyed
-        clientSelectorKey.value++ 
-        salesStore.currentSale.globalDiscount = 0
-        salesStore.currentSale.isMixedPayment = false
+        
+        if (res.sale) {
+            lastSale.value = res.sale
+            showSuccessModal.value = true
+        } else {
+            // Offline
+            resetCheckout()
+        }
     } catch (e: any) {
         toast.error(e.message || 'Error al procesar venta')
     } finally {

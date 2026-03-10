@@ -22,7 +22,7 @@
             </div>
             <div class="text-right">
                 <p class="text-sm text-[var(--color-text-secondary)] uppercase tracking-wider font-semibold">Fecha</p>
-                <p class="font-mono text-[var(--color-heading)]">{{ new Date(sale.created_at).toLocaleString() }}</p>
+                <p class="font-mono text-[var(--color-heading)]">{{ new Date(sale.created_at || Date.now()).toLocaleString() }}</p>
                 <p class="text-xs text-[var(--color-text-secondary)] mt-1">Ref: {{ sale.payment_reference || 'N/A' }}</p>
             </div>
         </div>
@@ -76,21 +76,21 @@
                 <div class="bg-[var(--color-bg-subtle)] rounded-lg p-3 mt-4 border border-[var(--color-border-subtle)] text-sm">
                      
                      <!-- Mixed Payment Details -->
-                     <div v-if="sale.payment_details && (sale.payment_details.usd_amount || sale.payment_details.ves_amount)" class="space-y-2">
+                     <div v-if="sale.payment_details && ((sale.payment_details.usd_amount || 0) > 0 || (sale.payment_details.ves_amount || 0) > 0)" class="space-y-2">
                         <div class="flex justify-between text-[var(--color-heading)] font-bold mb-2 border-b border-[var(--color-border-subtle)] pb-1">
                             <span>Desglose de Pago (Mixto)</span>
                         </div>
-                        <div v-if="sale.payment_details.usd_amount > 0" class="flex justify-between text-[var(--color-text-secondary)]">
+                        <div v-if="(sale.payment_details.usd_amount || 0) > 0" class="flex justify-between text-[var(--color-text-secondary)]">
                             <span>Pagado en Divisa</span>
                             <span class="font-mono text-emerald-500 whitespace-nowrap">${{ Number(sale.payment_details.usd_amount).toFixed(2) }}</span>
                         </div>
-                        <div v-if="sale.payment_details.ves_amount > 0" class="flex justify-between text-[var(--color-text-secondary)]">
+                        <div v-if="(sale.payment_details.ves_amount || 0) > 0" class="flex justify-between text-[var(--color-text-secondary)]">
                             <span>Pagado en Bolívares</span>
                             <div class="text-right">
                                 <span class="font-mono text-[var(--color-accent-blue)] block whitespace-nowrap">Bs. {{ Number(sale.payment_details.ves_amount).toLocaleString('es-VE', { minimumFractionDigits: 2 }) }}</span>
                             </div>
                         </div>
-                         <div v-if="sale.tax_igtf > 0" class="flex justify-between text-[var(--color-text-secondary)] text-xs mt-1 pt-1 border-t border-[var(--color-border-subtle)] dashed">
+                         <div v-if="(sale.tax_igtf || 0) > 0" class="flex justify-between text-[var(--color-text-secondary)] text-xs mt-1 pt-1 border-t border-[var(--color-border-subtle)] dashed">
                             <span>Base IGTF (Divisa)</span>
                             <span class="font-mono whitespace-nowrap">${{ Number(sale.payment_details.igtf_base || sale.payment_details.usd_amount).toFixed(2) }}</span>
                         </div>
@@ -133,6 +133,10 @@
     </div>
     
     <template #actions>
+        <button v-if="canShare" @click="shareInvoice" class="btn bg-surface-ground text-text-heading border border-surface-border hover:bg-surface-subtle transition-colors flex items-center gap-2 mr-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+            Compartir
+        </button>
         <button @click="printInvoice" class="btn bg-[var(--color-bg-subtle)] text-[var(--color-heading)] border border-[var(--color-border-subtle)] hover:bg-[var(--color-border-subtle)] transition-colors flex items-center gap-2 mr-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
             Imprimir
@@ -145,13 +149,48 @@
 </template>
 
 <script setup lang="ts">
-import type { Sale } from '~/types/models'
+import { computed, ref, type PropType } from 'vue'
+import { useRouter } from 'vue-router'
+// Using local type representation if 'Sale' from models is missing items_snapshot
+interface ExtendedSale {
+    id: string;
+    client_name?: string;
+    status: string;
+    currency: string;
+    amount: number;
+    exchange_rate: number;
+    payment_method: string;
+    payment_reference?: string;
+    created_at?: string;
+    tax_igtf?: number;
+    payment_details?: any;
+    items?: any[];
+    items_snapshot?: any;
+}
 
 const props = defineProps<{
-  sale: Sale
+  sale: ExtendedSale
 }>()
 
 const router = useRouter()
+
+const canShare = computed(() => {
+    return typeof navigator !== 'undefined' && !!navigator.share
+})
+
+const shareInvoice = async () => {
+    try {
+        const url = router.resolve(`/app/sales/print/${props.sale.id}`).href
+        const fullUrl = window.location.origin + url
+        await navigator.share({
+            title: `Factura Softtuuls #${props.sale.id.slice(0, 8)}`,
+            text: `Aquí tienes tu comprobante digital de compra. Total: ${formatMoney(showInVes.value ? paidVesAmount.value : baseUsdAmount.value, showInVes.value ? 'VES' : 'USD')}`,
+            url: fullUrl
+        })
+    } catch (err) {
+        console.error('Error sharing:', err)
+    }
+}
 
 const printInvoice = () => {
     // Navigate to print page

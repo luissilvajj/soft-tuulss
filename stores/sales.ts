@@ -207,7 +207,7 @@ export const useSalesStore = defineStore('sales', {
 
                 clearTimeout(timeoutId)
                 this.clearCart()
-                return { status: 'success' }
+                return { status: 'success', sale }
 
             } catch (e: any) {
                 clearTimeout(timeoutId)

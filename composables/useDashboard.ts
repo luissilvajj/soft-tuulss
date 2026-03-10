@@ -12,7 +12,6 @@ export const useDashboard = () => {
     }))
     const salesTrend = useState<any[]>('dashboard_trend', () => [])
     const loading = useState('dashboard_loading', () => false)
-    const loading = useState('dashboard_loading', () => false)
     const error = useState('dashboard_error', () => null)
     const generatingZ = ref(false)
 

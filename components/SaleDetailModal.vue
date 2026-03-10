@@ -175,10 +175,21 @@
         </div>
     </div>
     
+    <div class="fixed top-[-9999px] left-[-9999px]">
+        <InvoiceA4 id="invoice-a4-document" :sale="sale" :organization="organization" />
+    </div>
+
     <template #actions>
         <button v-if="canShare" @click="shareInvoice" class="btn bg-surface-ground text-text-heading border border-surface-border hover:bg-surface-subtle transition-colors flex items-center gap-2 mr-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
             Compartir
+        </button>
+        <button @click="downloadPDF" :disabled="generating" class="btn bg-primary-100 text-primary-800 border border-primary-200 hover:bg-primary-200 transition-colors flex items-center gap-2 mr-2 disabled:opacity-50">
+            <svg class="w-4 h-4" :class="{'animate-spin': generating}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path v-if="!generating" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            PDF A4
         </button>
         <button @click="printInvoice" class="btn bg-[var(--color-bg-subtle)] text-[var(--color-heading)] border border-[var(--color-border-subtle)] hover:bg-[var(--color-border-subtle)] transition-colors flex items-center gap-2 mr-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
@@ -195,6 +206,10 @@
 import { computed, ref, type PropType, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
+import { useOrganization } from '~/composables/useOrganization'
+import { useReceipt } from '~/composables/useReceipt'
+import { useSupabaseClient } from '#imports'
+import InvoiceA4 from '~/components/InvoiceA4.vue'
 // Using local type representation if 'Sale' from models is missing items_snapshot
 interface ExtendedSale {
     id: string;
@@ -225,6 +240,18 @@ const props = defineProps<{
 const router = useRouter()
 const supabase = useSupabaseClient()
 const toast = useToast()
+
+const { organization } = useOrganization()
+const { generateReceiptPDF, generating } = useReceipt()
+
+const downloadPDF = async () => {
+    const safeRef = String(props.sale.control_number || props.sale.id || '').slice(0, 8)
+    const filename = props.sale.document_type === 'delivery_note' 
+        ? `Nota_Entrega_${safeRef}.pdf` 
+        : `Factura_${safeRef}.pdf`
+        
+    await generateReceiptPDF('invoice-a4-document', filename)
+}
 
 const canShare = computed(() => {
     return typeof navigator !== 'undefined' && !!navigator.share

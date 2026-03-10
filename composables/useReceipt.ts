@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas'
 import { useToast } from "vue-toastification"
+import { ref } from 'vue'
 
 export const useReceipt = () => {
     const toast = useToast()
@@ -37,6 +38,51 @@ export const useReceipt = () => {
             console.error('Receipt gen error', e)
             toast.error('Error generando recibo')
             return null
+        } finally {
+            generating.value = false
+        }
+    }
+
+    const generateReceiptPDF = async (elementId: string, filename: string = 'Factura_Fiscal.pdf'): Promise<boolean> => {
+        const el = document.getElementById(elementId)
+        if (!el) return false
+
+        generating.value = true
+        try {
+            const clone = el.cloneNode(true) as HTMLElement
+            clone.style.position = 'absolute'
+            clone.style.top = '-9999px'
+            clone.style.display = 'block'
+            document.body.appendChild(clone)
+
+            const canvas = await html2canvas(clone, {
+                scale: 2,
+                logging: false,
+                backgroundColor: '#ffffff'
+            })
+            document.body.removeChild(clone)
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.95)
+            
+            // Importación dinámica de jsPDF para Evitar Errores SSR "window is not defined"
+            const { jsPDF } = await import('jspdf')
+            
+            // A4: 210 x 297 mm
+            const pdf = new jsPDF('p', 'mm', 'a4')
+            const pdfWidth = pdf.internal.pageSize.getWidth()
+            // Ajustamos la altura de acuerdo al ratio del canvas para no deformar
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+            
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight)
+            pdf.save(filename)
+            
+            toast.success('PDF Generalizado correctamente')
+            return true
+
+        } catch (e) {
+            console.error('PDF gen error', e)
+            toast.error('Error generando PDF')
+            return false
         } finally {
             generating.value = false
         }
@@ -84,6 +130,7 @@ export const useReceipt = () => {
 
     return {
         generateReceiptImage,
+        generateReceiptPDF,
         shareViaWhatsapp,
         downloadReceipt,
         generating

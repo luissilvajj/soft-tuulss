@@ -142,7 +142,6 @@ onMounted(async () => {
             .from('products')
             .select('id, name, sku, stock, min_stock')
             .eq('organization_id', organization.value.id)
-            .eq('is_deleted', false)
             .order('stock', { ascending: true })
             .limit(12)
         if (data) {

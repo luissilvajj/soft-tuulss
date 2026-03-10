@@ -69,7 +69,6 @@ export const useSalesStore = defineStore('sales', {
     }),
     persist: {
         paths: ['cart', 'currentSale'], // Persist cart and form state across reloads
-        storage: persistedState.localStorage
     },
     actions: {
         addToCart(product: Product) {
@@ -110,7 +109,6 @@ export const useSalesStore = defineStore('sales', {
         clearCart() {
             this.cart = []
             this.currentSale = {
-...
                 clientId: '',
                 paymentMethod: 'cash',
                 paymentReference: '',

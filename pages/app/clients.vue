@@ -89,7 +89,10 @@
                     {{ item.name.charAt(0).toUpperCase() }}
                 </div>
                 <div>
-                    <div class="font-bold text-text-heading text-sm">{{ item.name }}</div>
+                    <div class="font-bold text-text-heading text-sm flex items-center gap-2">
+                        {{ item.name }}
+                        <span v-if="item.is_special_taxpayer" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary-100 text-primary-700 border border-primary-200" title="Contribuyente Especial">CE</span>
+                    </div>
                     <div class="text-xs text-text-secondary">{{ item.email || 'Sin email' }}</div>
                 </div>
             </div>
@@ -195,6 +198,17 @@
                 label="Teléfono" 
                 placeholder="0414 1234567" 
            />
+           <div class="flex items-center gap-2 pt-2">
+                <input 
+                    type="checkbox" 
+                    id="is_special_taxpayer" 
+                    v-model="newClient.is_special_taxpayer" 
+                    class="w-4 h-4 text-primary-600 bg-surface-subtle border-surface-border rounded focus:ring-primary-500 focus:ring-2"
+                >
+                <label for="is_special_taxpayer" class="text-sm font-medium text-text-heading cursor-pointer">
+                    Contribuyente Especial (Retenciones IVA)
+                </label>
+           </div>
       </div>
 
       <template #actions>
@@ -236,7 +250,7 @@ const showModal = ref(false)
 const saving = ref(false)
 const viewMode = ref('list')
 const editingId = ref(null)
-const newClient = ref({ name: '', email: '', phone: '', identity_document: '', address: '' })
+const newClient = ref({ name: '', email: '', phone: '', identity_document: '', address: '', is_special_taxpayer: false })
 
 // Search & Pagination Server-Side Logic
 const searchQuery = ref('')
@@ -265,10 +279,10 @@ watch(page, (newPage) => {
 const openModal = (client = null) => {
     if (client) {
         editingId.value = client.id
-        newClient.value = { ...client }
+        newClient.value = { ...client, is_special_taxpayer: !!client.is_special_taxpayer }
     } else {
         editingId.value = null
-        newClient.value = { name: '', email: '', phone: '', identity_document: '', address: '' }
+        newClient.value = { name: '', email: '', phone: '', identity_document: '', address: '', is_special_taxpayer: false }
     }
     showModal.value = true
 }
@@ -276,7 +290,7 @@ const openModal = (client = null) => {
 const closeModal = () => {
     showModal.value = false
     editingId.value = null
-    newClient.value = { name: '', email: '', phone: '', identity_document: '', address: '' }
+    newClient.value = { name: '', email: '', phone: '', identity_document: '', address: '', is_special_taxpayer: false }
 }
 
 const saveClient = async () => {

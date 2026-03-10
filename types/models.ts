@@ -35,6 +35,7 @@ export interface Client {
     email?: string
     phone?: string
     identity_document?: string // Added Cédula/RIF
+    is_special_taxpayer?: boolean // B2B: Retenciones 75%/100%
     created_at: string
 }
 

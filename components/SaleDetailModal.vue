@@ -127,6 +127,49 @@
                             <span class="font-mono whitespace-nowrap">{{ sale.payment_reference }}</span>
                         </div>
                     </div>
+
+                    <!-- Retenciones Fiscales (B2B) -->
+                    <div v-if="sale.document_type === 'invoice' && ((sale.tax_general_amount || 0) > 0 || (sale.tax_reduced_amount || 0) > 0)" class="mt-4 pt-4 border-t-2 border-dashed border-[var(--color-border-subtle)]">
+                        <div class="flex justify-between items-center mb-2">
+                             <span class="font-bold text-sm text-[var(--color-heading)]">Retención de IVA (B2B)</span>
+                        </div>
+                        
+                        <!-- Mostrando Retención Existente -->
+                        <div v-if="retention" class="bg-status-success/10 border border-status-success/20 rounded-md p-2 text-xs">
+                             <div class="flex justify-between text-status-success font-bold mb-1">
+                                 <span>Retenido ({{ retention.percentage }}%)</span>
+                                 <span class="font-mono">{{ formatMoney(retention.amount_retained, 'USD') }}</span>
+                             </div>
+                             <div class="flex justify-between text-status-success/80">
+                                 <span>Comprobante:</span>
+                                 <span class="font-mono">{{ retention.retention_number }}</span>
+                             </div>
+                        </div>
+
+                        <!-- Formulario para agregar -->
+                        <div v-else-if="showRetentionForm" class="space-y-2 mt-2 bg-[var(--color-bg-subtle)] p-2 rounded-md border border-[var(--color-border-subtle)]">
+                             <div>
+                                 <label class="block text-[10px] uppercase text-[var(--color-text-secondary)] font-bold mb-1">Porcentaje</label>
+                                  <div class="flex gap-2">
+                                     <button @click="retentionForm.percentage = 75" :class="['flex-1 py-1 rounded text-xs font-bold border', retentionForm.percentage === 75 ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]']">75%</button>
+                                     <button @click="retentionForm.percentage = 100" :class="['flex-1 py-1 rounded text-xs font-bold border', retentionForm.percentage === 100 ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]']">100%</button>
+                                  </div>
+                             </div>
+                             <div>
+                                 <label class="block text-[10px] uppercase text-[var(--color-text-secondary)] font-bold mb-1">Nro Comprobante</label>
+                                 <input v-model="retentionForm.retention_number" type="text" class="w-full text-xs p-1.5 border border-[var(--color-border-subtle)] rounded bg-[var(--color-surface)] text-[var(--color-heading)] focus:ring-1 focus:ring-primary-500 outline-none" placeholder="Ej. 202405000012">
+                             </div>
+                             <div class="flex gap-2 pt-1">
+                                  <button @click="saveRetention" :disabled="savingRetention || !retentionForm.retention_number" class="flex-1 bg-primary-600 text-white rounded py-1.5 text-xs font-bold disabled:opacity-50">Guardar</button>
+                                  <button @click="showRetentionForm = false" class="px-3 border border-[var(--color-border-subtle)] rounded text-[var(--color-text-secondary)] text-xs font-bold">Cancelar</button>
+                             </div>
+                        </div>
+                        
+                        <!-- Boton Activar Toggle -->
+                        <button v-else-if="!retention" @click="showRetentionForm = true" class="w-full py-1.5 mt-1 border border-dashed border-primary-300 text-primary-600 hover:bg-primary-50 rounded-md text-xs font-bold transition-colors">
+                            + Cargar Comprobante Retención
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -149,8 +192,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, type PropType } from 'vue'
+import { computed, ref, type PropType, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 // Using local type representation if 'Sale' from models is missing items_snapshot
 interface ExtendedSale {
     id: string;
@@ -163,7 +207,11 @@ interface ExtendedSale {
     payment_reference?: string;
     document_type?: 'invoice' | 'delivery_note' | 'credit_note' | 'debit_note';
     control_number?: string;
+    organization_id?: string;
     created_at?: string;
+    tax_base?: number;
+    tax_general_amount?: number;
+    tax_reduced_amount?: number;
     tax_igtf?: number;
     payment_details?: any;
     items?: any[];
@@ -175,6 +223,8 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
+const supabase = useSupabaseClient()
+const toast = useToast()
 
 const canShare = computed(() => {
     return typeof navigator !== 'undefined' && !!navigator.share
@@ -267,9 +317,61 @@ const toggleCurrency = () => {
 
 const formatMoney = (amount: number, currency: 'USD' | 'VES') => {
     if (currency === 'VES') {
-        return `Bs. ${amount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        return `Bs. ${Number(amount || 0).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     } else {
-        return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        return `$${Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     }
 }
+
+// === Retenciones Fiscales Logic ===
+const retention = ref<any>(null)
+const showRetentionForm = ref(false)
+const savingRetention = ref(false)
+const retentionForm = ref({ percentage: 75, retention_number: '' })
+
+const fetchRetention = async () => {
+    if (props.sale.document_type !== 'invoice') return
+    try {
+        const { data, error } = await supabase
+            .from('fiscal_retentions')
+            .select('*')
+            .eq('transaction_id', props.sale.id)
+            .maybeSingle()
+        if (data) retention.value = data
+    } catch (e) {
+        console.error('Error fetching retentions:', e)
+    }
+}
+
+const saveRetention = async () => {
+    if (!props.sale.organization_id || !retentionForm.value.retention_number) return
+    savingRetention.value = true
+    try {
+        // Calcular el IVA retenido matemáticamente en base de USD
+        const totalIvaUsd = (Number(props.sale.tax_general_amount) || 0) + (Number(props.sale.tax_reduced_amount) || 0)
+        const amountRetained = totalIvaUsd * (retentionForm.value.percentage / 100)
+        
+        const { data, error } = await supabase.from('fiscal_retentions').insert({
+            organization_id: props.sale.organization_id,
+            transaction_id: props.sale.id,
+            percentage: retentionForm.value.percentage,
+            retention_number: retentionForm.value.retention_number,
+            amount_retained: amountRetained
+        }).select().single()
+
+        if (error) throw error
+        
+        toast.success('Retención de IVA cargada correctamente')
+        retention.value = data
+        showRetentionForm.value = false
+    } catch (e: any) {
+        toast.error(e.message || 'Error al guardar retención')
+    } finally {
+        savingRetention.value = false
+    }
+}
+
+onMounted(() => {
+    fetchRetention()
+})
 </script>

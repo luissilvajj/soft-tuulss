@@ -3,6 +3,7 @@ import { useOrganization } from '~/composables/useOrganization'
 import { usePermissions } from '~/composables/usePermissions'
 import { useFormat } from '~/composables/useFormat'
 import { useDashboard } from '~/composables/useDashboard'
+import { useToast } from 'vue-toastification'
 
 definePageMeta({ 
     layout: 'authenticated',

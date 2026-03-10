@@ -9,6 +9,11 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt',
     '@pinia-plugin-persistedstate/nuxt'
   ],
+  imports: {
+    imports: [
+      { name: 'useToast', from: 'vue-toastification' }
+    ]
+  },
   app: {
     head: {
       script: [

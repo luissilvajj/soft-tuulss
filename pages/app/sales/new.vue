@@ -190,8 +190,8 @@
                                 :class="[
                                     'relative px-4 py-3 text-sm rounded-xl transition-all text-left flex items-start flex-col gap-1 border-2',
                                     salesStore.currentSale.paymentMethod === method.id 
-                                        ? 'border-primary-500 bg-primary-50 text-primary-800 ring-2 ring-primary-200' 
-                                        : 'border-surface-subtle bg-white text-text-secondary hover:border-surface-border hover:bg-surface-subtle/50'
+                                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300 ring-2 ring-primary-200 dark:ring-primary-900/50' 
+                                        : 'border-surface-subtle bg-surface-ground text-text-secondary hover:border-surface-border hover:bg-surface-subtle/50'
                                 ]"
                             >
                                 <span class="font-bold block">{{ method.label }}</span>
@@ -254,13 +254,13 @@
                                      </div>
                                  </div>
                                  <!-- Remainder/Change Display -->
-                                 <div class="flex justify-between text-xs pt-3 border-t border-gray-200">
-                                     <span class="text-gray-500 font-medium">Restante:</span>
+                                 <div class="flex justify-between text-xs pt-3 border-t border-surface-border">
+                                     <span class="text-text-secondary font-medium">Restante:</span>
                                      <div class="text-right">
-                                         <span :class="remainingDue > 0.01 ? 'text-danger-600 font-bold' : 'text-success-600 font-bold'">
+                                         <span :class="remainingDue > 0.01 ? 'text-status-error font-bold' : 'text-status-success font-bold'">
                                              ${{ remainingDue.toFixed(2) }}
                                          </span>
-                                         <span v-if="remainingDue > 0.01" class="text-gray-400 ml-1">
+                                         <span v-if="remainingDue > 0.01" class="text-text-secondary ml-1 opacity-70">
                                              (~{{ (remainingDue * salesStore.currentSale.exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 }) }} Bs)
                                          </span>
                                      </div>
@@ -291,26 +291,26 @@
                     <!-- Tax Toggles -->
                      <div class="flex flex-col gap-3 pt-2">
                          <label class="flex items-center gap-2 cursor-pointer group">
-                            <input type="checkbox" v-model="salesStore.currentSale.isExempt" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                            <span class="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Venta Exenta de IVA</span>
+                            <input type="checkbox" v-model="salesStore.currentSale.isExempt" class="rounded border-surface-border bg-surface-ground text-primary-600 focus:ring-primary-500">
+                            <span class="text-sm text-text-secondary group-hover:text-text-heading transition-colors">Venta Exenta de IVA</span>
                          </label>
                          <label class="flex items-center gap-2 cursor-pointer group">
                             <!-- INVERTED LOGIC: Default OFF. Check to INCLUDE tax. -->
-                            <input type="checkbox" v-model="salesStore.currentSale.includeIgtf" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                        <span class="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">Cobrar IGTF (3%)</span>
+                            <input type="checkbox" v-model="salesStore.currentSale.includeIgtf" class="rounded border-surface-border bg-surface-ground text-primary-600 focus:ring-primary-500">
+                        <span class="text-sm text-text-secondary group-hover:text-text-heading transition-colors">Cobrar IGTF (3%)</span>
                          </label>
                      </div>
                 </div>
 
                 <!-- Sticky Footer: Totals & Action -->
-                <div class="bg-gray-50 border-t border-gray-200 p-4 space-y-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+                <div class="bg-surface-subtle border-t border-surface-border p-4 space-y-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
                     <!-- Mini Totals -->
                     <div class="space-y-1 text-sm">
                         <div class="flex justify-between text-text-secondary">
                             <span>Subtotal</span>
                             <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.subtotal) }}</span>
                         </div>
-                        <div v-if="salesStore.currentSale.globalDiscount > 0" class="flex justify-between text-success-600">
+                        <div v-if="salesStore.currentSale.globalDiscount > 0" class="flex justify-between text-status-success">
                             <span>Descuento</span>
                             <span class="font-bold">-{{ formatDisplayPrice(salesStore.currentSale.globalDiscount) }}</span>
                         </div>
@@ -325,7 +325,7 @@
                     </div>
 
                     <!-- Grand Total -->
-                    <div class="flex justify-between items-end border-t border-dashed border-gray-300 pt-3">
+                    <div class="flex justify-between items-end border-t border-dashed border-surface-border pt-3">
                         <span class="text-lg font-bold text-text-secondary mb-1">Total</span>
                         <div class="text-right">
                              <span class="block text-3xl font-black text-primary-600 leading-none">{{ formatDisplayPrice(financials.total) }}</span>

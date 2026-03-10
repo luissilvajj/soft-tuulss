@@ -203,6 +203,13 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
             Imprimir
         </button>
+        <button v-if="fiscalAgentOnline" @click="printFiscal" :disabled="printingFiscal" class="btn bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-200 transition-colors flex items-center gap-2 mr-2 disabled:opacity-50">
+            <svg class="w-4 h-4" :class="{'animate-spin': printingFiscal}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path v-if="!printingFiscal" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Imprimir Fiscal
+        </button>
         <button @click="$emit('close')" class="w-full btn btn-primary">
             Cerrar
         </button>
@@ -250,7 +257,20 @@ const supabase = useSupabaseClient()
 const toast = useToast()
 
 const { organization } = useOrganization()
-const { generateReceiptPDF, generating } = useReceipt()
+const { generateReceiptPDF, generating, checkFiscalAgent, printToFiscalPrinter, fiscalAgentOnline, printingFiscal } = useReceipt()
+
+// Check if fiscal agent is running when modal opens
+onMounted(() => {
+    checkFiscalAgent()
+})
+
+const printFiscal = async () => {
+    await printToFiscalPrinter({
+        ...props.sale,
+        client_name: props.sale.client_name || 'Consumidor Final',
+        client_rif: props.sale.items?.[0]?.client_rif || ''
+    })
+}
 
 const downloadPDF = async () => {
     const safeRef = String(props.sale.control_number || props.sale.id || '').slice(0, 8)

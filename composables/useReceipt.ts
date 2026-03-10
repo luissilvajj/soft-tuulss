@@ -128,11 +128,61 @@ export const useReceipt = () => {
         link.click()
     }
 
+    // ── Fiscal Agent Integration (Hardware Printer) ─────────
+    const FISCAL_AGENT_URL = 'http://localhost:4040'
+    const fiscalAgentOnline = ref(false)
+    const printingFiscal = ref(false)
+
+    const checkFiscalAgent = async () => {
+        try {
+            const res = await fetch(`${FISCAL_AGENT_URL}/status`, { signal: AbortSignal.timeout(2000) })
+            const data = await res.json()
+            fiscalAgentOnline.value = data.status === 'online'
+        } catch {
+            fiscalAgentOnline.value = false
+        }
+    }
+
+    const printToFiscalPrinter = async (sale: any): Promise<boolean> => {
+        printingFiscal.value = true
+        try {
+            const res = await fetch(`${FISCAL_AGENT_URL}/print`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sale),
+                signal: AbortSignal.timeout(10000)
+            })
+
+            if (!res.ok) {
+                const err = await res.json()
+                throw new Error(err.detail || err.error || 'Print failed')
+            }
+
+            toast.success('Impresión fiscal enviada correctamente')
+            return true
+        } catch (e: any) {
+            console.error('Fiscal print error:', e)
+            if (e.name === 'TimeoutError' || e.message?.includes('fetch')) {
+                toast.error('No se pudo conectar con el Agente Fiscal. ¿Está ejecutándose en esta PC?')
+            } else {
+                toast.error(`Error de impresión: ${e.message}`)
+            }
+            return false
+        } finally {
+            printingFiscal.value = false
+        }
+    }
+
     return {
         generateReceiptImage,
         generateReceiptPDF,
         shareViaWhatsapp,
         downloadReceipt,
-        generating
+        generating,
+        // Fiscal Agent
+        checkFiscalAgent,
+        printToFiscalPrinter,
+        fiscalAgentOnline,
+        printingFiscal
     }
 }

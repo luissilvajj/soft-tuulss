@@ -1,0 +1,10 @@
+{
+    "serialPort": "COM3",
+    "baudRate": 9600,
+    "printerWidth": 48,
+    "businessName": "Mi Negocio",
+    "rif": "J-00000000-0",
+    "address": "Dirección del Establecimiento",
+    "phone": "",
+    "footer": "Gracias por su compra"
+}

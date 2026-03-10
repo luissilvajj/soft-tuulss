@@ -1,0 +1,20 @@
+{
+  "name": "softtuuls-fiscal-agent",
+  "version": "1.0.0",
+  "description": "Agente local puente entre Softtuuls Web y la Impresora Fiscal (USB/Serial). Compatible con Bixolon, PNP, Aclas y cualquier impresora ESC/POS.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "serialport": "^12.0.0",
+    "escpos": "^3.0.0-alpha.6",
+    "escpos-serialport": "^0.0.3"
+  },
+  "author": "Softtuuls",
+  "license": "UNLICENSED",
+  "private": true
+}

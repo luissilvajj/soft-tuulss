@@ -180,6 +180,14 @@
     </div>
 
     <template #actions>
+        <button v-if="sale.document_type === 'invoice'" @click="issueCreditNote" :disabled="isGeneratingCreditNote" class="btn bg-red-100 text-red-800 border border-red-200 hover:bg-red-200 transition-colors flex items-center gap-2 mr-auto disabled:opacity-50">
+            <svg class="w-4 h-4" :class="{'animate-spin': isGeneratingCreditNote}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path v-if="!isGeneratingCreditNote" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Anular (Nota Crédito)
+        </button>
+
         <button v-if="canShare" @click="shareInvoice" class="btn bg-surface-ground text-text-heading border border-surface-border hover:bg-surface-subtle transition-colors flex items-center gap-2 mr-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
             Compartir
@@ -251,6 +259,35 @@ const downloadPDF = async () => {
         : `Factura_${safeRef}.pdf`
         
     await generateReceiptPDF('invoice-a4-document', filename)
+}
+
+const isGeneratingCreditNote = ref(false)
+const emit = defineEmits(['close', 'refresh'])
+
+const issueCreditNote = async () => {
+    if (!confirm('¿Está seguro de que desea anular esta factura? Se generará una Nota de Crédito, los productos regresarán al inventario y el monto será deducido de las ventas.')) {
+        return
+    }
+
+    isGeneratingCreditNote.value = true
+    try {
+        const response = await $fetch('/api/sales/credit-note', {
+            method: 'POST',
+            body: {
+                transactionId: props.sale.id,
+                organizationId: organization.value?.id
+            }
+        })
+        
+        toast.success(`Nota de Crédito generada con éxito (Ref: ${response.creditNote.control_number || 'OK'})`)
+        emit('close')
+        emit('refresh') // Assuming parent handles refresh
+    } catch (error: any) {
+        console.error('Error emitiendo nota de crédito:', error)
+        toast.error(error.data?.statusMessage || 'Error al emitir Nota de Crédito. Asegúrese de que no esté ya anulada.')
+    } finally {
+        isGeneratingCreditNote.value = false
+    }
 }
 
 const canShare = computed(() => {

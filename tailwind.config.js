@@ -31,10 +31,10 @@ module.exports = {
                     950: '#1e1b4b',
                 },
                 surface: {
-                    ground: '#ffffff',
-                    section: '#f8fafc', // Slate-50
-                    subtle: '#f1f5f9', // Slate-100
-                    border: '#e2e8f0', // Slate-200
+                    ground: 'var(--color-surface-ground)',
+                    section: 'var(--color-surface-section)', 
+                    subtle: 'var(--color-surface-subtle)', 
+                    border: 'var(--color-surface-border)', 
                 },
                 status: {
                     success: '#10b981', // Emerald-500
@@ -42,16 +42,15 @@ module.exports = {
                     error: '#ef4444', // Red-500
                     info: '#3b82f6', // Blue-500
                 },
-                // Semantic Aliases (to replace ghost vars)
                 bg: {
-                    dark: '#0f172a', // Slate-900
-                    subtle: '#1e293b', // Slate-800
+                    dark: '#0f172a',
+                    subtle: '#1e293b', 
                 },
                 text: {
-                    heading: '#1e293b', // Slate-800
-                    body: '#475569', // Slate-600
-                    secondary: '#64748b', // Slate-500
-                    inverse: '#ffffff',
+                    heading: 'var(--color-text-heading)', 
+                    body: 'var(--color-text-body)', 
+                    secondary: 'var(--color-text-secondary)', 
+                    inverse: 'var(--color-text-inverse)',
                 }
             },
         },

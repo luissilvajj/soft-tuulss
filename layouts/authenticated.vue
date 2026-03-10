@@ -9,7 +9,9 @@ import {
   ArrowsRightLeftIcon,
   ClipboardDocumentListIcon,
   ChartBarIcon,
-  SparklesIcon
+  SparklesIcon,
+  ShoppingBagIcon,
+  CurrencyDollarIcon
 } from '@heroicons/vue/24/outline';
 import SyncIndicator from '~/components/status/SyncIndicator.vue';
 
@@ -19,6 +21,7 @@ const user = useSupabaseUser();
 const client = useSupabaseClient();
 const router = useRouter();
 const { isSeniatAuditor, isAdmin, canEditInventory, canViewFinancials } = usePermissions();
+const { organization, fetchOrganization } = useOrganization()
 
 const navigation = computed(() => {
   if (isSeniatAuditor.value) {
@@ -32,7 +35,9 @@ const navigation = computed(() => {
       { name: 'Vender', href: '/app/sales/new', icon: ShoppingCartIcon },
       { name: 'Ventas', href: '/app/sales', icon: ClipboardDocumentListIcon },
       { name: 'Movimientos', href: '/app/transactions', icon: ArrowsRightLeftIcon },
-      { name: 'Clientes', href: '/app/clients', icon: UsersIcon }
+      { name: 'Clientes', href: '/app/clients', icon: UsersIcon },
+      { name: 'Compras', href: '/app/purchases', icon: ShoppingBagIcon },
+      { name: 'CxC / CxP', href: '/app/debts', icon: CurrencyDollarIcon }
   ]
 
   if (canEditInventory.value) {
@@ -58,6 +63,43 @@ const logout = async () => {
   await client.auth.signOut();
   router.push('/login');
 };
+
+const ensureGlobalState = async (userId: string) => {
+    if (!userId) return;
+    
+    // Si no tenemos la organización con su rol, intentamos recuperarlo de la base de datos
+    if (!organization.value?.role) {
+        const { data: orgData } = await client
+            .from('organization_members')
+            .select(`
+                organization:organizations ( id, name, subscription_status, logo_url ),
+                role
+            `)
+            .eq('user_id', userId)
+            .limit(1)
+            .maybeSingle()
+        
+        if (orgData && orgData.organization) {
+            organization.value = {
+                ...orgData.organization,
+                role: orgData.role || 'Usuario' // Explicitly set role
+            }
+        }
+    }
+}
+
+onMounted(async () => {
+    // 1. Recover Session explicitly
+    const { data: { session } } = await client.auth.getSession()
+    if (!session?.user) return
+
+    const userId = session.user.id
+    await ensureGlobalState(userId)
+
+    if (!organization.value) {
+        await fetchOrganization()
+    }
+})
 </script>
 
 <template>

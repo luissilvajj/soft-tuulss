@@ -118,9 +118,9 @@
                 <div class="flex items-center gap-3">
                     <div :class="[
                         'w-8 h-8 rounded-full flex items-center justify-center border',
-                        ['income', 'sale'].includes(item.type) ? 'bg-status-success/10 text-status-success border-status-success/20' : 'bg-status-error/10 text-status-error border-status-error/20'
+                        ['income', 'sale'].includes(item.type) && item.document_type !== 'credit_note' ? 'bg-status-success/10 text-status-success border-status-success/20' : 'bg-status-error/10 text-status-error border-status-error/20'
                     ]">
-                        <svg v-if="['income', 'sale'].includes(item.type)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                        <svg v-if="['income', 'sale'].includes(item.type) && item.document_type !== 'credit_note'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
                         <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                     </div>
                     <div>
@@ -138,9 +138,9 @@
                 <div class="text-right">
                     <div :class="[
                         'font-bold font-mono text-base',
-                        ['income', 'sale'].includes(item.type) ? 'text-status-success' : 'text-status-error'
+                        ['income', 'sale'].includes(item.type) && item.document_type !== 'credit_note' ? 'text-status-success' : 'text-status-error'
                     ]">
-                    {{ ['income', 'sale'].includes(item.type) ? '+' : '-' }} ${{ formatMainAmount(item) }}
+                    {{ ['income', 'sale'].includes(item.type) && item.document_type !== 'credit_note' ? '+' : '-' }} ${{ formatMainAmount(item) }}
                     </div>
                     <div v-if="getSecondaryAmount(item)" class="text-xs text-text-secondary font-mono mt-0.5 opacity-70">
                          {{ getSecondaryAmount(item) }}
@@ -160,8 +160,8 @@
                  <div class="flex justify-between w-full border-t border-surface-border pt-2 mt-2">
                      <span class="text-xs text-text-secondary">{{ item.client_name || (item.client ? item.client.name : 'General') }}</span>
                      <div class="text-right">
-                         <span :class="['font-bold font-mono', ['income', 'sale'].includes(item.type) ? 'text-status-success' : 'text-status-error']">
-                             {{ ['income', 'sale'].includes(item.type) ? '+' : '-' }} ${{ formatMainAmount(item) }}
+                         <span :class="['font-bold font-mono', ['income', 'sale'].includes(item.type) && item.document_type !== 'credit_note' ? 'text-status-success' : 'text-status-error']">
+                             {{ ['income', 'sale'].includes(item.type) && item.document_type !== 'credit_note' ? '+' : '-' }} ${{ formatMainAmount(item) }}
                          </span>
                      </div>
                  </div>

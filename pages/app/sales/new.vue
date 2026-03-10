@@ -307,16 +307,28 @@
                     <!-- Mini Totals -->
                     <div class="space-y-1 text-sm">
                         <div class="flex justify-between text-text-secondary">
-                            <span>Subtotal</span>
+                            <span>Subtotal Bruto</span>
                             <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.subtotal) }}</span>
                         </div>
                         <div v-if="salesStore.currentSale.globalDiscount > 0" class="flex justify-between text-status-success">
-                            <span>Descuento</span>
+                            <span>Descuento Global</span>
                             <span class="font-bold">-{{ formatDisplayPrice(salesStore.currentSale.globalDiscount) }}</span>
                         </div>
-                        <div class="flex justify-between text-text-secondary">
+                        <div v-if="financials.exemptAmount > 0" class="flex justify-between text-text-secondary">
+                            <span>Monto Exento</span>
+                            <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.exemptAmount) }}</span>
+                        </div>
+                        <div v-if="financials.taxBase > 0" class="flex justify-between text-text-secondary">
+                            <span>Base Imponible</span>
+                            <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.taxBase) }}</span>
+                        </div>
+                        <div v-if="financials.taxGeneralAmount > 0" class="flex justify-between text-text-secondary">
                             <span>IVA (16%)</span>
-                             <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.taxIva) }}</span>
+                             <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.taxGeneralAmount) }}</span>
+                        </div>
+                        <div v-if="financials.taxReducedAmount > 0" class="flex justify-between text-text-secondary">
+                            <span>IVA Reducido (8%)</span>
+                             <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.taxReducedAmount) }}</span>
                         </div>
                         <div v-if="financials.taxIgtf > 0" class="flex justify-between text-text-secondary">
                             <span>IGTF (3%)</span>
@@ -613,30 +625,60 @@ const availableMethods = computed(() => {
 
 // Financials
 const financials = computed(() => {
-    // FIX: item.product.price directly instead of item.price
-    const subtotal = salesStore.cart.reduce((acc, item) => acc + ((item.product?.price || 0) * item.quantity), 0)
-    
-    // Sum item level discounts to global discount if any
-    const itemDiscounts = salesStore.cart.reduce((acc, item) => acc + (item.discount || 0), 0)    
-    const globalDiscount = (salesStore.currentSale.globalDiscount || 0) + itemDiscounts
-    
-    const taxableBase = Math.max(0, subtotal - globalDiscount)
-    
-    // IVA
-    const ivaRate = salesStore.currentSale.isExempt ? 0 : 0.16
-    const taxIva = taxableBase * ivaRate
+    let subtotal = 0
+    let exemptAmount = 0
+    let baseGeneral = 0
+    let baseReduced = 0
 
-    // IGTF logic
+    // Calculate bases after item discounts
+    salesStore.cart.forEach(item => {
+        const itemTotal = ((item.product?.price || 0) * item.quantity) - (item.discount || 0)
+        subtotal += itemTotal
+
+        if (salesStore.currentSale.isExempt) {
+            exemptAmount += itemTotal
+        } else {
+            const taxCond = item.product?.tax_condition || 'exempt'
+            if (taxCond === 'exempt') exemptAmount += itemTotal
+            else if (taxCond === 'general') baseGeneral += itemTotal
+            else if (taxCond === 'reduced') baseReduced += itemTotal
+        }
+    })
+    
+    // Pro-rate global discount across bases
+    const globalDiscount = salesStore.currentSale.globalDiscount || 0
+    let discountRatio = 0
+    if (subtotal > 0 && globalDiscount > 0) {
+        discountRatio = globalDiscount / subtotal
+        exemptAmount -= (exemptAmount * discountRatio)
+        baseGeneral -= (baseGeneral * discountRatio)
+        baseReduced -= (baseReduced * discountRatio)
+    }
+
+    // Calculate Taxes
+    const taxGeneralAmount = baseGeneral * 0.16
+    const taxReducedAmount = baseReduced * 0.08
+    const taxIva = taxGeneralAmount + taxReducedAmount
+    const taxBase = baseGeneral + baseReduced
+
+    // IGTF logic (3% on total invoice minus IGTF itself, approx simplified)
     let igtfAmount = 0
     if (salesStore.currentSale.includeIgtf) {
-        igtfAmount = taxableBase * 0.03
+        const totalBeforeIgtf = exemptAmount + taxBase + taxIva
+        igtfAmount = totalBeforeIgtf * 0.03
     }
 
     return {
         subtotal,
+        exemptAmount,
+        taxBase,
+        baseGeneral,
+        baseReduced,
+        taxGeneralAmount,
+        taxReducedAmount,
         taxIva,
         taxIgtf: igtfAmount,
-        total: taxableBase + taxIva + igtfAmount
+        total: exemptAmount + taxBase + taxIva + igtfAmount
     }
 })
 
@@ -664,25 +706,49 @@ const handleCheckout = async () => {
             currency: salesStore.currentSale.currency,
             exchangeRate: salesStore.currentSale.exchangeRate,
             subtotal: financials.value.subtotal,
+            
             taxIva: financials.value.taxIva,
             taxIgtf: financials.value.taxIgtf,
+            exemptAmount: financials.value.exemptAmount,
+            taxBase: financials.value.taxBase,
+            taxGeneralAmount: financials.value.taxGeneralAmount,
+            taxReducedAmount: financials.value.taxReducedAmount,
+
             discount: salesStore.currentSale.globalDiscount,
             isExempt: salesStore.currentSale.isExempt,
             total: financials.value.total,
             paymentDetails: salesStore.currentSale.isMixedPayment ? { ...salesStore.currentSale.mixedPayment } : null,
-            rawItems: salesStore.cart.map(i => ({
-                productId: i.product.id,
-                quantity: i.quantity,
-                price: i.product.price,
-                discount: i.discount
-            })),
-            itemsSnapshot: salesStore.cart.map(i => ({
-                id: i.product.id,
-                name: i.product.name,
-                qty: i.quantity,
-                price: i.product.price,
-                discount: i.discount
-            }))
+            rawItems: salesStore.cart.map(i => {
+                const taxCond = salesStore.currentSale.isExempt ? 'exempt' : (i.product.tax_condition || 'exempt')
+                let taxR = 0
+                if (taxCond === 'general') taxR = 16.00
+                if (taxCond === 'reduced') taxR = 8.00
+                
+                return {
+                    productId: i.product.id,
+                    quantity: i.quantity,
+                    price: i.product.price,
+                    discount: i.discount,
+                    taxCondition: taxCond as 'exempt' | 'general' | 'reduced',
+                    taxRate: taxR
+                }
+            }),
+            itemsSnapshot: salesStore.cart.map(i => {
+                const taxCond = salesStore.currentSale.isExempt ? 'exempt' : (i.product.tax_condition || 'exempt')
+                let taxR = 0
+                if (taxCond === 'general') taxR = 16.00
+                if (taxCond === 'reduced') taxR = 8.00
+
+                return {
+                    id: i.product.id,
+                    name: i.product.name,
+                    qty: i.quantity,
+                    price: i.product.price,
+                    discount: i.discount,
+                    taxCondition: taxCond as 'exempt' | 'general' | 'reduced',
+                    taxRate: taxR
+                }
+            })
         }
 
         await salesStore.processSale(payload as any)

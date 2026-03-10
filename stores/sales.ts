@@ -165,6 +165,12 @@ export const useSalesStore = defineStore('sales', {
                         tax_iva: payload.taxIva,
                         tax_igtf: payload.taxIgtf,
                         is_exempt: payload.isExempt,
+
+                        exempt_amount: payload.exemptAmount || 0,
+                        tax_base: payload.taxBase || 0,
+                        tax_general_amount: payload.taxGeneralAmount || 0,
+                        tax_reduced_amount: payload.taxReducedAmount || 0,
+
                         discount: payload.discount,
                         items_snapshot: payload.itemsSnapshot,
                         payment_details: payload.paymentDetails
@@ -182,7 +188,9 @@ export const useSalesStore = defineStore('sales', {
                     product_id: item.productId,
                     quantity: item.quantity,
                     price_at_transaction: item.price,
-                    discount: item.discount
+                    discount: item.discount,
+                    tax_condition: item.taxCondition || 'exempt',
+                    tax_rate: item.taxRate || 0
                 }))
 
                 const { error: itemsError } = await client

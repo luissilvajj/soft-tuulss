@@ -24,6 +24,7 @@ export interface Product {
     price: number
     cost?: number // Added cost
     stock: number
+    tax_condition?: 'exempt' | 'general' | 'reduced' // Nuevo IVA
     created_at: string
 }
 
@@ -44,6 +45,8 @@ export interface SaleItem {
     product?: Product // joined
     quantity: number
     price_at_transaction: number
+    tax_condition?: 'exempt' | 'general' | 'reduced'
+    tax_rate?: number
     subtotal?: number // computed
     discount?: number // New: Item discount amount
 }
@@ -65,9 +68,14 @@ export interface Sale {
     exchange_rate?: number
     subtotal?: number
     discount?: number // New: Global discount amount
-    tax_iva?: number
+    
+    // Taxes (Venezuelan Schema)
+    exempt_amount?: number
+    tax_base?: number
+    tax_general_amount?: number
+    tax_reduced_amount?: number
     tax_igtf?: number
-    is_exempt?: boolean
+
     items?: SaleItem[]
     payment_details?: {
         usd_amount?: number
@@ -94,6 +102,12 @@ export interface Transaction {
     status: string
     items?: any[]
     client_name?: string // Helper
+
+    // Taxes
+    exempt_amount?: number
+    tax_base?: number
+    tax_general_amount?: number
+    tax_reduced_amount?: number
 }
 
 
@@ -117,6 +131,13 @@ export interface SalePayload {
     taxIgtf: number
     discount: number
     isExempt: boolean
+    
+    // Taxes (Venezuelan Schema)
+    exemptAmount?: number
+    taxBase?: number
+    taxGeneralAmount?: number
+    taxReducedAmount?: number
+
     total: number
     paymentDetails: any // JSON structure varies
     rawItems: {
@@ -124,6 +145,8 @@ export interface SalePayload {
         quantity: number
         price: number
         discount: number
+        taxCondition?: 'exempt' | 'general' | 'reduced'
+        taxRate?: number
     }[]
     itemsSnapshot: {
         id: string
@@ -131,6 +154,8 @@ export interface SalePayload {
         qty: number
         price: number
         discount: number
+        taxCondition?: 'exempt' | 'general' | 'reduced'
+        taxRate?: number
     }[]
     offline_flag?: boolean // Internal flag for offline sync
 }

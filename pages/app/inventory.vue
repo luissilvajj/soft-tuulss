@@ -160,6 +160,14 @@
                     placeholder="0.00" 
                     step="0.01"
                 />
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-text-heading">Condición Fiscal (IVA)</label>
+                    <select v-model="form.tax_condition" class="block w-full rounded-md border-surface-border bg-surface-ground text-text-heading shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
+                        <option value="exempt">Exento (0%)</option>
+                        <option value="general">General (16%)</option>
+                        <option value="reduced">Reducido (8%)</option>
+                    </select>
+                </div>
                 <!-- Stock/Cost only on create -->
                 <BaseInput 
                     v-if="!isEditing"
@@ -294,18 +302,18 @@ const selectedProduct = ref<any>(null)
 const formSaving = ref(false)
 const restockSaving = ref(false)
 
-const form = ref({ id: '', name: '', sku: '', price: 0, stock: 0, cost: 0 })
+const form = ref<any>({ id: '', name: '', sku: '', price: 0, stock: 0, cost: 0, tax_condition: 'exempt' })
 const restock = ref({ qty: 0, cost: 0 })
 
-const openModal = () => { isEditing.value = false; form.value = { id:'', name:'', sku:'', price:0, stock:0, cost:0 }; showModal.value = true }
-const openEditModal = (p: any) => { isEditing.value = true; form.value = { ...p }; showModal.value = true }
+const openModal = () => { isEditing.value = false; form.value = { id:'', name:'', sku:'', price:0, stock:0, cost:0, tax_condition: 'exempt' }; showModal.value = true }
+const openEditModal = (p: any) => { isEditing.value = true; form.value = { ...p, tax_condition: p.tax_condition || 'exempt' }; showModal.value = true }
 const closeModal = () => showModal.value = false
 
 const saveProduct = async () => {
     formSaving.value = true
     try {
         if (isEditing.value) {
-            await updateProd(form.value.id, { name: form.value.name, sku: form.value.sku, price: form.value.price })
+            await updateProd(form.value.id, { name: form.value.name, sku: form.value.sku, price: form.value.price, tax_condition: form.value.tax_condition })
         } else {
              // CRITICAL FIX: Ensure 'id' is NOT sent as empty string for new items
              const { id, ...newProduct } = form.value

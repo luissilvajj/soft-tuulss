@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS public.fiscal_audit_logs (
 );
 
 -- Index for faster querying by auditors
-CREATE INDEX IF NOT EXISTS idx_fiscal_audit_logs_org ON public.fiscal_audit_logs(organization_id, table_name, record_at, created_at);
+CREATE INDEX IF NOT EXISTS idx_fiscal_audit_logs_org ON public.fiscal_audit_logs(organization_id, table_name, record_id, created_at);
 
 -- Enable RLS
 ALTER TABLE public.fiscal_audit_logs ENABLE ROW LEVEL SECURITY;

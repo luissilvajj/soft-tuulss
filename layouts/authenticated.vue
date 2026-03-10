@@ -13,21 +13,45 @@ import {
 } from '@heroicons/vue/24/outline';
 import SyncIndicator from '~/components/status/SyncIndicator.vue';
 
+import { usePermissions } from '~/composables/usePermissions';
+
 const user = useSupabaseUser();
 const client = useSupabaseClient();
 const router = useRouter();
+const { isSeniatAuditor, isAdmin, canEditInventory, canViewFinancials } = usePermissions();
 
-const navigation = [
-  { name: 'Dashboard', href: '/app', icon: HomeIcon },
-  { name: 'Vender', href: '/app/sales/new', icon: ShoppingCartIcon },
-  { name: 'Ventas', href: '/app/sales', icon: ClipboardDocumentListIcon },
-  { name: 'Movimientos', href: '/app/transactions', icon: ArrowsRightLeftIcon },
-  { name: 'Clientes', href: '/app/clients', icon: UsersIcon },
-  { name: 'Inventario', href: '/app/inventory', icon: ArchiveBoxIcon },
-  { name: 'Reportes', href: '/app/reports', icon: ChartBarIcon },
-  { name: 'AI Analyst', href: '/app/ai-analyst', icon: SparklesIcon },
-  { name: 'Configuración', href: '/app/settings', icon: UserIcon },
-];
+const navigation = computed(() => {
+  if (isSeniatAuditor.value) {
+      return [
+          { name: 'Módulo Fiscal (Z)', href: '/app/reports/fiscal', icon: ClipboardDocumentListIcon }
+      ]
+  }
+
+  const nav = [
+      { name: 'Dashboard', href: '/app', icon: HomeIcon },
+      { name: 'Vender', href: '/app/sales/new', icon: ShoppingCartIcon },
+      { name: 'Ventas', href: '/app/sales', icon: ClipboardDocumentListIcon },
+      { name: 'Movimientos', href: '/app/transactions', icon: ArrowsRightLeftIcon },
+      { name: 'Clientes', href: '/app/clients', icon: UsersIcon }
+  ]
+
+  if (canEditInventory.value) {
+      nav.push({ name: 'Inventario', href: '/app/inventory', icon: ArchiveBoxIcon })
+  }
+
+  if (canViewFinancials.value) {
+      nav.push({ name: 'Reportes', href: '/app/reports', icon: ChartBarIcon })
+  }
+
+  if (isAdmin.value) {
+      nav.push({ name: 'Módulo Fiscal (Z)', href: '/app/reports/fiscal', icon: ClipboardDocumentListIcon })
+  }
+
+  nav.push({ name: 'AI Analyst', href: '/app/ai-analyst', icon: SparklesIcon })
+  nav.push({ name: 'Configuración', href: '/app/settings', icon: UserIcon })
+
+  return nav
+});
 
 const logout = async () => {
   await client.auth.signOut();

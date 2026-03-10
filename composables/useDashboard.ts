@@ -12,7 +12,9 @@ export const useDashboard = () => {
     }))
     const salesTrend = useState<any[]>('dashboard_trend', () => [])
     const loading = useState('dashboard_loading', () => false)
+    const loading = useState('dashboard_loading', () => false)
     const error = useState('dashboard_error', () => null)
+    const generatingZ = ref(false)
 
     const fetchMetrics = async (range = 'today') => {
         if (!organization.value?.id) return
@@ -82,11 +84,85 @@ export const useDashboard = () => {
         }
     }
 
+    const generateZReport = async () => {
+        if (!organization.value?.id) throw new Error('Organización no encontrada')
+        generatingZ.value = true
+        
+        try {
+            const today = new Date()
+            today.setHours(0,0,0,0)
+            
+            // 1. Get today's total aggregates directly from transactions
+            const { data: txs, error: fetchErr } = await client
+                .from('transactions')
+                .select('subtotal, exempt_amount, tax_base, tax_general_amount, tax_reduced_amount, tax_igtf')
+                .eq('organization_id', organization.value.id)
+                .eq('status', 'paid')
+                .gte('created_at', today.toISOString())
+                
+            if (fetchErr) throw fetchErr
+            
+            let totalSales = 0, totalExempt = 0, totalBaseGen = 0, totalBaseRed = 0
+            let totalIvaGen = 0, totalIvaRed = 0, totalIgtf = 0
+
+            txs?.forEach(tx => {
+                totalSales += (tx.subtotal || 0)
+                totalExempt += (tx.exempt_amount || 0)
+                totalBaseGen += (tx.tax_base || 0) // Approximation assuming tax_base mostly goes to general if not split in legacy
+                totalIvaGen += (tx.tax_general_amount || 0)
+                totalIvaRed += (tx.tax_reduced_amount || 0)
+                totalIgtf += (tx.tax_igtf || 0)
+            })
+
+            // 2. Get the NEXT correlative
+            const { data: lastZ } = await client
+                .from('fiscal_z_reports')
+                .select('z_correlative_number')
+                .eq('organization_id', organization.value.id)
+                .order('z_correlative_number', { ascending: false })
+                .limit(1)
+                .maybeSingle()
+                
+            const nextCorrelative = (lastZ?.z_correlative_number || 0) + 1
+
+            // 3. Insert Z Report
+            const { data: zReport, error: insertErr } = await client
+                .from('fiscal_z_reports')
+                .insert({
+                    organization_id: organization.value.id,
+                    z_correlative_number: nextCorrelative,
+                    total_sales: totalSales,
+                    total_exempt: totalExempt,
+                    total_base_general: totalBaseGen,
+                    total_base_reduced: totalBaseRed,
+                    total_tax_general: totalIvaGen,
+                    total_tax_reduced: totalIvaRed,
+                    total_igtf: totalIgtf,
+                })
+                .select()
+                .single()
+
+            if (insertErr) {
+                if (insertErr.code === '23505') throw new Error('Ya existe un reporte Z con este correlativo.')
+                throw insertErr
+            }
+
+            return zReport
+        } catch (e: any) {
+            console.error('Error generating Z Report:', e)
+            throw e
+        } finally {
+            generatingZ.value = false
+        }
+    }
+
     return {
         kpis,
         salesTrend,
         loading,
         error,
-        fetchMetrics
+        generatingZ,
+        fetchMetrics,
+        generateZReport
     }
 }

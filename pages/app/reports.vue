@@ -10,9 +10,10 @@ definePageMeta({
 })
 
 const { organization } = useOrganization()
-const { canViewFinancials } = usePermissions()
-const { kpis, salesTrend, loading, fetchMetrics } = useDashboard()
+const { canViewFinancials, isAdmin } = usePermissions()
+const { kpis, salesTrend, loading, fetchMetrics, generatingZ, generateZReport } = useDashboard()
 const { formatMoney, formatDate } = useFormat()
+const toast = useToast()
 
 const selectedRange = ref('month') // Default to month for reports
 
@@ -60,6 +61,17 @@ const chartOptions = computed(() => ({
     dataLabels: { enabled: false },
     tooltip: { theme: 'light', y: { formatter: (val: number) => formatMoney(val) } }
 }))
+
+const handleGenerateZ = async () => {
+    if (!confirm('¿Estás seguro de generar el Reporte Z (Cierre diario)? Esto consolidará las ventas de hoy y generará un correlativo fiscal irreversible.')) return
+    
+    try {
+        const report = await generateZReport()
+        toast.success(`¡Reporte Z #000${report.z_correlative_number} generado exitosamente!`)
+    } catch (e: any) {
+        toast.error(e.message || 'Error al generar el Reporte Z')
+    }
+}
 </script>
 
 <template>
@@ -71,16 +83,30 @@ const chartOptions = computed(() => ({
                 <p class="text-sm text-text-secondary mt-1">Análisis detallado del rendimiento de tu negocio.</p>
             </div>
             
-            <div class="flex items-center gap-2 bg-surface-ground rounded-lg p-1 border border-surface-border shadow-sm">
-                <button 
-                    v-for="range in ['week', 'month', 'year']" 
-                    :key="range"
-                    @click="selectedRange = range; fetchMetrics(range)"
-                    class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
-                    :class="selectedRange === range ? 'bg-primary-50 text-primary-700' : 'text-text-secondary hover:bg-surface-subtle'"
+            <div class="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+                <div class="flex items-center gap-2 bg-surface-ground rounded-lg p-1 border border-surface-border shadow-sm">
+                    <button 
+                        v-for="range in ['today', 'week', 'month', 'year']" 
+                        :key="range"
+                        @click="selectedRange = range; fetchMetrics(range)"
+                        class="px-3 py-1.5 text-xs font-medium rounded-md transition-colors"
+                        :class="selectedRange === range ? 'bg-primary-50 text-primary-700' : 'text-text-secondary hover:bg-surface-subtle'"
+                    >
+                        {{ range === 'today' ? 'Hoy' : (range === 'week' ? 'Semana' : (range === 'month' ? 'Mes' : 'Año')) }}
+                    </button>
+                </div>
+                
+                <BaseButton 
+                    v-if="isAdmin"
+                    variant="primary" 
+                    @click="handleGenerateZ"
+                    :loading="generatingZ"
                 >
-                    {{ range === 'week' ? 'Semana' : (range === 'month' ? 'Mes' : 'Año') }}
-                </button>
+                    <template #icon>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    </template>
+                    Emitir Cierre Z
+                </BaseButton>
             </div>
         </div>
 

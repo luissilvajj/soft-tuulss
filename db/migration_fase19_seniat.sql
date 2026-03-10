@@ -25,7 +25,11 @@ CREATE INDEX IF NOT EXISTS idx_fiscal_retentions_tx_id ON fiscal_retentions(tran
 -- 3. Habilitar RLS
 ALTER TABLE fiscal_retentions ENABLE ROW LEVEL SECURITY;
 
--- 4. Políticas de Seguridad
+-- 4. Políticas de Seguridad (drop primero para evitar conflicto)
+DROP POLICY IF EXISTS "View retentions within organization" ON fiscal_retentions;
+DROP POLICY IF EXISTS "Insert or Update retentions" ON fiscal_retentions;
+DROP POLICY IF EXISTS "Insert retentions" ON fiscal_retentions;
+
 CREATE POLICY "View retentions within organization" ON fiscal_retentions
     FOR SELECT
     USING (organization_id IN (

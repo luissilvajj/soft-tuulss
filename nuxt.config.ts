@@ -80,7 +80,8 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
-    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY
+    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
+    geminiApiKey: process.env.GEMINI_API_KEY
   },
   ssr: false
 })

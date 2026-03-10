@@ -9,12 +9,12 @@
             
             <div class="flex gap-3">
                  <button 
-                    @click="exportCsv"
+                    @click="exportExcel"
                     :disabled="loading || transactions.length === 0"
                     class="btn variant-primary px-4 py-2 flex items-center gap-2"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Exportar Libro CSV
+                    Exportar a Excel (.xlsx)
                 </button>
             </div>
         </div>
@@ -44,7 +44,7 @@
                 </div>
                 <div class="ml-3">
                     <p class="text-sm text-primary-800">
-                        Los montos mostrados en estos Libros base están expresados en su divisa original (USD) o la moneda de la transacción. El CSV exportado está formateado automáticamente con montos totalizados y bases desglosadas (Exento, General, Reducido e IGTF) respetando la correlatividad estricta exigida en Providencias para la declaración fiscal.
+                        Los montos mostrados en estos Libros base están expresados en su divisa original (USD) o la moneda de la transacción. El archivo Excel exportado está formateado automáticamente con montos totalizados y bases desglosadas (Exento, General, Reducido e IGTF) respetando la correlatividad estricta exigida en Providencias para la declaración fiscal.
                     </p>
                 </div>
             </div>
@@ -117,9 +117,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { useSupabaseClient } from '#imports'
+import { useSupabaseClient, definePageMeta } from '#imports'
 import { useOrganization } from '~/composables/useOrganization'
 import { usePermissions } from '~/composables/usePermissions'
+import * as XLSX from 'xlsx'
 
 definePageMeta({
     layout: 'authenticated',
@@ -183,39 +184,54 @@ onMounted(() => {
     }
 })
 
-// === CSV EXPORT LOGIC ===
-const exportCsv = () => {
+// === EXCEL EXPORT LOGIC ===
+const exportExcel = () => {
     if (transactions.value.length === 0) return
 
-    // Standard CSV headers for Venezuelan Sales Ledger
-    let csvContent = "Fecha,Tipo Doc,Control,Nro Factura Afectada,RIF Cliente,Nombre Cliente,Total Venta c/IVA,Ventas Exentas,Base Imponible (16%),IVA (16%),Base IGTF Divisa,IGTF Cobrado\n"
-
-    transactions.value.forEach(t => {
-        const cols = [
-            `"${new Date(t.date).toLocaleDateString('es-VE')}"`,
-            `"${t.document_type || 'invoice'}"`,
-            `"${t.control_number || t.id}"`,
-            `"${t.document_type === 'credit_note' && t.related_transaction_id ? t.related_transaction_id : ''}"`,
-            `"${t.client?.identity_document || 'V/E'}"`,
-            `"${t.client?.name || 'Consumidor Final'}"`,
-            `"${Number(t.amount || 0).toFixed(2)}"`,
-            `"${Number(t.exempt_amount || 0).toFixed(2)}"`,
-            `"${Number(t.tax_base || 0).toFixed(2)}"`,
-            `"${Number(t.tax_general_amount || 0).toFixed(2)}"`,
-            `"${Number(t.payment_details?.igtf_base || 0).toFixed(2)}"`,
-            `"${Number(t.tax_igtf || 0).toFixed(2)}"`
-        ]
-        csvContent += cols.join(",") + "\n"
+    // Transform API objects into Worksheet format
+    const worksheetData = transactions.value.map((t, index) => {
+        return {
+            "Nro. Op.": index + 1,
+            "Fecha": new Date(t.date).toLocaleDateString('es-VE'),
+            "RIF / C.I.": t.client?.identity_document || 'V000000000',
+            "Nombre / Razón Social": t.client?.name || 'Consumidor Final',
+            "Tipo Doc.": t.document_type === 'credit_note' ? 'NC' : (t.document_type === 'delivery_note' ? 'NE' : 'Fac'),
+            "Nro. Comprobante": t.control_number || t.id.slice(0, 8),
+            "Factura Afectada": t.document_type === 'credit_note' && t.related_transaction_id ? t.related_transaction_id.slice(0, 8) : '',
+            "Total Venta c/IVA": Number(t.amount || 0),
+            "Ventas Exentas": Number(t.exempt_amount || 0),
+            "Base Imponible (16%)": Number(t.tax_base || 0),
+            "Impuesto IVA (16%)": Number(t.tax_general_amount || 0),
+            "Base IGTF Divisas": Number(t.payment_details?.igtf_base || 0),
+            "IGTF Percibido": Number(t.tax_igtf || 0)
+        }
     })
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement("a")
-    const url = URL.createObjectURL(blob)
-    link.setAttribute("href", url)
-    link.setAttribute("download", `Libro_Ventas_${filterMonth.value}.csv`)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    // Create workbook and worksheet
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData)
+    
+    // Auto-adjust column width (Basic Approach)
+    const wscols = [
+        { wch: 8 },  // Op
+        { wch: 12 }, // Fecha
+        { wch: 15 }, // RIF
+        { wch: 30 }, // Nombre
+        { wch: 10 }, // Tipo
+        { wch: 18 }, // Ctrl
+        { wch: 18 }, // Factura afect.
+        { wch: 18 }, // Total
+        { wch: 18 }, // Exento
+        { wch: 18 }, // Base 16
+        { wch: 18 }, // IVA 16
+        { wch: 18 }, // Base IGTF
+        { wch: 18 }  // IGTF
+    ]
+    worksheet['!cols'] = wscols
+
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, `Ventas_${filterMonth.value}`)
+
+    // Download file
+    XLSX.writeFile(workbook, `Libro_Ventas_Softtuuls_${filterMonth.value}.xlsx`)
 }
 </script>

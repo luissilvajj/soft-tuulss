@@ -74,14 +74,14 @@ export const useDashboard = () => {
             // 3. Fetch Top 5 Products (by quantity sold)
             const { data: topData } = await client
                 .from('transaction_items')
-                .select('product_name, quantity')
+                .select('quantity, product:products(name)')
                 .gte('created_at', p_range_start)
                 .lte('created_at', p_range_end)
             
             if (topData) {
                 const productMap: Record<string, number> = {}
                 topData.forEach((item: any) => {
-                    const name = item.product_name || 'Sin nombre'
+                    const name = item.product?.name || 'Sin nombre'
                     productMap[name] = (productMap[name] || 0) + (item.quantity || 1)
                 })
                 topProducts.value = Object.entries(productMap)

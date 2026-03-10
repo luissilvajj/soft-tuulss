@@ -249,6 +249,7 @@ import { useOrganization } from '~/composables/useOrganization'
 import { useInventory } from '~/composables/useInventory'
 import { watchDebounced } from '@vueuse/core'
 import { useToast } from "vue-toastification"
+import { ref, onMounted, watch, computed } from 'vue'
 import UiDataList from '~/components/ui/DataList.vue'
 import BaseButton from '~/components/base/BaseButton.vue'
 import BaseInput from '~/components/base/BaseInput.vue'
@@ -284,12 +285,30 @@ const openKardexModal = (product: any) => {
 // --- Server Side Pagination ---
 const page = ref(1)
 const searchQuery = ref('')
+const totalPages = computed(() => Math.max(1, Math.ceil(totalProducts.value / 50)))
+
+// refresh() - Función central para cargar/recargar productos
+const refresh = () => {
+    if (!organization.value?.id) return
+    fetchProducts({ page: page.value, limit: 50, search: searchQuery.value })
+}
+
 // Debounce Search
 watchDebounced(
     searchQuery,
     () => { page.value = 1; refresh() },
     { debounce: 500, maxWait: 1000 }
 )
+
+// Cargar datos al montar la página
+onMounted(() => {
+    if (organization.value?.id) refresh()
+})
+
+// Recargar si la organización cambia
+watch(() => organization.value?.id, (newId) => {
+    if (newId) refresh()
+})
 
 // --- Actions ---
 const handleDelete = async (p: any) => {

@@ -1,21 +1,37 @@
 -- =================================================================================
--- Fase 19: Retenciones de ISLR (Servicios vs Bienes)
+-- Fase 19: Retenciones Fiscales (IVA + ISLR)
 -- =================================================================================
 
--- 1. Ampliar Fiscal Retentions para soportar IVA e ISLR
--- Add type column. Soft defaults to 'iva' for backward compatibility
-ALTER TABLE fiscal_retentions 
-ADD COLUMN IF NOT EXISTS type VARCHAR(20) DEFAULT 'iva' CHECK (type IN ('iva', 'islr'));
+-- 1. Crear tabla de Retenciones Fiscales si no existe
+CREATE TABLE IF NOT EXISTS fiscal_retentions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    transaction_id UUID NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
+    type VARCHAR(20) DEFAULT 'iva' CHECK (type IN ('iva', 'islr')),
+    retention_number VARCHAR(50) NOT NULL,
+    percentage DECIMAL(5,2) NOT NULL DEFAULT 75.00,
+    amount_retained DECIMAL(15,2) NOT NULL,
+    date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    -- Máximo 1 retención de CADA TIPO por transacción
+    UNIQUE(transaction_id, type)
+);
 
--- Remover la restriccion UNIQUE(transaction_id) estrictamente, 
--- ya que una factura de servicios puede tener TANTO retención de IVA como retencion de ISLR simultaneamente.
-ALTER TABLE fiscal_retentions DROP CONSTRAINT IF EXISTS fiscal_retentions_transaction_id_key;
+-- 2. Índices para reportes rápidos
+CREATE INDEX IF NOT EXISTS idx_fiscal_retentions_org_id ON fiscal_retentions(organization_id);
+CREATE INDEX IF NOT EXISTS idx_fiscal_retentions_tx_id ON fiscal_retentions(transaction_id);
 
--- Nueva restriccion: Maximo 1 retencion de CADA TIPO por transaccion
-ALTER TABLE fiscal_retentions ADD CONSTRAINT unique_retention_type_per_tx UNIQUE (transaction_id, type);
+-- 3. Habilitar RLS
+ALTER TABLE fiscal_retentions ENABLE ROW LEVEL SECURITY;
 
--- 2. Actualizar Politica de RLS de Upsert
-DROP POLICY IF EXISTS "Insert retentions" ON fiscal_retentions;
+-- 4. Políticas de Seguridad
+CREATE POLICY "View retentions within organization" ON fiscal_retentions
+    FOR SELECT
+    USING (organization_id IN (
+        SELECT organization_id FROM public.organization_members WHERE user_id = auth.uid()
+    ));
+
 CREATE POLICY "Insert or Update retentions" ON fiscal_retentions
     FOR ALL
     USING (organization_id IN (
@@ -24,3 +40,7 @@ CREATE POLICY "Insert or Update retentions" ON fiscal_retentions
     WITH CHECK (organization_id IN (
         SELECT organization_id FROM public.organization_members WHERE user_id = auth.uid()
     ));
+
+-- 5. Marcar clientes como Contribuyentes Especiales
+ALTER TABLE clients 
+ADD COLUMN IF NOT EXISTS is_special_taxpayer BOOLEAN DEFAULT false;

@@ -74,6 +74,27 @@
                 </ClientOnly>
             </div>
         </div>
+
+        <!-- Low Stock Alert Widget -->
+        <div v-if="lowStockProducts.length > 0" class="bg-surface-ground rounded-xl border border-status-error/30 p-6 shadow-sm mt-6">
+            <div class="flex items-center gap-2 mb-4">
+                <svg class="w-5 h-5 text-status-error animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                <h3 class="font-bold text-lg text-status-error">Productos con Stock Bajo</h3>
+                <span class="ml-auto bg-status-error/10 text-status-error px-2 py-0.5 rounded-full text-xs font-bold">{{ lowStockProducts.length }}</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div v-for="p in lowStockProducts" :key="p.id" class="flex items-center gap-3 bg-status-error/5 border border-status-error/10 rounded-lg p-3 hover:bg-status-error/10 transition-colors">
+                    <div class="w-10 h-10 rounded-lg bg-status-error/10 flex items-center justify-center flex-shrink-0">
+                        <span class="text-lg font-bold text-status-error">{{ p.stock }}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-text-heading truncate">{{ p.name }}</p>
+                        <p class="text-xs text-text-secondary">Mín: {{ p.min_stock || 5 }} · SKU: {{ p.sku || 'N/A' }}</p>
+                    </div>
+                    <NuxtLink to="/app/inventory" class="text-xs text-primary-600 hover:underline font-bold flex-shrink-0">Reponer</NuxtLink>
+                </div>
+            </div>
+        </div>
     </div>
   </div>
 </template>
@@ -98,6 +119,9 @@ const { formatMoney } = useFormat()
 const { kpis, salesTrend, loading, fetchMetrics } = useDashboard()
 const { currentTheme } = useTheme()
 
+const lowStockProducts = ref<any[]>([])
+const client = useSupabaseClient()
+
 // Reactive Dark Mode check for Chart Options
 const isDark = computed(() => {
     if (typeof window === 'undefined') return false
@@ -110,9 +134,20 @@ const isDark = computed(() => {
 const selectedRange = ref('today')
 
 // Fetch on Mount & Watchers
-onMounted(() => {
+onMounted(async () => {
     if (organization.value?.id && canViewFinancials.value) {
         fetchMetrics(selectedRange.value)
+        // Fetch low stock products
+        const { data } = await client
+            .from('products')
+            .select('id, name, sku, stock, min_stock')
+            .eq('organization_id', organization.value.id)
+            .eq('is_deleted', false)
+            .order('stock', { ascending: true })
+            .limit(12)
+        if (data) {
+            lowStockProducts.value = data.filter((p: any) => p.stock <= (p.min_stock || 5))
+        }
     }
 })
 

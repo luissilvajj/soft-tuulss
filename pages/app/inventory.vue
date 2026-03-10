@@ -59,9 +59,10 @@
 
         <template #col-stock="{ item }">
              <span :class="[
-                'px-2 py-1 text-xs font-bold rounded-full',
-                item.stock <= 5 ? 'bg-status-error/10 text-status-error' : 'bg-status-success/10 text-status-success'
+                'px-2 py-1 text-xs font-bold rounded-full inline-flex items-center gap-1',
+                item.stock <= (item.min_stock || 5) ? 'bg-status-error/10 text-status-error animate-pulse' : 'bg-status-success/10 text-status-success'
             ]">
+                <svg v-if="item.stock <= (item.min_stock || 5)" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
                 {{ item.stock }}
             </span>
         </template>
@@ -89,9 +90,10 @@
 
         <template #card-badge="{ item }">
             <span :class="[
-                'px-2 py-1 text-xs font-bold rounded-full',
-                item.stock <= 5 ? 'bg-status-error/10 text-status-error' : 'bg-status-success/10 text-status-success'
+                'px-2 py-1 text-xs font-bold rounded-full inline-flex items-center gap-1',
+                item.stock <= (item.min_stock || 5) ? 'bg-status-error/10 text-status-error animate-pulse' : 'bg-status-success/10 text-status-success'
             ]">
+                <svg v-if="item.stock <= (item.min_stock || 5)" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
                 {{ item.stock }} Unid.
             </span>
         </template>
@@ -177,6 +179,13 @@
                     placeholder="0" 
                 />
             </div>
+            <BaseInput 
+                v-model.number="form.min_stock" 
+                type="number" 
+                label="Stock Mínimo (Alerta)" 
+                placeholder="5" 
+                hint="Recibirás una alerta visual cuando el stock baje de este número."
+            />
             <BaseInput 
                 v-if="!isEditing"
                 v-model.number="form.cost" 
@@ -302,18 +311,18 @@ const selectedProduct = ref<any>(null)
 const formSaving = ref(false)
 const restockSaving = ref(false)
 
-const form = ref<any>({ id: '', name: '', sku: '', price: 0, stock: 0, cost: 0, tax_condition: 'exempt' })
+const form = ref<any>({ id: '', name: '', sku: '', price: 0, stock: 0, cost: 0, tax_condition: 'exempt', min_stock: 5 })
 const restock = ref({ qty: 0, cost: 0 })
 
-const openModal = () => { isEditing.value = false; form.value = { id:'', name:'', sku:'', price:0, stock:0, cost:0, tax_condition: 'exempt' }; showModal.value = true }
-const openEditModal = (p: any) => { isEditing.value = true; form.value = { ...p, tax_condition: p.tax_condition || 'exempt' }; showModal.value = true }
+const openModal = () => { isEditing.value = false; form.value = { id:'', name:'', sku:'', price:0, stock:0, cost:0, tax_condition: 'exempt', min_stock: 5 }; showModal.value = true }
+const openEditModal = (p: any) => { isEditing.value = true; form.value = { ...p, tax_condition: p.tax_condition || 'exempt', min_stock: p.min_stock ?? 5 }; showModal.value = true }
 const closeModal = () => showModal.value = false
 
 const saveProduct = async () => {
     formSaving.value = true
     try {
         if (isEditing.value) {
-            await updateProd(form.value.id, { name: form.value.name, sku: form.value.sku, price: form.value.price, tax_condition: form.value.tax_condition })
+            await updateProd(form.value.id, { name: form.value.name, sku: form.value.sku, price: form.value.price, tax_condition: form.value.tax_condition, min_stock: form.value.min_stock })
         } else {
              // CRITICAL FIX: Ensure 'id' is NOT sent as empty string for new items
              const { id, ...newProduct } = form.value

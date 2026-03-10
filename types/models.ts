@@ -25,6 +25,7 @@ export interface Product {
     cost?: number // Added cost
     stock: number
     tax_condition?: 'exempt' | 'general' | 'reduced' // Nuevo IVA
+    min_stock?: number // Umbral de alerta de stock bajo
     created_at: string
 }
 

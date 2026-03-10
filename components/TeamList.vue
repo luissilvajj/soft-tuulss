@@ -12,46 +12,55 @@
     </div>
 
     <!-- Members List -->
-    <div class="glass-panel overflow-hidden">
-        <table class="min-w-full divide-y divide-[var(--color-border-subtle)]">
-            <thead class="bg-[var(--color-bg-subtle)]">
+    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-bold text-[var(--color-text-secondary)] uppercase">Usuario</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold text-[var(--color-text-secondary)] uppercase">Rol</th>
-                    <th class="px-6 py-3 text-right text-xs font-bold text-[var(--color-text-secondary)] uppercase">Acciones</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
             </thead>
-             <tbody class="divide-y divide-[var(--color-border-subtle)] bg-[var(--color-bg-dark)]">
-                 <tr v-if="loading" ><td colspan="3" class="p-4 text-center">Cargando...</td></tr>
-                 <tr v-else-if="members.length === 0"><td colspan="3" class="p-4 text-center">No hay miembros encontrados.</td></tr>
+             <tbody class="bg-white divide-y divide-gray-200">
+                 <tr v-if="loading" ><td colspan="3" class="p-8 text-center text-sm text-gray-500">Cargando miembros...</td></tr>
+                 <tr v-else-if="members.length === 0">
+                    <td colspan="3" class="py-12 text-center text-gray-400">
+                        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
+                             <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </div>
+                        <p class="text-sm font-medium text-gray-500">No hay miembros</p>
+                        <p class="text-xs text-gray-400 mt-1">Invita a tu equipo para colaborar</p>
+                    </td>
+                 </tr>
                  
-                 <tr v-for="member in members" :key="member.user_id" class="group hover:bg-[var(--color-bg-subtle)]/50 transition-colors">
-                     <td class="px-6 py-4">
+                 <tr v-for="member in members" :key="member.user_id" class="group hover:bg-gray-50 transition-colors">
+                     <td class="px-6 py-4 whitespace-nowrap">
                          <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-500 flex items-center justify-center font-bold text-xs ring-1 ring-indigo-500/30">
-                                {{ (member.users?.email || 'U').charAt(0).toUpperCase() }}
+                            <div class="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-xs ring-1 ring-primary-100">
+                                {{ (member.profiles?.full_name || 'U').charAt(0).toUpperCase() }}
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-[var(--color-heading)]">{{ member.users?.email || 'Usuario Desconocido' }}</p>
-                                <p v-if="member.user_id === user?.id" class="text-xs text-blue-500 font-bold">Tú</p>
+                                <p class="text-sm font-medium text-gray-900">{{ member.profiles?.full_name || 'Miembro del Equipo' }}</p>
+                                <p v-if="member.user_id === user?.id" class="text-xs text-primary-600 font-bold">Tú</p>
                             </div>
                          </div>
                      </td>
-                     <td class="px-6 py-4">
+                     <td class="px-6 py-4 whitespace-nowrap">
                          <span :class="[
-                             'px-2 py-1 text-xs font-bold rounded-full border',
-                             member.role === 'owner' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                             'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                             member.role === 'owner' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
                          ]">
                              {{ member.role === 'owner' ? 'Dueño' : 'Cajero' }}
                          </span>
                      </td>
-                     <td class="px-6 py-4 text-right">
+                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                          <button 
                             v-if="canManage(member)" 
                             @click="removeMember(member.user_id)"
-                            class="text-red-500 hover:text-red-600 text-xs font-bold hover:underline"
+                            class="text-gray-400 hover:text-red-600 transition-colors p-1 rounded-full hover:bg-red-50"
+                            title="Eliminar miembro"
                         >
-                             Eliminar
+                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                          </button>
                      </td>
                  </tr>
@@ -109,19 +118,8 @@ const fetchMembers = async () => {
             .select(`
                 user_id, 
                 role,
-                users:user_id ( email ) 
-            `) // Note: 'users' table is usually accessible via join if keys allow, actually 'users' is in auth schema.
-            // But we CANNOT join auth.users directly easily from frontend client usually due to permissions.
-            // Wait, usually we query 'profiles' if we have one.
-            // If we don't have profiles set up for everyone, this might be tricky.
-            // LUCKILY: Softtuuls likely doesn't have a public profiles table linked for auth yet?
-            // "profiles" table exists? 'migration_settings_storage.sql' implies we might have logic.
-            // Actually, querying 'organization_members' gives raw member data.
-            // 'users' in the select above implies a FK relation. Accessing `auth.users` via view is preferred.
-            // Workaround: We might fail to get emails if we don't have a public view.
-            // Let's assume we do NOT have easy access to email given RLS.
-            // BUT, the Prompt says "TeamList.vue ... Nombre, Email, Rol".
-            // I'll try to fetch, if it fails I'll assume only profile data is visible or I'll fix RLS later.
+                profiles:user_id ( full_name ) 
+            `)
             .eq('organization_id', organization.value.id)
         
         if (error) throw error

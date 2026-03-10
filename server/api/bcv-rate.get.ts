@@ -24,19 +24,34 @@ export default defineEventHandler(async (event) => {
         const now = new Date()
         const diffHours = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60)
 
-        if (diffHours > 24) {
-            console.warn(`[WARNING] Stale Exchange Rate Detected! Old: ${diffHours.toFixed(1)} hours. Triggering emergency fetch.`)
-            // Option: trigger the background function async here, but for now return fallback or old data
-            // Let's try to fetch fresh to not block the user with old rates
+        // [FIX] Lowered TTL to 1 hour to ensure fresh daily rates
+        if (diffHours > 1) {
+            console.log(`[INFO] Exchange Rate Stale (${diffHours.toFixed(2)}h). Fetching fresh...`)
             try {
-                return await fetchFreshRateFallback()
+                // Fetch fresh
+                const freshData = await fetchFreshRateFallback()
+
+                // [FIX] Persist to DB so other clients benefit
+                // Fire and forget update to not block response too much, or await it.
+                // Better await to ensure consistency.
+                const { error: updateError } = await client
+                    .from('sys_exchange_rates')
+                    .upsert({
+                        currency_pair: 'USD-VES',
+                        rate: freshData.rate,
+                        last_update: freshData.last_update
+                    }, { onConflict: 'currency_pair' })
+
+                if (updateError) console.error('Failed to update rate cache:', updateError)
+
+                return freshData
             } catch (fallbackError) {
-                console.error('Fallback failed, serving stale data as last resort.', fallbackError)
+                console.error('Fallback failed, serving stale data.', fallbackError)
                 return {
                     rate: parseFloat(data.rate),
-                    source: 'DB (Stale > 24h)',
+                    source: 'DB (Stale)',
                     last_update: data.last_update,
-                    warning: 'Rate is older than 24h. Please check system status.'
+                    warning: 'Rate update failed. Using cached.'
                 }
             }
         }
@@ -50,11 +65,14 @@ export default defineEventHandler(async (event) => {
 
     } catch (e: any) {
         console.error('Critical Error in BCV Endpoint:', e)
-        return {
-            rate: 270.00, // Safe Hardcoded Fallback
-            source: 'Hardcoded Fallback (System Error)',
-            error: e.message
-        }
+        // [FIX - FASE 3] NUNCA retornar un fallback estático (ej. 33.50 ó 336.46) ante fallos totales.
+        // Provoca pérdidas millonarias irremediables si el país sufre hiper-devaluación y la API está caída.
+        // Es preferible frenar el TPV (Caja) o forzar la intervención humana, lanzando un 503.
+        throw createError({
+            statusCode: 503,
+            statusMessage: 'Servicio BCV Inaccesible. Verifique su red local o ingrese la tasa manualmente.',
+            data: { originalError: e.message }
+        })
     }
 })
 

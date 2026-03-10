@@ -1,15 +1,15 @@
-export default defineNuxtRouteMiddleware((to, from) => {
-    const { isAdmin } = usePermissions()
+export default defineNuxtRouteMiddleware(async (to, from) => {
+    const { isAdmin } = usePermissions() // computed based on organization
+    const { organization, fetchOrganization } = useOrganization()
 
-    // If role is not loaded yet, we might want to wait or redirect.
-    // Assuming usePermissions is reactive and 'organization' is loaded.
-    // Ideally, this check happens after auth/org load.
+    // Ensure organization is loaded before checking permissions
+    if (!organization.value) {
+        await fetchOrganization()
+    }
 
     if (!isAdmin.value) {
         if (process.client) {
-            // useToast inside middleware can be tricky, relying on simple redirect
-            // or just return abortNavigation
-            // alert('Access Denied: Admins Only')
+            console.warn('Access Denied: Redirecting to POS. Role:', organization.value?.role)
         }
         return navigateTo('/app/sales/new') // Redirect to POS
     }

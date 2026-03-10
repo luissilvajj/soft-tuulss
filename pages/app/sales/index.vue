@@ -1,114 +1,140 @@
 <template>
   <div>
     <!-- Header Section -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-      <div>
-        <h1 class="text-3xl font-bold tracking-tight text-gradient">Ventas</h1>
-        <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Gestiona y rastrea todas tus operaciones de venta.</p>
-      </div>
-      <NuxtLink id="tour-new-sale-btn" to="/app/sales/new" class="btn btn-primary shadow-lg hover:shadow-xl transform transition-all duration-300">
-        <span class="relative flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Nueva Venta
-        </span>
-      </NuxtLink>
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-text-heading">Ventas</h1>
+        <p class="mt-1 text-sm text-text-secondary">Gestiona y rastrea todas tus operaciones de venta.</p>
     </div>
 
-    <!-- Sales Table -->
-    <div class="glass-panel overflow-hidden flex flex-col h-full rounded-2xl border border-[var(--color-border-subtle)] bg-[var(--color-bg-subtle)] shadow-sm">
-        <div v-if="sales.length > 0" class="w-full">
-           <!-- Mobile Card View (Visible only on small screens) -->
-           <div class="block lg:hidden space-y-4 p-4">
-              <div v-for="sale in sales" :key="sale.id" class="bg-[var(--color-bg-dark)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3 shadow-sm">
-                  <div class="flex justify-between items-start">
-                       <div>
-                          <p class="font-bold text-[var(--color-heading)]">{{ getClientName(sale) }}</p>
-                          <p class="text-xs text-[var(--color-text-secondary)] font-mono">{{ new Date(sale.created_at || '').toLocaleDateString() }}</p>
-                       </div>
-                       <span class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-1 text-[10px] font-bold rounded-full">
-                           Pagado
-                       </span>
-                  </div>
-                   <div class="flex justify-between items-center border-t border-[var(--color-border-subtle)] pt-3">
-                      <div class="text-sm text-[var(--color-text-secondary)] capitalize">
-                          {{ getPaymentMethodLabel(sale.payment_method) }}
-                      </div>
-                      <div class="font-bold text-[var(--color-heading)] text-lg font-mono">
-                          {{ formatAmount(sale) }}
-                      </div>
-                  </div>
-                   <button @click="openDetailModal(sale)" class="w-full btn btn-sm bg-[var(--color-bg-subtle)] hover:bg-[var(--color-border-subtle)] text-[var(--color-text-primary)] text-xs border border-[var(--color-border-subtle)] transition-colors">
-                        Ver Detalle
-                   </button>
-              </div>
-           </div>
-
-           <!-- Desktop Table View (Hidden on small screens) -->
-           <div class="hidden lg:block w-full overflow-x-auto">
-            <table class="min-w-full divide-y divide-[var(--color-border-subtle)] text-left align-middle">
-                <thead class="bg-[var(--color-bg-subtle)]">
-                    <tr>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider whitespace-nowrap">Fecha</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider whitespace-nowrap">Cliente</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider whitespace-nowrap">Método</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-center whitespace-nowrap">Estado</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right whitespace-nowrap">Total</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right whitespace-nowrap">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-[var(--color-border-subtle)] bg-[var(--color-bg-dark)]">
-                    <tr v-for="sale in sales" :key="sale.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors duration-150 group">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)] font-mono">
-                            {{ new Date(sale.created_at || '').toLocaleDateString() }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-[var(--color-accent-blue)] font-bold text-xs shrink-0">
-                                    {{ getClientName(sale).charAt(0).toUpperCase() }}
-                                </div>
-                                <span class="font-bold text-[var(--color-heading)] truncate max-w-[150px]">{{ getClientName(sale) }}</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)] capitalize">
-                            {{ getPaymentMethodLabel(sale.payment_method) }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <span class="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full">
-                                {{ sale.status === 'paid' ? 'Pagado' : sale.status }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right">
-                            <div class="font-bold font-mono text-lg text-[var(--color-heading)]">
-                                {{ formatAmount(sale) }}
-                            </div>
-                        </td>
-                         <td class="px-6 py-4 whitespace-nowrap text-right">
-                            <button @click="openDetailModal(sale)" class="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-blue)] text-sm font-medium hover:underline">
-                                Ver Detalle
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-           </div>
+    <!-- Toolbar -->
+    <div class="mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
+        <!-- Search -->
+        <div class="relative w-full md:w-64">
+            <BaseInput
+                v-model="searchQuery" 
+                placeholder="Buscar..." 
+                type="text"
+            >
+                <template #prefix>
+                    <span class="text-gray-400">🔍</span>
+                </template>
+            </BaseInput>
         </div>
-
-        <!-- Empty State -->
-        <!-- Empty State -->
-        <div v-else class="py-12">
-            <EmptyState 
-                title="No hay ventas registradas" 
-                description="Tus operaciones de venta aparecerán aquí. ¡Comienza hoy!"
-                actionLabel="Crear Primera Venta"
-                actionId="tour-empty-sale"
-                @action="navigateTo('/app/sales/new')"
+        
+        <!-- Actions -->
+        <div class="w-full md:w-auto flex justify-end">
+            <BaseButton 
+                to="/app/sales/new" 
+                variant="primary"
+                id="tour-new-sale-btn"
             >
                 <template #icon>
-                     <svg class="w-10 h-10 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                 </template>
-            </EmptyState>
+                Nueva Venta
+            </BaseButton>
         </div>
     </div>
+
+    <!-- Sales List -->
+    <UiDataList
+        v-if="loading || sales.length > 0"
+        :items="sales"
+        :columns="columns"
+        :loading="loading"
+        title-key="client"
+    >
+        <!-- Custom Columns -->
+        <template #col-created_at="{ item }">
+            <span class="font-mono text-sm text-gray-600">
+                {{ new Date(item.created_at || '').toLocaleDateString() }}
+            </span>
+        </template>
+
+        <template #col-client="{ item }">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-primary-600 font-bold text-xs shrink-0 border border-indigo-100">
+                    {{ getClientName(item).charAt(0).toUpperCase() }}
+                </div>
+                <span class="font-bold text-gray-900 truncate max-w-[150px]">{{ getClientName(item) }}</span>
+            </div>
+        </template>
+
+        <template #col-payment_method="{ item }">
+            <span class="text-sm text-gray-600 capitalize">
+                {{ getPaymentMethodLabel(item.payment_method) }}
+            </span>
+        </template>
+
+        <template #col-status="{ item }">
+             <span :class="[
+                'px-2.5 py-0.5 rounded-full text-xs font-medium border',
+                item.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-600 border-gray-200'
+             ]">
+                {{ item.status === 'paid' ? 'Pagado' : item.status }}
+            </span>
+        </template>
+
+        <template #col-amount="{ item }">
+            <div class="font-bold font-mono text-sm text-gray-900">
+                {{ formatAmount(item) }}
+            </div>
+        </template>
+
+        <template #col-actions="{ item }">
+            <div class="flex justify-end">
+                <button @click="openDetailModal(item)" class="text-gray-400 hover:text-primary-600 font-medium text-sm transition-colors p-1">
+                    Ver Detalle
+                </button>
+            </div>
+        </template>
+
+        <!-- Mobile Logic -->
+        <template #card-title="{ item }">
+            {{ getClientName(item) }}
+        </template>
+
+        <template #card-subtitle="{ item }">
+            {{ formatAmount(item) }}
+        </template>
+
+        <template #card-badge="{ item }">
+             <span :class="[
+                'px-2 py-1 rounded-md text-[10px] font-bold border',
+                item.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-600 border-gray-200'
+             ]">
+                {{ item.status === 'paid' ? 'Pagado' : item.status }}
+            </span>
+        </template>
+
+        <template #mobile-actions="{ item }">
+            <div class="flex flex-col gap-1 w-full">
+                <div class="flex justify-between items-center text-xs text-gray-500 mb-2">
+                     <span>{{ new Date(item.created_at || '').toLocaleDateString() }}</span>
+                     <span>{{ getPaymentMethodLabel(item.payment_method) }}</span>
+                </div>
+                <button @click="openDetailModal(item)" class="w-full py-2 text-primary-600 text-sm font-medium border border-primary-100 rounded-lg hover:bg-primary-50 transition-colors">
+                    Ver Detalle
+                </button>
+            </div>
+        </template>
+    </UiDataList>
+
+    <!-- Empty State -->
+    <div v-else class="py-12 bg-white rounded-2xl border border-gray-200 shadow-sm text-center">
+        <div class="flex flex-col items-center justify-center max-w-sm mx-auto p-6">
+            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-1">No hay ventas registradas</h3>
+            <p class="text-gray-500 text-sm mb-6">Tus operaciones de venta aparecerán aquí. ¡Comienza hoy!</p>
+            <NuxtLink to="/app/sales/new" class="btn btn-primary">
+                Crear Primera Venta
+            </NuxtLink>
+        </div>
+    </div>
+
     <!-- Detail Modal -->
     <SaleDetailModal 
         v-if="showDetailModal && selectedSale" 
@@ -122,16 +148,52 @@
 import { useTransactions } from '~/composables/useTransactions'
 import { useOrganization } from '~/composables/useOrganization'
 import type { Transaction } from '~/types/models'
+import UiDataList from '~/components/ui/DataList.vue'
+import BaseButton from '~/components/base/BaseButton.vue'
+import BaseInput from '~/components/base/BaseInput.vue'
 
 definePageMeta({
-  layout: 'dashboard'
+  layout: 'authenticated'
 })
 
-const { transactions: sales, fetchTransactions, loading } = useTransactions()
+const { transactions: sales, totalTransactions, loading, fetchTransactions, resetTransactionsState } = useTransactions()
 const { organization } = useOrganization()
 
 const showDetailModal = ref(false)
 const selectedSale = ref<Transaction | null>(null)
+const searchQuery = ref('')
+const page = ref(1)
+const limit = 20
+
+const totalPages = computed(() => {
+    return Math.ceil(totalTransactions.value / limit)
+})
+
+import { watchDebounced } from '@vueuse/core'
+
+watchDebounced(searchQuery, () => {
+    page.value = 1 // reset on new search
+    if (organization.value?.id) {
+       fetchTransactions({ type: 'sale', page: page.value, limit, search: searchQuery.value })
+    }
+}, { debounce: 500 })
+
+watch(page, (newPage) => {
+    if (organization.value?.id) {
+       fetchTransactions({ type: 'sale', page: newPage, limit, search: searchQuery.value })
+    }
+})
+
+// Removed local filteredSales implementation as it's now handled by the server
+
+const columns = [
+    { key: 'created_at', label: 'Fecha', class: 'w-32' },
+    { key: 'client', label: 'Cliente' },
+    { key: 'payment_method', label: 'Método' },
+    { key: 'status', label: 'Estado', class: 'text-center' },
+    { key: 'amount', label: 'Total', class: 'text-right' },
+    { key: 'actions', label: '', class: 'text-right w-24' }
+]
 
 const openDetailModal = (sale: Transaction) => {
     selectedSale.value = sale
@@ -171,10 +233,19 @@ const formatAmount = (sale: any) => {
 }
 
 onMounted(() => {
-  if (organization.value?.id) fetchTransactions({ type: 'sale' })
+  if (organization.value?.id && sales.value.length === 0) {
+      fetchTransactions({ type: 'sale', page: page.value, limit })
+  }
+})
+
+onUnmounted(() => {
+    resetTransactionsState()
 })
 
 watch(() => organization.value, (newOrg) => {
-    if (newOrg?.id) fetchTransactions({ type: 'sale' })
-}, { immediate: true })
+    if (newOrg?.id) {
+        page.value = 1
+        fetchTransactions({ type: 'sale', page: page.value, limit })
+    }
+}, { immediate: false })
 </script>

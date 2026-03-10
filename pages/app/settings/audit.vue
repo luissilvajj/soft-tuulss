@@ -81,7 +81,7 @@
 import { useOrganization } from '~/composables/useOrganization'
 
 definePageMeta({
-    layout: 'dashboard',
+    layout: 'authenticated',
     middleware: 'admin' // Protected
 })
 

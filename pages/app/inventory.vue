@@ -1,163 +1,222 @@
 <template>
   <div>
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-      <div>
-        <h1 class="text-3xl font-bold tracking-tight text-gradient">Inventario</h1>
-        <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Gestiona tus productos y existencias.</p>
-      </div>
-      <div class="flex gap-2">
-         <button @click="showImportModal = true" class="btn bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200">
-            Importar
-         </button>
-         <button @click="openModal" class="btn btn-primary">
-            Nuevo Producto
-         </button>
-      </div>
+    <!-- Standard Page Header -->
+    <!-- Page Header -->
+    <div class="mb-6">
+       <h1 class="text-2xl font-bold text-text-heading">Inventario</h1>
+       <p class="mt-1 text-sm text-text-secondary">Gestiona tus productos y existencias.</p>
     </div>
 
-    <!-- Search & Filters -->
-    <div class="mb-6 flex gap-4">
-        <div class="relative flex-1 max-w-md">
-            <input 
+    <!-- Toolbar -->
+    <div class="mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
+        <!-- Left: Search -->
+        <div class="relative w-full md:w-64">
+            <BaseInput
                 v-model="searchQuery" 
-                type="text" 
-                placeholder="Buscar por Nombre o SKU..." 
-                class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                placeholder="Buscar..." 
+                type="text"
             >
-            <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                <template #prefix>
+                    <span class="text-gray-400">🔍</span>
+                </template>
+            </BaseInput>
+        </div>
+        
+        <!-- Right: Actions -->
+        <div class="flex gap-3 w-full md:w-auto justify-end">
+             <BaseButton 
+                variant="secondary" 
+                @click="showImportModal = true"
+             >
+                Importar
+             </BaseButton>
+             <BaseButton 
+                variant="primary" 
+                @click="openModal"
+             >
+                <template #icon>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </template>
+                Nuevo Producto
+             </BaseButton>
         </div>
     </div>
 
-    <!-- Empty State -->
-    <div v-if="!loading && products.length === 0 && searchQuery === ''" class="py-12">
-        <EmptyState 
-            title="Tu inventario está vacío" 
-            description="Para comenzar a vender, primero necesitas agregar productos a tu inventario. ¡Es muy fácil!"
-            actionLabel="Crear Primer Producto"
-            actionId="tour-add-product"
-            @action="openModal"
-        >
-            <template #icon>
-                <svg class="w-10 h-10 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-            </template>
-        </EmptyState>
-    </div>
+    <!-- Data List -->
+    <UiDataList 
+        :items="products" 
+        :columns="columns" 
+        :loading="loading"
+        title-key="name"
+    >
+        <!-- Custom Columns -->
+        <template #col-product="{ item }">
+            <div>
+                <div class="text-sm font-medium text-text-heading">{{ item.name }}</div>
+                <div class="text-xs text-text-secondary font-mono">{{ item.sku }}</div>
+            </div>
+        </template>
 
-    <!-- Data Table -->
-    <div v-else class="glass-panel overflow-hidden relative min-h-[400px]">
-        <div v-if="pending" class="absolute inset-0 bg-white/50 dark:bg-black/50 z-10 flex items-center justify-center">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
+        <template #col-stock="{ item }">
+             <span :class="[
+                'px-2 py-1 text-xs font-bold rounded-full',
+                item.stock <= 5 ? 'bg-status-error/10 text-status-error' : 'bg-status-success/10 text-status-success'
+            ]">
+                {{ item.stock }}
+            </span>
+        </template>
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-                <thead class="bg-gray-50 dark:bg-slate-900">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Producto</th>
-                        <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Stock</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Precio</th>
-                         <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Costo (Prom)</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-slate-950">
-                    <tr v-if="!products?.length && !pending">
-                        <td colspan="5" class="py-10 text-center text-gray-500">No se encontraron productos.</td>
-                    </tr>
-                    <tr v-for="product in products" :key="product.id" class="hover:bg-gray-50 dark:hover:bg-slate-900 transition-colors">
-                        <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900 dark:text-white">{{ product.name }}</div>
-                            <div class="text-xs text-gray-500">{{ product.sku }}</div>
-                        </td>
-                        <td class="px-6 py-4 text-center">
-                             <span :class="[
-                                'px-2 py-1 text-xs font-bold rounded-full',
-                                product.stock <= 5 ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'
-                            ]">
-                                {{ product.stock }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-right text-sm font-mono">${{ product.price.toFixed(2) }}</td>
-                        <td class="px-6 py-4 text-right text-sm text-gray-500 font-mono">${{ (product.cost || 0).toFixed(4) }}</td>
-                        <td class="px-6 py-4 text-right space-x-2">
-                             <button @click="openRestockModal(product)" class="text-emerald-600 hover:text-emerald-500 text-sm font-medium" title="Reponer Stock">+ Stock</button>
-                             <button @click="openEditModal(product)" class="text-blue-600 hover:text-blue-500 text-sm font-medium">Editar</button>
-                             <button @click="handleDelete(product)" class="text-red-600 hover:text-red-500 text-sm font-medium">Borrar</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <template #col-price="{ item }">
+            <span class="font-mono text-text-heading">${{ item.price.toFixed(2) }}</span>
+        </template>
 
-        <!-- Pagination -->
-        <div class="border-t border-gray-200 dark:border-gray-800 p-4 flex justify-between items-center bg-gray-50 dark:bg-slate-900">
-             <span class="text-sm text-gray-500">Página {{ page }} de {{ data?.totalPages || 1 }} (Total: {{ data?.total || 0 }})</span>
-             <div class="flex gap-2">
-                 <button 
+        <template #col-cost="{ item }">
+            <span class="font-mono text-text-secondary">${{ (item.cost || 0).toFixed(4) }}</span>
+        </template>
+
+        <template #col-actions="{ item }">
+            <div class="flex justify-end gap-2">
+                <button @click="openRestockModal(item)" class="text-status-success hover:text-green-700 text-sm font-bold transition-colors">+ Stock</button>
+                <button @click="openEditModal(item)" class="text-primary-600 hover:text-primary-800 text-sm font-bold transition-colors">Editar</button>
+                <button @click="handleDelete(item)" class="text-status-error hover:text-red-700 text-sm font-bold transition-colors">Borrar</button>
+            </div>
+        </template>
+
+        <!-- Mobile Card Customization -->
+        <template #card-subtitle="{ item }">
+            <span class="text-lg font-bold text-text-heading">${{ item.price.toFixed(2) }}</span>
+        </template>
+
+        <template #card-badge="{ item }">
+            <span :class="[
+                'px-2 py-1 text-xs font-bold rounded-full',
+                item.stock <= 5 ? 'bg-status-error/10 text-status-error' : 'bg-status-success/10 text-status-success'
+            ]">
+                {{ item.stock }} Unid.
+            </span>
+        </template>
+
+        <template #mobile-actions="{ item }">
+             <span class="text-xs text-text-secondary font-mono">{{ item.sku }}</span>
+             <div class="flex gap-3">
+                 <button @click="openKardexModal(item)" class="text-text-secondary font-bold text-sm hover:text-text-heading"><svg class="w-4 h-4 inline-block -mt-1 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Kardex</button>
+                 <button @click="openRestockModal(item)" class="text-status-success font-bold text-sm">Reponer</button>
+                 <button @click="openEditModal(item)" class="text-primary-600 font-bold text-sm">Editar</button>
+             </div>
+        </template>
+    </UiDataList>
+
+    <!-- Pagination -->
+    <div class="mt-4 flex justify-between items-center bg-surface-ground p-4 rounded-xl border border-surface-border">
+            <span class="text-sm text-text-secondary">Página {{ page }} de {{ totalPages || 1 }}</span>
+            <div class="flex gap-2">
+                <BaseButton 
+                    variant="ghost"
+                    size="sm"
                     @click="page--" 
                     :disabled="page <= 1"
-                    class="px-4 py-2 text-sm bg-white dark:bg-slate-800 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-slate-700"
-                 >Anterior</button>
-                 <button 
+                >Anterior</BaseButton>
+                <BaseButton 
+                    variant="ghost"
+                    size="sm"
                     @click="page++" 
-                    :disabled="page >= (data?.totalPages || 1)"
-                    class="px-4 py-2 text-sm bg-white dark:bg-slate-800 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-slate-700"
-                 >Siguiente</button>
-             </div>
-        </div>
+                    :disabled="page >= (totalPages || 1)"
+                >Siguiente</BaseButton>
+            </div>
     </div>
 
-    <!-- Modals (Simple Re-implementation or Reuse) -->
-    <!-- Using existing components logic structure -->
+    <!-- Modals -->
+    <AppImportModal 
+        :show="showImportModal" 
+        :existing-skus="products.map(p => p.sku)"
+        @close="showImportModal = false"
+        @import="handleImport" 
+    />
+
+    <KardexModal
+        :show="showKardexModal"
+        :product-id="selectedKardexProductId"
+        :product-name="selectedKardexProductName"
+        @close="showKardexModal = false"
+    />
+
     <AppModal :show="showModal" :title="isEditing ? 'Editar Producto' : 'Nuevo Producto'" @close="closeModal">
          <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Nombre del Producto</label>
-                <input v-model="form.name" class="input-std" placeholder="Ej. iPhone 13 Pro">
-            </div>
-            <div>
-                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">SKU (Código Único)</label>
-                 <input v-model="form.sku" class="input-std" placeholder="Ej. IP13PRO-128">
-            </div>
+            <BaseInput 
+                v-model="form.name" 
+                label="Nombre del Producto" 
+                placeholder="Ej. iPhone 13 Pro" 
+            />
+            <BaseInput 
+                v-model="form.sku" 
+                label="SKU (Código Único)" 
+                placeholder="Ej. IP13PRO-128" 
+            />
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Precio de Venta</label>
-                    <input v-model.number="form.price" type="number" step="0.01" class="input-std" placeholder="0.00">
-                </div>
+                <BaseInput 
+                    v-model.number="form.price" 
+                    type="number" 
+                    label="Precio de Venta" 
+                    placeholder="0.00" 
+                    step="0.01"
+                />
                 <!-- Stock/Cost only on create -->
-                <div v-if="!isEditing">
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Stock Inicial</label>
-                    <input v-model.number="form.stock" type="number" class="input-std" placeholder="0">
-                </div>
+                <BaseInput 
+                    v-if="!isEditing"
+                    v-model.number="form.stock" 
+                    type="number" 
+                    label="Stock Inicial" 
+                    placeholder="0" 
+                />
             </div>
-            <div v-if="!isEditing">
-                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Costo Unitario (Referencial)</label>
-                 <input v-model.number="form.cost" type="number" step="0.01" class="input-std" placeholder="0.00">
-            </div>
+            <BaseInput 
+                v-if="!isEditing"
+                v-model.number="form.cost" 
+                type="number" 
+                step="0.01" 
+                label="Costo Unitario (Referencial)" 
+                placeholder="0.00" 
+            />
          </div>
          <template #actions>
-            <button @click="saveProduct" class="btn btn-primary" :disabled="formSaving">
+            <BaseButton 
+                variant="primary" 
+                full-width 
+                :loading="formSaving" 
+                @click="saveProduct"
+            >
                 {{ formSaving ? 'Guardando...' : 'Guardar Producto' }}
-            </button>
+            </BaseButton>
          </template>
     </AppModal>
 
     <AppModal :show="showRestock" title="Reponer Inventario" @close="showRestock = false">
-         <div class="space-y-4 p-2">
-            <p>Producto: <b>{{ selectedProduct?.name }}</b></p>
-            <div>
-                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Cantidad a Agregar</label>
-                 <input v-model.number="restock.qty" type="number" class="input-std" placeholder="0">
-            </div>
-            <div>
-                 <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Nuevo Costo Unitario</label>
-                 <input v-model.number="restock.cost" type="number" step="0.01" class="input-std" placeholder="0.00">
-            </div>
-            <p class="text-xs text-gray-500">El costo promedio se recalculará automáticamente.</p>
+         <div class="space-y-4 p-1">
+            <p class="text-sm text-text-secondary">Producto: <b class="text-text-heading">{{ selectedProduct?.name }}</b></p>
+            <BaseInput 
+                v-model.number="restock.qty" 
+                type="number" 
+                label="Cantidad a Agregar" 
+                placeholder="0" 
+            />
+            <BaseInput 
+                v-model.number="restock.cost" 
+                type="number" 
+                step="0.01" 
+                label="Nuevo Costo Unitario" 
+                placeholder="0.00" 
+                hint="El costo promedio se recalculará automáticamente."
+            />
          </div>
           <template #actions>
-            <button @click="submitRestock" class="btn btn-primary" :disabled="restockSaving">Confirmar Entrada</button>
+            <BaseButton 
+                variant="primary" 
+                full-width 
+                :loading="restockSaving" 
+                @click="submitRestock"
+            >
+                Confirmar Entrada
+            </BaseButton>
          </template>
     </AppModal>
 
@@ -165,9 +224,7 @@
 </template>
 
 <style scoped>
-.input-std {
-    @apply w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent dark:text-white outline-none focus:ring-2 focus:ring-blue-500;
-}
+/* Scoped styles removed in favor of semantic Tailwind classes */
 </style>
 
 <script setup lang="ts">
@@ -175,37 +232,41 @@ import { useOrganization } from '~/composables/useOrganization'
 import { useInventory } from '~/composables/useInventory'
 import { watchDebounced } from '@vueuse/core'
 import { useToast } from "vue-toastification"
+import UiDataList from '~/components/ui/DataList.vue'
+import BaseButton from '~/components/base/BaseButton.vue'
+import BaseInput from '~/components/base/BaseInput.vue'
+import AppImportModal from '~/components/AppImportModal.vue'
+import KardexModal from '~/components/KardexModal.vue'
 
-definePageMeta({ layout: 'dashboard' })
+definePageMeta({ layout: 'authenticated' })
+
+const columns = [
+  { key: 'product', label: 'Producto' },
+  { key: 'stock', label: 'Stock', class: 'text-center' },
+  { key: 'price', label: 'Precio', class: 'text-right' },
+  { key: 'cost', label: 'Costo (Prom)', class: 'text-right hidden sm:table-cell' },
+  { key: 'actions', label: '', class: 'text-right' }
+]
+
 
 const { organization } = useOrganization()
-const { addStock, softDeleteProduct, addProduct: createProd, updateProduct: updateProd } = useInventory()
+const { products, loading, fetchProducts, resetInventoryState, totalProducts, addStock, softDeleteProduct, addProduct: createProd, updateProduct: updateProd } = useInventory()
 const toast = useToast()
+
+// Kardex State
+const showKardexModal = ref(false)
+const selectedKardexProductId = ref('')
+const selectedKardexProductName = ref('')
+
+const openKardexModal = (product: any) => {
+    selectedKardexProductId.value = product.id
+    selectedKardexProductName.value = product.name
+    showKardexModal.value = true
+}
 
 // --- Server Side Pagination ---
 const page = ref(1)
 const searchQuery = ref('')
-const limit = 10
-
-const { data, pending, refresh, error } = await useFetch('/api/products', {
-    params: {
-        page,
-        limit,
-        search: searchQuery,
-        organization_id: computed(() => organization.value?.id)
-    },
-    watch: [page, () => organization.value?.id],
-    lazy: true,
-    server: false // Force client-side fetch to ensure auth/org state is hydrated
-})
-
-if (error.value) {
-    console.error('Inventory Fetch Error:', error.value)
-    toast.error('Error cargando inventario: ' + (error.value.data?.message || error.value.message))
-}
-
-const products = computed(() => data.value?.data || [])
-
 // Debounce Search
 watchDebounced(
     searchQuery,
@@ -280,6 +341,12 @@ const submitRestock = async () => {
     }
 }
 
-// Import Modal logic would be similar, checking skus against DB or simplified
+// Import Modal logic
 const showImportModal = ref(false)
+const handleImport = async (items: any[]) => {
+    // Basic implementation for now, just to show connection
+    toast.info(`Simulando importación de ${items.length} items`)
+    showImportModal.value = false
+    refresh()
+}
 </script>

@@ -9,6 +9,24 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt',
     '@pinia-plugin-persistedstate/nuxt'
   ],
+  app: {
+    head: {
+      script: [
+        {
+          children: `(function() {
+            try {
+              var theme = window.localStorage.getItem('softtuuls-theme');
+              if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+              } else {
+                document.documentElement.classList.remove('dark');
+              }
+            } catch (e) {}
+          })();`
+        }
+      ]
+    }
+  },
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
@@ -46,8 +64,7 @@ export default defineNuxtConfig({
     }
   },
   css: [
-    '~/assets/css/velo-theme.css',
-    'driver.js/dist/driver.css'
+    '~/assets/css/main.css',
   ],
   supabase: {
     redirect: false,

@@ -3,22 +3,22 @@
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
       <div>
-        <h1 class="text-3xl font-bold tracking-tight text-gradient">Movimientos</h1>
-        <p class="mt-1 text-sm text-[var(--color-text-secondary)]">Historial de todas las transacciones de la organización.</p>
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Movimientos</h1>
+        <p class="mt-1 text-sm text-gray-500">Historial de todas las transacciones de la organización.</p>
       </div>
-      <div v-if="loading || loadingMovements" class="text-sm text-[var(--color-text-secondary)] animate-pulse">
+      <div v-if="loading || loadingMovements" class="text-sm text-gray-400 animate-pulse">
         Actualizando...
       </div>
     </div>
 
     <!-- View Toggle -->
     <div class="flex justify-center mb-8">
-        <div class="bg-[var(--color-bg-subtle)] p-1 rounded-xl flex gap-1">
+        <div class="bg-gray-100 p-1 rounded-xl flex gap-1">
             <button 
                 @click="viewMode = 'money'"
                 :class="[
                     'px-6 py-2 rounded-lg text-sm font-bold transition-all',
-                    viewMode === 'money' ? 'bg-[var(--color-accent-blue)] text-white shadow-lg' : 'text-[var(--color-text-secondary)] hover:text-white'
+                    viewMode === 'money' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'
                 ]"
             >
                 Dinero ($)
@@ -27,7 +27,7 @@
                 @click="viewMode = 'inventory'"
                 :class="[
                     'px-6 py-2 rounded-lg text-sm font-bold transition-all',
-                    viewMode === 'inventory' ? 'bg-[var(--color-accent-violet)] text-white shadow-lg' : 'text-[var(--color-text-secondary)] hover:text-white'
+                    viewMode === 'inventory' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'
                 ]"
             >
                 Inventario
@@ -38,25 +38,25 @@
     <!-- Stats/Filters Section (Only for Money View for now) -->
     <div v-if="viewMode === 'money'" class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
        <!-- KPI Card: Total Transactions -->
-       <div class="glass-panel p-6 flex flex-col justify-between relative overflow-hidden group">
-          <div class="absolute top-0 right-0 w-24 h-24 bg-[var(--color-accent-blue)] opacity-10 rounded-full blur-2xl -mr-10 -mt-10 transition-opacity group-hover:opacity-20"></div>
-          <p class="text-sm font-medium text-[var(--color-text-secondary)]">Total Movimientos</p>
+       <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-primary-500 opacity-5 rounded-full blur-2xl -mr-10 -mt-10 transition-opacity group-hover:opacity-10"></div>
+          <p class="text-sm font-medium text-gray-500">Total Movimientos</p>
           <div class="mt-4 flex items-baseline gap-2">
-            <p class="text-3xl font-extrabold text-[var(--color-white)]">{{ transactions.length }}</p>
+            <p class="text-3xl font-extrabold text-gray-900">{{ transactions.length }}</p>
           </div>
        </div>
 
        <!-- Filters Area (Spans 3 columns on large screens) -->
-       <div class="lg:col-span-3 glass-panel p-6 flex flex-col justify-center">
+       <div class="lg:col-span-3 bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col justify-center">
           <div class="flex flex-col md:flex-row gap-4 items-end">
               <!-- Date Filter -->
               <div class="flex-1 space-y-2 w-full">
-                  <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Rango de Fechas</label>
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Rango de Fechas</label>
                   <div class="flex flex-col md:flex-row gap-2">
                        <div class="relative flex-1">
                            <select 
                                v-model="dateFilter" 
-                               class="w-full appearance-none bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent transition-all"
+                               class="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                            >
                                <option value="today">Hoy</option>
                                <option value="yesterday">Ayer</option>
@@ -66,34 +66,34 @@
                                <option value="custom">Personalizado</option>
                                <option value="all">Todo el historial</option>
                            </select>
-                           <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[var(--color-text-secondary)]">
+                           <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                            </div>
                        </div>
                        
                        <!-- Custom Date Inputs -->
                        <div v-if="dateFilter === 'custom'" class="flex items-center gap-2 animate-fade-in-right">
-                            <input v-model="customFrom" type="date" class="bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] rounded-xl px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
-                            <span class="text-[var(--color-text-secondary)]">-</span>
-                            <input v-model="customTo" type="date" class="bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] rounded-xl px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)]">
+                            <input v-model="customFrom" type="date" class="bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-primary-500">
+                            <span class="text-gray-400">-</span>
+                            <input v-model="customTo" type="date" class="bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-primary-500">
                        </div>
                   </div>
               </div>
 
               <!-- Type Filter -->
               <div class="w-full md:w-48 space-y-2">
-                  <label class="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Tipo</label>
+                  <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</label>
                   <div class="relative">
                       <select 
                           v-model="typeFilter" 
-                          class="w-full appearance-none bg-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] text-[var(--color-white)] text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent transition-all"
+                          class="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                       >
                           <option value="all">Todos</option>
                           <option value="income">Ingresos</option>
                           <option value="sale">Ventas</option>
                           <option value="expense">Egresos</option>
                       </select>
-                      <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[var(--color-text-secondary)]">
+                      <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                       </div>
                   </div>
@@ -103,186 +103,155 @@
     </div>
 
     <!-- MONEY TRANSACTIONS TABLE -->
-    <div v-if="viewMode === 'money'" class="glass-panel overflow-hidden">
-        <div v-if="transactions.length > 0">
-           <!-- Mobile Card View -->
-           <div class="block md:hidden space-y-4">
-              <div v-for="trx in transactions" :key="trx.id" class="bg-[var(--color-bg-subtle)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3">
-                  <div class="flex justify-between items-start">
-                      <div class="flex items-center gap-3">
-                           <div :class="[
-                                'w-8 h-8 rounded-full flex items-center justify-center',
-                                ['income', 'sale'].includes(trx.type) ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
-                            ]">
-                                <svg v-if="['income', 'sale'].includes(trx.type)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-                                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
-                            </div>
-                            <div>
-                                <p class="font-bold text-[var(--color-white)]">{{ parseDescription(trx) }}</p>
-                                <p class="text-xs text-[var(--color-text-secondary)] font-mono">{{ new Date(trx.created_at).toLocaleDateString() }}</p>
-                            </div>
-                      </div>
-                      <div :class="[
-                            'font-bold font-mono text-lg',
-                            ['income', 'sale'].includes(trx.type) ? 'text-emerald-500' : 'text-red-500'
-                        ]">
-                            {{ ['income', 'sale'].includes(trx.type) ? '+' : '-' }} ${{ formatMainAmount(trx) }}
-                      </div>
-                  </div>
-                  <div class="flex justify-between items-center border-t border-[var(--color-border-subtle)] pt-3 text-sm">
-                       <span class="text-[var(--color-text-secondary)]">{{ trx.client_name || (trx.client ? trx.client.name : 'General') }}</span>
-                       <span class="text-[var(--color-text-secondary)] capitalize">{{ getPaymentMethodLabel(trx.payment_method) }}</span>
-                  </div>
-                   <div v-if="getSecondaryAmount(trx)" class="text-right text-xs text-[var(--color-text-secondary)] font-mono opacity-70 mt-1">
-                       {{ getSecondaryAmount(trx) }}
-                   </div>
-                   <!-- Fix Button Heuristic -->
-                   <div v-if="trx.currency === 'USD' && trx.amount > 2000" class="mt-2 text-right">
-                       <button @click="fixTransaction(trx)" class="text-[10px] bg-yellow-500/10 text-yellow-500 px-2 py-1 rounded border border-yellow-500/20 hover:bg-yellow-500/20 transition-colors">
-                           ¿Es Bolívares?
-                       </button>
-                   </div>
-              </div>
-           </div>
+    <div v-if="viewMode === 'money'">
+        <UiDataList
+            :items="transactions"
+            :columns="moneyColumns"
+            :loading="loading"
+            title-key="description"
+        >
+            <template #col-date="{ item }">
+                <span class="font-mono text-sm text-gray-500">{{ new Date(item.created_at).toLocaleDateString() }}</span>
+            </template>
 
-           <!-- Desktop Table View -->
-           <div class="hidden md:block overflow-x-auto">
-            <table class="min-w-full divide-y divide-[var(--color-border-subtle)] text-left align-middle">
-                <thead class="bg-[var(--color-bg-dark)]/50">
-                    <tr>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Fecha</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Descripción</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Método</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Monto (USD)</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-[var(--color-border-subtle)]">
-                    <tr v-for="trx in transactions" :key="trx.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)] font-mono">
-                            {{ new Date(trx.created_at).toLocaleDateString() }}
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
-                                <div :class="[
-                                    'w-8 h-8 rounded-full flex items-center justify-center',
-                                    ['income', 'sale'].includes(trx.type) ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
-                                ]">
-                                    <svg v-if="['income', 'sale'].includes(trx.type)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-                                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
-                                </div>
-                                <div>
-                                    <p class="font-bold text-[var(--color-white)]">{{ parseDescription(trx) }}</p>
-                                    <p class="text-xs text-[var(--color-text-secondary)]">{{ trx.client_name || (trx.client ? trx.client.name : 'General') }}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-[var(--color-text-secondary)] capitalize">
-                            {{ getPaymentMethodLabel(trx.payment_method) }}
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <div :class="[
-                                'font-bold font-mono text-lg',
-                                ['income', 'sale'].includes(trx.type) ? 'text-emerald-500' : 'text-red-500'
-                            ]">
-                                {{ ['income', 'sale'].includes(trx.type) ? '+' : '-' }} ${{ formatMainAmount(trx) }}
-                            </div>
-                           <div v-if="getSecondaryAmount(trx)" class="text-xs text-[var(--color-text-secondary)] font-mono opacity-70">
-                               {{ getSecondaryAmount(trx) }}
-                           </div>
-                           <button v-if="trx.currency === 'USD' && trx.amount > 2000" @click="fixTransaction(trx)" class="text-[10px] text-yellow-500 hover:text-yellow-400 underline mt-1 block w-full text-right">
-                               ¿Convertir a VES?
-                           </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-           </div>
-        </div>
-        <div v-else class="p-6 text-center text-[var(--color-text-secondary)]">
-            <p>No hay movimientos de dinero para mostrar con los filtros actuales.</p>
-        </div>
+            <template #col-description="{ item }">
+                <div class="flex items-center gap-3">
+                    <div :class="[
+                        'w-8 h-8 rounded-full flex items-center justify-center',
+                        ['income', 'sale'].includes(item.type) ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-600'
+                    ]">
+                        <svg v-if="['income', 'sale'].includes(item.type)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                        <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-900">{{ parseDescription(item) }}</p>
+                        <p class="text-xs text-gray-500">{{ item.client_name || (item.client ? item.client.name : 'General') }}</p>
+                    </div>
+                </div>
+            </template>
+
+            <template #col-method="{ item }">
+                <span class="text-sm text-gray-600 capitalize">{{ getPaymentMethodLabel(item.payment_method) }}</span>
+            </template>
+
+            <template #col-amount="{ item }">
+                <div class="text-right">
+                    <div :class="[
+                        'font-bold font-mono text-base',
+                        ['income', 'sale'].includes(item.type) ? 'text-success-600' : 'text-danger-600'
+                    ]">
+                    {{ ['income', 'sale'].includes(item.type) ? '+' : '-' }} ${{ formatMainAmount(item) }}
+                    </div>
+                    <div v-if="getSecondaryAmount(item)" class="text-xs text-gray-400 font-mono mt-0.5">
+                         {{ getSecondaryAmount(item) }}
+                    </div>
+                     <button v-if="item.currency === 'USD' && item.amount > 2000" @click="fixTransaction(item)" class="text-[10px] text-warning-500 hover:text-warning-600 underline mt-1 inline-block">
+                        ¿Convertir a VES?
+                    </button>
+                </div>
+            </template>
+
+            <!-- Mobile Card Slots -->
+            <template #card-subtitle="{ item }">
+                <span class="text-xs text-gray-500">{{ new Date(item.created_at).toLocaleDateString() }}</span>
+            </template>
+            
+            <template #mobile-actions="{ item }">
+                 <div class="flex justify-between w-full border-t border-gray-100 pt-2 mt-2">
+                     <span class="text-xs text-gray-500">{{ item.client_name || (item.client ? item.client.name : 'General') }}</span>
+                     <div class="text-right">
+                         <span :class="['font-bold font-mono', ['income', 'sale'].includes(item.type) ? 'text-success-600' : 'text-danger-600']">
+                             {{ ['income', 'sale'].includes(item.type) ? '+' : '-' }} ${{ formatMainAmount(item) }}
+                         </span>
+                     </div>
+                 </div>
+            </template>
+        </UiDataList>
     </div>
 
     <!-- INVENTORY MOVEMENTS TABLE -->
-    <div v-if="viewMode === 'inventory'" class="glass-panel overflow-hidden">
-        <div v-if="inventoryMovements.length > 0">
-           <!-- Mobile Card View (Inventory) -->
-           <div class="block md:hidden space-y-4">
-              <div v-for="mv in inventoryMovements" :key="mv.id" class="bg-[var(--color-bg-subtle)] p-4 rounded-xl border border-[var(--color-border-subtle)] space-y-3">
-                  <div class="flex justify-between items-start">
-                      <div>
-                          <p class="font-bold text-[var(--color-white)]">{{ mv.product?.name || 'Producto Desconocido' }}</p>
-                          <p class="text-xs text-[var(--color-text-secondary)]">{{ new Date(mv.created_at).toLocaleDateString() }}</p>
-                      </div>
-                      <span :class="[
-                            'px-2 py-1 text-xs font-bold rounded-full',
-                             mv.transaction?.type === 'expense' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
-                        ]">
-                            {{ mv.transaction?.type === 'expense' ? 'Entrada' : 'Salida' }}
-                      </span>
-                  </div>
-                   <div class="flex justify-between items-center border-t border-[var(--color-border-subtle)] pt-3">
-                       <span class="text-[var(--color-text-secondary)] text-xs">Ref: {{ parseMovementRef(mv) }}</span>
-                       <span class="font-bold font-mono text-white text-lg">
-                           {{ mv.transaction?.type === 'expense' ? '+' : '-' }}{{ mv.quantity }}
-                       </span>
-                   </div>
-              </div>
-           </div>
+    <div v-if="viewMode === 'inventory'">
+         <UiDataList
+            :items="inventoryMovements"
+            :columns="inventoryColumns"
+            :loading="loadingMovements"
+            title-key="product_name"
+        >
+             <template #col-date="{ item }">
+                <span class="font-mono text-sm text-gray-500">{{ new Date(item.created_at).toLocaleDateString() }}</span>
+            </template>
 
-           <!-- Desktop Table View (Inventory) -->
-           <div class="hidden md:block overflow-x-auto">
-             <table class="min-w-full divide-y divide-[var(--color-border-subtle)] text-left align-middle">
-                <thead class="bg-[var(--color-bg-dark)]/50">
-                    <tr>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Fecha</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Producto</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Tipo</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Referencia</th>
-                        <th class="px-6 py-4 text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider text-right">Cantidad</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-[var(--color-border-subtle)]">
-                    <tr v-for="mv in inventoryMovements" :key="mv.id" class="hover:bg-[var(--color-bg-subtle)]/50 transition-colors duration-150">
-                         <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)] font-mono">
-                            {{ new Date(mv.created_at).toLocaleDateString() }}
-                        </td>
-                         <td class="px-6 py-4 text-sm font-bold text-[var(--color-white)]">
-                            {{ mv.product?.name || 'Producto Eliminado' }}
-                        </td>
-                         <td class="px-6 py-4">
-                             <span :class="[
-                                'px-2 py-1 text-xs font-bold rounded-full',
-                                 mv.transaction?.type === 'expense' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
-                            ]">
-                                {{ mv.transaction?.type === 'expense' ? 'Entrada' : 'Salida' }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm text-[var(--color-text-secondary)]">
-                            {{ parseMovementRef(mv) }}
-                        </td>
-                         <td class="px-6 py-4 text-right font-mono font-bold text-[var(--color-white)]">
-                            {{ mv.transaction?.type === 'expense' ? '+' : '-' }}{{ mv.quantity }}
-                        </td>
-                    </tr>
-                </tbody>
-             </table>
-           </div>
-        </div>
-        <div v-else class="p-6 text-center text-[var(--color-text-secondary)]">
-            <p>No hay movimientos de inventario registrados.</p>
-        </div>
+            <template #col-product="{ item }">
+                <span class="font-bold text-gray-900">{{ item.product?.name || 'Producto Desconocido' }}</span>
+            </template>
+
+            <template #col-type="{ item }">
+                <span :class="[
+                    'px-2 py-1 text-xs font-bold rounded-full',
+                        item.transaction?.type === 'expense' ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-600'
+                ]">
+                    {{ item.transaction?.type === 'expense' ? 'Entrada' : 'Salida' }}
+                </span>
+            </template>
+
+            <template #col-reference="{ item }">
+                 <span class="text-sm text-gray-600">{{ parseMovementRef(item) }}</span>
+            </template>
+
+            <template #col-quantity="{ item }">
+                <span class="font-mono font-bold text-gray-900">
+                    {{ item.transaction?.type === 'expense' ? '+' : '-' }}{{ item.quantity }}
+                </span>
+            </template>
+            
+            <!-- Mobile Customization -->
+            <template #card-title="{ item }">
+                {{ item.product?.name || 'Producto Desconocido' }}
+            </template>
+             <template #card-subtitle="{ item }">
+                <span class="text-xs text-gray-500">{{ new Date(item.created_at).toLocaleDateString() }}</span>
+            </template>
+             <template #mobile-actions="{ item }">
+                <div class="flex justify-between items-center border-t border-gray-100 pt-2 mt-2">
+                   <span :class="[
+                        'px-2 py-0.5 text-[10px] font-bold rounded-full',
+                        item.transaction?.type === 'expense' ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-600'
+                    ]">
+                        {{ item.transaction?.type === 'expense' ? 'Entrada' : 'Salida' }}
+                    </span>
+                    <span class="font-bold font-mono text-gray-900">
+                         {{ item.transaction?.type === 'expense' ? '+' : '-' }}{{ item.quantity }}
+                    </span>
+                </div>
+            </template>
+        </UiDataList>
     </div>
 
   </div>
 </template>
 
 <script setup lang="ts">
+import UiDataList from '~/components/ui/DataList.vue'
 import { useTransactions } from '~/composables/useTransactions'
 import { useOrganization } from '~/composables/useOrganization'
 import { watch, ref, onMounted, computed } from 'vue'
 
-definePageMeta({ layout: 'dashboard' })
+definePageMeta({ layout: 'authenticated' })
+
+const moneyColumns = [
+    { key: 'date', label: 'Fecha' },
+    { key: 'description', label: 'Descripción' },
+    { key: 'method', label: 'Método' },
+    { key: 'amount', label: 'Monto (USD)', class: 'text-right' }
+]
+
+const inventoryColumns = [
+    { key: 'date', label: 'Fecha' },
+    { key: 'product', label: 'Producto' },
+    { key: 'type', label: 'Tipo' },
+    { key: 'reference', label: 'Referencia' },
+    { key: 'quantity', label: 'Cantidad', class: 'text-right' }
+]
 
 const { 
     transactions, 

@@ -23,22 +23,22 @@
                 <!-- Organization List -->
                 <button
                     v-for="org in userOrganizations"
-                    :key="org.id"
+                    :key="org?.id"
                     @click="selectOrg(org)"
                     class="group relative w-full flex items-center justify-between p-4 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--glass-bg)] hover:bg-[var(--color-bg-subtle)] hover:border-[var(--color-border-strong)] transition-all duration-300"
                 >
                     <!-- Left Side: Avatar + Info -->
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--color-bg-subtle)] to-[var(--color-bg-dark)] border border-[var(--color-border-subtle)] flex items-center justify-center text-[var(--color-white)] font-bold text-lg group-hover:scale-110 transition-transform">
-                            {{ org.name[0].toUpperCase() }}
+                            {{ org?.name ? org.name[0].toUpperCase() : '?' }}
                         </div>
                         <div class="text-left">
                             <span class="block text-base font-bold text-[var(--color-white)] group-hover:text-[var(--color-accent-blue)] transition-colors">
-                                {{ org.name }}
+                                {{ org?.name || 'Organización' }}
                             </span>
                             <span class="block text-xs text-[var(--color-text-secondary)] capitalize flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full" :class="org.subscription_status === 'active' || org.subscription_status === 'trialing' ? 'bg-emerald-500' : 'bg-gray-500'"></span>
-                                {{ org.role }}
+                                <span class="w-1.5 h-1.5 rounded-full" :class="org?.subscription_status === 'active' || org?.subscription_status === 'trialing' ? 'bg-emerald-500' : 'bg-gray-500'"></span>
+                                {{ org?.role || 'Miembro' }}
                             </span>
                         </div>
                     </div>
@@ -49,7 +49,7 @@
 
                 <!-- Create New Option -->
                 <button
-                    v-if="userOrganizations.length < 3"
+                    v-if="(userOrganizations?.length || 0) < 3"
                     @click="goToCreate"
                     class="w-full flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-[var(--color-border-subtle)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent-blue)] hover:text-[var(--color-accent-blue)] hover:bg-[var(--color-accent-blue)]/5 transition-all mt-4"
                 >
@@ -57,7 +57,7 @@
                     <span class="text-sm font-bold">Crear nueva organización</span>
                 </button>
 
-                 <p v-if="userOrganizations.length >= 3" class="text-center text-xs text-red-400 mt-4 bg-red-900/10 py-2 rounded">
+                 <p v-if="(userOrganizations?.length || 0) >= 3" class="text-center text-xs text-red-400 mt-4 bg-red-900/10 py-2 rounded">
                     Has alcanzado el límite de 3 organizaciones.
                 </p>
             </div>
@@ -88,14 +88,17 @@ const router = useRouter()
 // Force refresh on mount to be sure
 onMounted(async () => {
     console.log('SelectOrg: Mounted. ID:', user.value?.id)
-    if (userOrganizations.value.length === 0) {
+    if (!userOrganizations.value || userOrganizations.value.length === 0) {
         console.log('SelectOrg: Fetching fresh list...')
         const { fetchOrganization } = useOrganization() // get fetcher
         await fetchOrganization(true) // Force load
     }
 })
+
+// Logic Fix: Explicit Navigation
 const selectOrg = async (org: any) => {
     await switchOrganization(org.id)
+    router.push('/app')
 }
 
 const goToCreate = () => {

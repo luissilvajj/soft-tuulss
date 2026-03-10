@@ -110,6 +110,7 @@ export const useSalesStore = defineStore('sales', {
         clearCart() {
             this.cart = []
             this.currentSale = {
+...
                 clientId: '',
                 paymentMethod: 'cash',
                 paymentReference: '',
@@ -125,6 +126,14 @@ export const useSalesStore = defineStore('sales', {
             }
         },
 
+        resetState() {
+            this.clearCart()
+            this.pendingCount = 0
+            // Reset dates and rates explicitly to avoid carrying over local storage defaults between physical orgs
+            this.currentSale.date = new Date().toISOString().split('T')[0]
+            this.currentSale.exchangeRate = 0 
+        },
+
         async checkPendingSales() {
             this.pendingCount = await db.pendingSales.count() // Checks Dexie count
         },
@@ -132,6 +141,9 @@ export const useSalesStore = defineStore('sales', {
         async processSale(payload: SalePayload) {
             const client = useSupabaseClient()
             const toast = useToast()
+
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 15000)
 
             try {
                 // Intento 1: Supabase Directo
@@ -159,6 +171,7 @@ export const useSalesStore = defineStore('sales', {
                         items_snapshot: payload.itemsSnapshot,
                         payment_details: payload.paymentDetails
                     } as any)
+                    .abortSignal(controller.signal)
                     .select()
                     .single()
 
@@ -174,20 +187,36 @@ export const useSalesStore = defineStore('sales', {
                     discount: item.discount
                 }))
 
-                const { error: itemsError } = await client.from('transaction_items').insert(formattedItems as any)
+                const { error: itemsError } = await client
+                    .from('transaction_items')
+                    .insert(formattedItems as any)
+                    .abortSignal(controller.signal)
+
                 if (itemsError) throw itemsError
 
-                // 3. Stock Decrement (Optimistic approach in offline would require local stock tracking, for now just decrement server side)
+                // 3. Stock Decrement
                 for (const item of payload.rawItems) {
                     await client.rpc('decrement_stock', { p_id: item.productId, q: item.quantity })
                 }
 
-                toast.success('Venta procesada con éxito')
+                clearTimeout(timeoutId)
                 this.clearCart()
+                return { status: 'success' }
 
             } catch (e: any) {
-                // Fallback: Guardar Local
-                console.warn('Network fail or API error, saving locally', e)
+                clearTimeout(timeoutId)
+                
+                if (e.name === 'AbortError') {
+                    throw new Error('La conexión es inestable, tiempo de espera agotado. Revise su internet o intente de nuevo.')
+                }
+
+                if (e.message !== 'Offline' && !e.message?.includes('Failed to fetch')) {
+                     // Error de base de datos o 500, NO guardar local, notificar a usuario.
+                     throw new Error('Error al procesar el pago, intente de nuevo. Detalle: ' + (e.message || 'Internal Server Error'))
+                }
+
+                // Fallback: Guardar Local SÓLO si es problema explícito de caída de red
+                console.warn('Network fail, saving locally', e)
 
                 // Ensure ID doesn't conflict if we retry
                 // We add offline_flag to payload
@@ -198,10 +227,10 @@ export const useSalesStore = defineStore('sales', {
                     createdAt: Date.now()
                 })
 
-                toast.warning('Sin conexión. Venta guardada en dispositivo.')
                 this.isOfflineMode = true
                 await this.checkPendingSales()
                 this.clearCart() // Clear UI so they can continue selling
+                return { status: 'offline' }
             }
         },
 

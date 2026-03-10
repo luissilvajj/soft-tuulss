@@ -167,17 +167,11 @@ const isOriginalCurrencyVes = computed(() => props.sale.currency === 'VES')
 
 // The Base Amount in USD (Accountable truth)
 const baseUsdAmount = computed(() => {
-    if (isOriginalCurrencyVes.value) {
-        return Number(props.sale.amount) / (Number(props.sale.exchange_rate) || 1)
-    }
     return Number(props.sale.amount)
 })
 
 // The Paid Amount in VES ( Transaction truth)
 const paidVesAmount = computed(() => {
-    if (isOriginalCurrencyVes.value) {
-        return Number(props.sale.amount)
-    }
     return Number(props.sale.amount) * (Number(props.sale.exchange_rate) || 1)
 })
 

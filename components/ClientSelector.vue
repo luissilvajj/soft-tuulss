@@ -81,13 +81,16 @@ const container = ref(null)
 const activeIndex = ref(-1)
 
 const filteredClients = computed(() => {
-    const list = Array.isArray(clients.value) ? clients.value : []
-    if (!searchQuery.value) return list.slice(0, 5) 
+    if (!clients.value) return []
+    // Si no hay búsqueda, retorna los 5 primeros directamente sin filtrar (Fast path)
+    if (!searchQuery.value) return clients.value.slice(0, 5) 
+    
+    // Si hay búsqueda, filtra normalmente (Lazy evaluation de LowerCase)
     const q = searchQuery.value.toLowerCase()
-    return list.filter(c => 
-        c.name?.toLowerCase().includes(q) || 
-        c.identity_document?.toLowerCase().includes(q) ||
-        c.email?.toLowerCase().includes(q)
+    return clients.value.filter(c => 
+        (c.name && c.name.toLowerCase().includes(q)) || 
+        (c.identity_document && c.identity_document.toLowerCase().includes(q)) ||
+        (c.email && c.email.toLowerCase().includes(q))
     ).slice(0, 10)
 })
 
@@ -169,12 +172,10 @@ const selectCurrent = () => {
 
 
 
-onMounted(() => {
-    if (organization.value?.id) fetchClients()
-})
+// onMountedremoved to avoid double fetch with immediate watch
 
-watch(() => organization.value, (newOrg) => {
-    if (newOrg?.id) fetchClients()
+watch(() => organization.value?.id, (newId) => {
+    if (newId && clients.value.length === 0) fetchClients()
 }, { immediate: true })
 
 // If modelValue matches a client, ensure it's loaded (fetchClients handles initial load)

@@ -11,6 +11,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const { organization, fetchOrganization, userOrganizations } = useOrganization()
 
     // 3. Ensure organization data is loaded
+    // Defensive check: verify composables returned refs
+    if (!organization || !fetchOrganization) return
+
     if (!organization.value) {
         // Retry/wait mechanism for hydration
         await fetchOrganization()
@@ -25,9 +28,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (!organization.value) {
         const user = useSupabaseUser()
 
-        // If no user detected yet, don't redirect to onboarding (let auth middleware handle login)
-        // This prevents the "Flash of Onboarding" when user is null during hydration
-        if (!user.value) {
+        // Defensive check
+        if (!user || !user.value) {
             return
         }
 
@@ -35,15 +37,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
         // and found nothing.
         const { userOrganizations } = useOrganization()
 
-        if (userOrganizations.value && userOrganizations.value.length > 0) {
+        if (userOrganizations && userOrganizations.value && userOrganizations.value.length > 0) {
             return navigateTo('/app/select-org')
         }
-
-        // If really no organizations AND we have a user, go to onboarding
-        // [FIX] Moving this check to Dashboard Layout to prevent redirect loops during hydration
-        // if (userOrganizations.value && userOrganizations.value.length === 0) {
-        //    return navigateTo('/onboarding')
-        // }
     }
 
     const org = organization.value
@@ -72,9 +68,30 @@ export default defineNuxtRouteMiddleware(async (to) => {
         }
     }
 
-    // 6. Hard Block (Kill Switch)
-    // Redirect to billing if not in permitted paths
-    if (!to.path.startsWith('/app/settings')) {
-        return navigateTo('/app/settings/billing')
+    // 6. Hard Block (Kill Switch) with Strict Logic
+    // Redirect to billing if not in permitted paths and status is invalid
+
+    // A. Immediate Block for Canceled/Unpaid
+    if (['canceled', 'unpaid', 'incomplete'].includes(status)) {
+        if (!to.path.startsWith('/app/settings') && !to.path.startsWith('/app/settings?tab=subscription')) {
+            return navigateTo('/app/settings?tab=subscription')
+        }
+    }
+
+    // B. Grace Period for Past Due
+    if (status === 'past_due') {
+        // Fallback to current_period_end or created_at if failure date missing
+        const failureDate = org.last_payment_failure
+            ? new Date(org.last_payment_failure)
+            : (org.current_period_end ? new Date(org.current_period_end) : new Date(org.created_at || now))
+
+        const daysSinceFailure = (now.getTime() - failureDate.getTime()) / (1000 * 3600 * 24)
+
+        // If grace period exceeded ( > 5 days), block access
+        if (daysSinceFailure > 5) {
+            if (!to.path.startsWith('/app/settings')) {
+                return navigateTo('/app/settings?tab=subscription')
+            }
+        }
     }
 })

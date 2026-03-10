@@ -84,7 +84,7 @@
 import { useOrganization } from '~/composables/useOrganization'
 import { useToast } from "vue-toastification"
 
-definePageMeta({ layout: 'dashboard' })
+definePageMeta({ layout: 'authenticated' })
 
 const { organization } = useOrganization()
 const client = useSupabaseClient()

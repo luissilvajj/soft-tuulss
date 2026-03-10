@@ -1,0 +1,98 @@
+🚀 SOFTTUULS: Reporte de Ingeniería & Hoja de Ruta (v1.0 Gold)
+Fecha: 14 de Enero, 2026 Estado: MVP Completo (Feature Complete) / Listo para Beta Arquitectura: Offline-First SaaS (Nuxt 3 + Supabase)
+
+1. Resumen Ejecutivo
+Hemos construido un ERP/POS de grado militar diseñado específicamente para el mercado inestable de LATAM/Venezuela. A diferencia de las soluciones web tradicionales, Softtuuls no muere cuando se va el internet y no se rompe con la inflación.
+
+Diferenciadores Clave Logrados:
+
+Resiliencia Total: Sigue vendiendo sin internet (Dexie.js + PWA).
+
+Integridad Financiera: Manejo nativo de Multi-moneda (USD/VES) y Snapshots inmutables.
+
+Seguridad Bancaria: Aislamiento total de datos por Organización (RLS) y Protección contra impagos (Kill Switch).
+
+2. Inventario de Módulos Completados (Lo que ya tienes)
+💎 Núcleo del Negocio (Core)
+
+POS Offline: Caja de venta rápida optimizada para toques. Sincronización automática al volver la conexión.
+
+Inventario Seguro: Prevención de stock negativo (Atomicidad DB) y cálculo de costos.
+
+Facturación: Generación de Tickets Térmicos (HTML to Image) y envío por WhatsApp.
+
+🛡️ Seguridad & Finanzas
+
+Role-Based Access (RBAC): Distinción estricta entre Owner (Dueño) y Cashier (Cajero).
+
+Kill Switch de Suscripción: Bloqueo automático (Frontend + Backend) para clientes morosos con periodo de gracia de 5 días.
+
+Dashboard Financiero: Normalización de ingresos a USD usando tasas históricas para reportes reales.
+
+📈 Crecimiento (Growth)
+
+Onboarding: Tour interactivo (Driver.js) para nuevos usuarios ("First Win").
+
+Gestión de Equipo: Invitaciones seguras por correo vía Edge Functions.
+
+Settings: Personalización de Logo y Datos Fiscales por organización.
+
+🤖 Inteligencia Artificial (DeepSeek)
+
+Oráculo de Negocio: Chat en lenguaje natural ("¿Cuánto vendí hoy?") conectado a datos reales.
+
+Protección de Costos: Sistema de cuotas mensuales para limitar el uso de la API por cliente.
+
+⚙️ DevOps & Calidad
+
+Sentry: Monitoreo de errores en tiempo real con Source Maps.
+
+CI/CD: Despliegue automático y bloqueo de builds si hay errores de TypeScript.
+
+3. Próximos Pasos Detallados (Roadmap de Lanzamiento)
+Actualmente tienes un motor perfecto en un chasis genérico. Los siguientes pasos se dividen en Diseño, Legal y Comercial.
+
+🎨 FASE 13: Diseño & UI Polish (INMEDIATO)
+
+El objetivo es que la app deje de parecer un "wireframe" y parezca un producto de $50/mes.
+
+Design System: Definir paleta de colores final, tipografía (Inter/Roboto) y redondeo de bordes.
+
+Responsive Layout: Implementar la "Barra de Navegación Inferior" para móviles y Sidebar para Desktop.
+
+Componentes Adaptativos: Transformar las Tablas en "Tarjetas" cuando se ven en el celular.
+
+📢 FASE 14: Landing Page & Marketing
+
+El software no se vende solo.
+
+Web Pública: Una landing page simple (fuera de la app) que explique: "¿Qué es?", "Precios" y "Botón de Registro".
+
+SEO Local: Optimizar para búsquedas como "Sistema de ventas Venezuela", "Inventario Dólares".
+
+Demo Mode: Un botón en la landing que permita entrar a una versión de prueba con datos falsos sin registrarse (opcional pero poderoso).
+
+⚖️ FASE 15: Legal & Términos
+
+Protege tu espalda.
+
+Términos de Servicio (ToS): Cláusula de exención de responsabilidad (si el BCV cambia la tasa, no es tu culpa).
+
+Política de Privacidad: Explicar qué haces con los datos (crucial para la IA).
+
+Soporte: Definir canales oficiales (¿WhatsApp? ¿Email?).
+
+🚀 FASE 16: Beta Cerrada (Friends & Family)
+
+Selecciona 3 negocios reales (amigos/familia).
+
+Instálales la app.
+
+No les cobres el primer mes a cambio de feedback brutal.
+
+Monitorea Sentry como un halcón.
+
+🏗️ Tu Tarea Inmediata (Action Item)
+Ya aprobamos la ingeniería. Ahora toca vestir al muñeco.
+
+El siguiente paso lógico es ejecutar el Prompt de la FASE 13 (Diseño Frontend & Layout Responsivo) que te di anteriormente. Esto transformará la experiencia de usuario para que sea usable en tabletas y celulares de verdad.

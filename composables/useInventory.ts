@@ -1,17 +1,66 @@
 import type { Product } from '~/types/models'
 
 import type { Database } from '~/types/database.types'
+import { useOrganization } from './useOrganization'
+
+export interface InventoryFilter {
+    search?: string
+    page?: number
+    limit?: number
+}
 
 export const useInventory = () => {
     const client = useSupabaseClient<Database>()
     const { organization } = useOrganization()
+    const user = useSupabaseUser()
     const { logAction } = useAuditLogs()
 
-    // We keep these for legacy compatibility or simple views, 
-    // but the main pagination logic should be handled by the component using useFetch directly on the new API.
     const loading = useState('inventory_loading', () => false)
+    const products = useState<Product[]>('inventory_products', () => [])
+    const totalProducts = useState<number>('inventory_total', () => 0)
+
+    const resetInventoryState = () => {
+        products.value = []
+        totalProducts.value = 0
+    }
 
     // Actions
+    const fetchProducts = async (filters: InventoryFilter = {}) => {
+        if (!organization.value?.id) return
+
+        loading.value = true
+        try {
+            const page = filters.page || 1
+            const limit = filters.limit || 20
+            const from = (page - 1) * limit
+            const to = from + limit - 1
+
+            let query = client
+                .from('products')
+                .select('*', { count: 'exact' })
+                .eq('organization_id', organization.value.id)
+                .is('deleted_at', null)
+                .order('name')
+
+            if (filters.search) {
+                // Using .or to search in name or sku
+                query = query.or(`name.ilike.%${filters.search}%,sku.ilike.%${filters.search}%`)
+            }
+
+            query = query.range(from, to)
+
+            const { data, count, error } = await query
+
+            if (error) throw error
+            products.value = data || []
+            if (count !== null) totalProducts.value = count
+        } catch (e) {
+            console.error('Error fetching inventory:', e)
+        } finally {
+            loading.value = false
+        }
+    }
+
     const addStock = async (productId: string, quantity: number, costPerUnit: number) => {
         if (!organization.value?.id) throw new Error('No Organization')
 
@@ -112,7 +161,11 @@ export const useInventory = () => {
         addProduct,
         updateProduct,
         importProductsFromExcel,
-        // Deprecated state properties can encourage migration
+        // State
+        products,
+        totalProducts,
+        fetchProducts,
+        resetInventoryState,
         loading
     }
 }

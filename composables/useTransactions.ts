@@ -6,6 +6,8 @@ export interface TransactionFilter {
     dateTo?: string
     type?: 'sale' | 'expense' | 'adjustment' | 'all'
     search?: string
+    page?: number
+    limit?: number
 }
 
 import type { Database } from '~/types/database.types'
@@ -16,6 +18,12 @@ export const useTransactions = () => {
 
     const loading = useState('transactions_loading', () => false)
     const transactions = useState<Transaction[]>('transactions_list', () => [])
+    const totalTransactions = useState<number>('transactions_total', () => 0)
+
+    const resetTransactionsState = () => {
+        transactions.value = []
+        totalTransactions.value = 0
+    }
 
     const fetchTransactions = async (filters: TransactionFilter = {}) => {
         if (!organization.value?.id) return
@@ -30,12 +38,17 @@ export const useTransactions = () => {
         }
 
         try {
+            const page = filters.page || 1
+            const limit = filters.limit || 20
+            const from = (page - 1) * limit
+            const to = from + limit - 1
+
             let query = client
                 .from('transactions')
                 .select(`
                     *,
                     client:clients(name)
-                `)
+                `, { count: 'exact' })
                 .eq('organization_id', organization.value.id)
                 .order('date', { ascending: false })
                 .order('created_at', { ascending: false })
@@ -53,15 +66,21 @@ export const useTransactions = () => {
                 query = query.lte('date', filters.dateTo)
             }
 
-            // Note: Search on generic fields (like description or client name) 
-            // is harder with simple standardized Supabase queries without a joining search index 
-            // or specific text search column. For now we will filter client-side or assume exact match if needed.
+            // Note: Search by joining is complex in PostgREST without an explicit view.
+            if (filters.search) {
+                 query = query.ilike('payment_reference', `%${filters.search}%`)
+            }
 
-            const { data, error } = await query
+            // Pagination
+            query = query.range(from, to)
+
+            const { data, count, error } = await query
 
             if (error) throw error
 
             transactions.value = data as unknown as Transaction[]
+            if (count !== null) totalTransactions.value = count
+
         } catch (e) {
             console.error('Error fetching transactions:', e)
         } finally {
@@ -106,8 +125,10 @@ export const useTransactions = () => {
 
     return {
         transactions,
+        totalTransactions,
         loading,
         fetchTransactions,
+        resetTransactionsState,
         // Inventory
         inventoryMovements,
         loadingMovements,

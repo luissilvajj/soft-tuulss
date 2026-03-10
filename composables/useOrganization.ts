@@ -1,6 +1,7 @@
 export const useOrganization = () => {
     const user = useSupabaseUser()
     const client = useSupabaseClient()
+    const { $pinia } = useNuxtApp()
 
     // Clean state for current organization
     const organization = useState<any>('current_org', () => null)
@@ -16,19 +17,31 @@ export const useOrganization = () => {
             organization.value = target
             orgCookie.value = orgId
 
-            // Clear all data states to prevent bleeding
-            clearNuxtState('products_list')
-            clearNuxtState('clients_list')
-            clearNuxtState('sales_list')
-            clearNuxtState('inventory_products')
-            clearNuxtState('transactions_list')
+            // Limpiar todo el estado de Nuxt globalmente para evitar fugas de datos
+            clearNuxtState()
 
-            // Reload window to refresh all data (cleanest way for now)
+            // Limpieza higiénica profunda del Pinia Store (Carrito y estado persistido)
             if (process.client) {
-                // frequent cookies need a tick
-                setTimeout(() => {
-                    window.location.reload()
-                }, 100)
+                // Must import dynamically to avoid initialization circular dependency in Nuxt plugins
+                import('~/stores/sales').then(({ useSalesStore }) => {
+                     const sales = useSalesStore($pinia)
+                     sales.resetState()
+                })
+            }
+
+            // Limpia el caché de peticiones y lanza una reactivación global sin recargar
+            // [FIX] clearNuxtData() puede no retornar Promise en todas las iteraciones/versiones.
+            // Para evitar el "TypeError", lo envolvemos en asincronía segura.
+            if (process.client) {
+                try {
+                    const result = clearNuxtData()
+                    if (result && typeof result.then === 'function') {
+                        await result
+                    }
+                } catch (e) {
+                    console.warn('Nuxt Data Cache clean warning', e)
+                }
+                refreshNuxtData()
             }
         }
     }
@@ -59,29 +72,59 @@ export const useOrganization = () => {
                 console.warn('API Fetch failed, trying direct fallback', e)
                 return []
             })
+            list = list || [] // Absolute guarantee it is an array
 
             // FALLBACK: If API returns empty/error, try direct Client Fetch (RLS Validation)
             // This bypasses server-side cookie race conditions
+            // FALLBACK: If API returns empty/error, try direct Client Fetch (RLS Validation)
+            // This bypasses server-side cookie race conditions
             if (!list || list.length === 0) {
+                // Re-verify user if ID is missing, just in case ref was lost
+                if (!user.value?.id) {
+                    const { data: retryUser } = await client.auth.getUser()
+                    if (retryUser.user) user.value = retryUser.user as any
+                }
+
                 // Validate UUID to prevent Postgres 22P02 error
                 const userId = user.value?.id
                 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
                 if (userId && uuidRegex.test(userId)) {
-                    console.log('useOrganization: API empty, trying direct DB fetch...')
-                    const { data: directMembers, error: directError } = await client
+                    console.log('useOrganization: API empty, trying direct DB fetch...', userId)
+
+                    // Step 1: Fetch Memberships
+                    const { data: memberships, error: memError } = await client
                         .from('organization_members')
-                        .select('role, organization:organizations(*)')
+                        .select('organization_id, role')
                         .eq('user_id', userId)
 
-                    if (directError) {
-                        console.error('useOrganization: Direct fetch error', directError)
-                    } else if (directMembers && directMembers.length > 0) {
-                        console.log('useOrganization: Direct fetch success!', directMembers.length)
-                        list = directMembers.map((d: any) => ({
-                            ...d.organization,
-                            role: d.role
-                        })).filter(o => o && o.id) // Filter null inclusions
+                    if (memError) {
+                        console.error('useOrganization: Direct fetch (members) error', memError)
+                    } else if (memberships && memberships.length > 0) {
+                        // Step 2: Fetch Organization Details
+                        const orgIds = memberships.map((m: any) => m.organization_id)
+                        const { data: orgDetails, error: orgError } = await client
+                            .from('organizations')
+                            .select('*')
+                            .in('id', orgIds)
+
+                        if (orgError) {
+                            console.error('useOrganization: Direct fetch (orgs) error', orgError)
+                        } else {
+                            // Step 3: Merge
+                            list = memberships.map((m: any) => {
+                                const details = (orgDetails || []).find((o: any) => o.id === m.organization_id)
+                                if (!details) return null
+                                return {
+                                    ...details,
+                                    role: m.role // Explicitly set role from membership
+                                }
+                            }).filter(Boolean)
+
+                            console.log('useOrganization: Direct fetch success! Merged:', list.length)
+                        }
+                    } else {
+                        console.warn('useOrganization: No memberships found for user.')
                     }
                 } else {
                     console.warn('useOrganization: Skipping direct fetch, invalid user ID:', userId)

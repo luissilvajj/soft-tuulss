@@ -42,7 +42,7 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
           Dashboard
         </NuxtLink>
-        <NuxtLink id="tour-inventory-link" @click="isMobileMenuOpen = false" to="/app/inventory" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('inventory') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
+        <NuxtLink v-if="!isSeniatAuditor" id="tour-inventory-link" @click="isMobileMenuOpen = false" to="/app/inventory" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('inventory') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
           Inventario
         </NuxtLink>
@@ -50,11 +50,11 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           Ventas
         </NuxtLink>
-        <NuxtLink id="tour-transactions-link" @click="isMobileMenuOpen = false" to="/app/transactions" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('transactions') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
+        <NuxtLink v-if="!isSeniatAuditor" id="tour-transactions-link" @click="isMobileMenuOpen = false" to="/app/transactions" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('transactions') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
           Movimientos
         </NuxtLink>
-        <NuxtLink id="tour-clients-link" @click="isMobileMenuOpen = false" to="/app/clients" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('clients') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
+        <NuxtLink v-if="!isSeniatAuditor" id="tour-clients-link" @click="isMobileMenuOpen = false" to="/app/clients" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('clients') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
           Clientes
         </NuxtLink>
@@ -66,14 +66,14 @@
         </NuxtLink>
 
         <!-- AI Analyst -->
-        <NuxtLink to="/app/reports/ai-analyst" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 group relative overflow-hidden" active-class="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 text-[var(--color-white)] border border-emerald-500/20" :class="$route.path.includes('ai-analyst') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
+        <NuxtLink v-if="!isSeniatAuditor" to="/app/reports/ai-analyst" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 group relative overflow-hidden" active-class="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 text-[var(--color-white)] border border-emerald-500/20" :class="$route.path.includes('ai-analyst') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
            <div class="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
            <span class="relative z-10 bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-blue-400 font-extrabold group-hover:text-white transition-colors">AI Analyst</span>
            <span class="absolute right-2 top-3 w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         </NuxtLink>
 
-        <NuxtLink id="tour-settings-link" @click="isMobileMenuOpen = false" to="/app/settings" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('settings') && !$route.path.includes('audit') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
+        <NuxtLink v-if="!isSeniatAuditor" id="tour-settings-link" @click="isMobileMenuOpen = false" to="/app/settings" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200" active-class="bg-[var(--color-accent-blue)]/10 text-[var(--color-accent-blue)] shadow-[0_0_20px_rgba(0,113,227,0.15)]" :class="$route.path.includes('settings') && !$route.path.includes('audit') ? '' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-white)] hover:bg-[var(--color-bg-subtle)]'">
            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
            Configuración
         </NuxtLink>
@@ -118,15 +118,19 @@
 
             <!-- Center Action Button (New Sale) -->
             <div class="relative -top-5">
-                 <NuxtLink to="/app/sales/new" class="flex items-center justify-center w-14 h-14 bg-[var(--color-accent-blue)] rounded-full shadow-lg shadow-blue-500/40 text-white transform hover:scale-105 transition-all">
+                 <NuxtLink v-if="!isSeniatAuditor" to="/app/sales/new" class="flex items-center justify-center w-14 h-14 bg-[var(--color-accent-blue)] rounded-full shadow-lg shadow-blue-500/40 text-white transform hover:scale-105 transition-all">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                  </NuxtLink>
+                 <div v-else class="flex items-center justify-center w-14 h-14 bg-[var(--color-bg-subtle)] border border-[var(--color-border-subtle)] rounded-full text-[var(--color-text-secondary)] opacity-50 cursor-not-allowed">
+                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                 </div>
             </div>
 
-            <NuxtLink to="/app/inventory" active-class="text-[var(--color-accent-blue)]" class="flex flex-col items-center justify-center gap-1 text-[var(--color-text-secondary)]">
+            <NuxtLink v-if="!isSeniatAuditor" to="/app/inventory" active-class="text-[var(--color-accent-blue)]" class="flex flex-col items-center justify-center gap-1 text-[var(--color-text-secondary)]">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                 <span class="text-[10px] font-bold">Stock</span>
             </NuxtLink>
+            <div v-else class="flex flex-col items-center justify-center gap-1 text-[var(--color-bg-subtle)]"></div>
 
             <!-- Menu / More (Triggers Sidebar) -->
             <button @click="isMobileMenuOpen = true" class="flex flex-col items-center justify-center gap-1 text-[var(--color-text-secondary)]">
@@ -139,7 +143,10 @@
 </template>
 
 <script setup>
+import { usePermissions } from '~/composables/usePermissions'
+
 const { organization, fetchOrganization } = useOrganization()
+const { isSeniatAuditor } = usePermissions()
 const client = useSupabaseClient()
 const user = useSupabaseUser()
 const router = useRouter()

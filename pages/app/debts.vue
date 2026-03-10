@@ -114,6 +114,25 @@
             </div>
 
             <div class="space-y-1">
+                <label class="block text-sm font-medium text-text-heading">Tasa BCV del Día (Bs/$)</label>
+                <input v-model.number="currentExchangeRate" type="number" step="0.0001" min="1" class="block w-full rounded-md border-surface-border bg-surface-ground text-text-heading p-2 shadow-sm sm:text-sm">
+                <p class="text-xs text-text-secondary mt-1">Tasa original de la deuda: <b>{{ selectedDebt?.exchange_rate || 1 }} Bs</b></p>
+            </div>
+
+            <!-- Exchange Differential Preview -->
+            <div v-if="exchangeDifferential > 0" :class="[
+                'p-3 rounded-lg border text-sm font-medium flex items-center justify-between',
+                differentialType === 'gain' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'
+            ]">
+                <span>
+                    <svg v-if="differentialType === 'gain'" class="w-4 h-4 inline-block mr-1 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    <svg v-else class="w-4 h-4 inline-block mr-1 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path></svg>
+                    {{ differentialType === 'gain' ? 'Ganancia' : 'Pérdida' }} Cambiaria Generada:
+                </span>
+                <span class="font-bold">+{{ exchangeDifferential.toFixed(2) }} Bs</span>
+            </div>
+
+            <div class="space-y-1">
                 <label class="block text-sm font-medium text-text-heading">Método de Pago</label>
                 <select v-model="paymentMethod" class="block w-full rounded-md border-surface-border bg-surface-ground text-text-heading p-2 shadow-sm sm:text-sm">
                     <option value="transfer">Transferencia / Zelle</option>
@@ -153,8 +172,8 @@ const activeTab = ref<'receivables' | 'payables'>('receivables')
 
 // Computed
 const currentDebts = computed(() => activeTab.value === 'receivables' ? receivables.value : payables.value)
-const totalReceivables = computed(() => receivables.value.reduce((sum, d) => sum + d.balance, 0))
-const totalPayables = computed(() => payables.value.reduce((sum, d) => sum + d.balance, 0))
+const totalReceivables = computed(() => receivables.value.reduce((sum: number, d: Debt) => sum + d.balance, 0))
+const totalPayables = computed(() => payables.value.reduce((sum: number, d: Debt) => sum + d.balance, 0))
 
 // Modal State
 const showPaymentModal = ref(false)
@@ -163,12 +182,33 @@ const selectedDebt = ref<Debt | null>(null)
 const paymentAmount = ref<number>(0)
 const paymentMethod = ref('transfer')
 const paymentNotes = ref('')
+const currentExchangeRate = ref<number>(1)
+
+// Computed for Differential
+const exchangeDifferential = computed(() => {
+    if (!selectedDebt.value || paymentAmount.value <= 0) return 0
+    const originalRate = selectedDebt.value.exchange_rate || 1
+    const diff = (currentExchangeRate.value - originalRate) * paymentAmount.value
+    return Math.abs(diff)
+})
+
+const differentialType = computed(() => {
+    if (!selectedDebt.value || paymentAmount.value <= 0) return 'none'
+    const originalRate = selectedDebt.value.exchange_rate || 1
+    const diff = (currentExchangeRate.value - originalRate) * paymentAmount.value
+    if (diff > 0) return selectedDebt.value.type === 'receivable' ? 'gain' : 'loss'
+    if (diff < 0) return selectedDebt.value.type === 'receivable' ? 'loss' : 'gain'
+    return 'none'
+})
+
+
 
 const openPaymentModal = (debt: Debt) => {
     selectedDebt.value = debt
     paymentAmount.value = debt.balance // default to paying the rest
     paymentMethod.value = 'transfer'
     paymentNotes.value = ''
+    currentExchangeRate.value = debt.exchange_rate || 1 // default to original
     showPaymentModal.value = true
 }
 
@@ -185,6 +225,7 @@ const processPayment = async () => {
             selectedDebt.value.type,
             paymentAmount.value,
             paymentMethod.value,
+            currentExchangeRate.value,
             paymentNotes.value
         )
         toast.success(`Abono por $${paymentAmount.value.toFixed(2)} registrado con éxito`)

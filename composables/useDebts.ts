@@ -13,6 +13,7 @@ export interface Debt {
     balance: number
     status: 'pending' | 'partial'
     currency: string
+    exchange_rate: number
 }
 
 export const useDebts = () => {
@@ -32,7 +33,7 @@ export const useDebts = () => {
             // Need columns: id, date, due_date, amount, amount_paid, status, client(name)
             const { data: rxData, error: rxErr } = await client
                 .from('transactions')
-                .select('id, date, due_date, amount, amount_paid, status, control_number, client:clients(name)')
+                .select('id, date, due_date, amount, amount_paid, status, control_number, exchange_rate, client:clients(name)')
                 .eq('organization_id', organization.value.id)
                 .in('type', ['sale'])
                 .in('status', ['pending', 'partial'])
@@ -52,13 +53,14 @@ export const useDebts = () => {
                 amount_paid: Number(t.amount_paid || 0),
                 balance: Number(t.amount || 0) - Number(t.amount_paid || 0),
                 status: t.status,
-                currency: 'USD' // Defaulting to USD base
+                currency: 'USD', // Defaulting to USD base
+                exchange_rate: Number(t.exchange_rate || 1)
             }))
 
             // 2. Fetch Payables (Purchases that are pending/partial)
             const { data: pxData, error: pxErr } = await client
                 .from('purchases')
-                .select('id, date, due_date, total, amount_paid, status, invoice_number, supplier:suppliers(name)')
+                .select('id, date, due_date, total, amount_paid, status, invoice_number, exchange_rate, supplier:suppliers(name)')
                 .eq('organization_id', organization.value.id)
                 .in('status', ['pending', 'partial'])
                 .order('date', { ascending: false })
@@ -77,7 +79,8 @@ export const useDebts = () => {
                 amount_paid: Number(p.amount_paid || 0),
                 balance: Number(p.total || 0) - Number(p.amount_paid || 0),
                 status: p.status,
-                currency: p.currency || 'USD'
+                currency: p.currency || 'USD',
+                exchange_rate: Number(p.exchange_rate || 1)
             }))
 
         } catch (e) {
@@ -87,7 +90,7 @@ export const useDebts = () => {
         }
     }
 
-    const payDebt = async (debtId: string, type: 'receivable' | 'payable', paymentAmount: number, paymentMethod: string, notes?: string) => {
+    const payDebt = async (debtId: string, type: 'receivable' | 'payable', paymentAmount: number, paymentMethod: string, currentExchangeRate: number, notes?: string) => {
         if (!organization.value?.id) throw new Error('Organización requerida')
         
         try {
@@ -95,7 +98,7 @@ export const useDebts = () => {
             const table = type === 'receivable' ? 'transactions' : 'purchases'
             const totalCol = type === 'receivable' ? 'amount' : 'total'
 
-            const { data: debtData } = await client.from(table).select(`amount_paid, ${totalCol}, status`).eq('id', debtId).single()
+            const { data: debtData } = await client.from(table).select(`amount_paid, ${totalCol}, status, exchange_rate`).eq('id', debtId).single()
             if (!debtData) throw new Error('Deuda no encontrada')
 
             const newAmountPaid = Number(debtData.amount_paid || 0) + paymentAmount
@@ -110,6 +113,25 @@ export const useDebts = () => {
 
             if (updateErr) throw updateErr
 
+            // Calculate Exchange Differential (only if dealing with USD base and VES rate applies)
+            // Diff = (Current Rate - Original Rate) * paymentAmount (in USD)
+            let diffBs = 0
+            let diffType = 'none'
+            const originalRate = Number(debtData.exchange_rate || 1)
+            
+            if (currentExchangeRate !== originalRate) {
+                const stepDiff = (currentExchangeRate - originalRate) * paymentAmount
+                // If it's a receivable (sale), positive step = Gain
+                // If it's a payable (purchase), positive step = Loss (we pay more Bs than before)
+                if (stepDiff > 0) {
+                    diffType = type === 'receivable' ? 'gain' : 'loss'
+                    diffBs = stepDiff
+                } else if (stepDiff < 0) {
+                    diffType = type === 'receivable' ? 'loss' : 'gain'
+                    diffBs = Math.abs(stepDiff)
+                }
+            }
+
             // 2. Log the payment
             const { error: insertErr } = await client.from('debt_payments').insert({
                 organization_id: organization.value.id,
@@ -117,6 +139,9 @@ export const useDebts = () => {
                 reference_id: debtId,
                 amount: paymentAmount,
                 payment_method: paymentMethod,
+                exchange_rate_used: currentExchangeRate,
+                exchange_diff_bs: diffBs,
+                exchange_diff_type: diffType,
                 notes: notes || `Pago para factura ${debtId.split('-')[0]}`
             })
 

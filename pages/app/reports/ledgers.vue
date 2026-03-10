@@ -9,7 +9,7 @@
             
             <div class="flex gap-3">
                  <button 
-                    @click="exportExcel"
+                    @click="ledgerType === 'purchases' ? exportPurchasesExcel() : exportExcel()"
                     :disabled="loading || transactions.length === 0"
                     class="btn variant-primary px-4 py-2 flex items-center gap-2"
                 >
@@ -29,7 +29,7 @@
                 <label class="block text-xs font-medium text-text-secondary mb-1">Tipo de Libro</label>
                 <select v-model="ledgerType" class="bg-surface-subtle border border-surface-border text-text-heading text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5">
                     <option value="sales">Libro de Ventas</option>
-                    <!-- <option value="purchases">Libro de Compras</option> Para el futuro -->
+                    <option value="purchases">Libro de Compras</option>
                 </select>
             </div>
         </div>
@@ -176,7 +176,38 @@ const fetchLedger = async () => {
     }
 }
 
-watch([filterMonth, () => organization.value?.id], fetchLedger)
+const fetchPurchaseLedger = async () => {
+    if (!organization.value?.id) return
+    loading.value = true
+    try {
+        const [year, month] = filterMonth.value.split('-')
+        const startDate = `${year}-${month}-01`
+        let nextMonth = parseInt(month) + 1
+        let nextYear = parseInt(year)
+        if (nextMonth > 12) { nextMonth = 1; nextYear++ }
+        const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`
+
+        const { data, error } = await client
+            .from('purchases')
+            .select('*, supplier:suppliers(name, rif)')
+            .eq('organization_id', organization.value.id)
+            .gte('date', startDate)
+            .lt('date', endDate)
+            .order('date', { ascending: true })
+
+        if (error) throw error
+        transactions.value = data || []
+    } catch (e: any) {
+        console.error('Error fetching purchase ledger:', e)
+    } finally {
+        loading.value = false
+    }
+}
+
+watch([filterMonth, ledgerType, () => organization.value?.id], () => {
+    if (ledgerType.value === 'purchases') fetchPurchaseLedger()
+    else fetchLedger()
+})
 
 onMounted(() => {
     if (canViewFinancials.value) {
@@ -232,6 +263,30 @@ const exportExcel = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, `Ventas_${filterMonth.value}`)
 
     // Download file
-    XLSX.writeFile(workbook, `Libro_Ventas_Softtuuls_${filterMonth.value}.xlsx`)
+    const bookType = ledgerType.value === 'purchases' ? 'Compras' : 'Ventas'
+    XLSX.writeFile(workbook, `Libro_${bookType}_Softtuuls_${filterMonth.value}.xlsx`)
+}
+
+const exportPurchasesExcel = () => {
+    if (transactions.value.length === 0) return
+    const worksheetData = transactions.value.map((t: any, index: number) => ({
+        'Nro. Op.': index + 1,
+        'Fecha': new Date(t.date).toLocaleDateString('es-VE'),
+        'RIF Proveedor': t.supplier?.rif || 'Sin RIF',
+        'Nombre Proveedor': t.supplier?.name || 'Sin Nombre',
+        'Nro. Factura': t.invoice_number || '-',
+        'Nro. Control': t.control_number || '-',
+        'Total Compra c/IVA': Number(t.total || 0),
+        'Compras Exentas': Number(t.exempt_amount || 0),
+        'Base Imponible (16%)': Number(t.tax_base || 0),
+        'Crédito Fiscal IVA': Number(t.tax_amount || 0),
+        'IGTF': Number(t.igtf_amount || 0),
+        'Estado': t.status === 'paid' ? 'Pagado' : t.status === 'pending' ? 'Pendiente' : 'Parcial'
+    }))
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData)
+    worksheet['!cols'] = [{ wch: 8 }, { wch: 12 }, { wch: 15 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 12 }, { wch: 12 }]
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, `Compras_${filterMonth.value}`)
+    XLSX.writeFile(workbook, `Libro_Compras_Softtuuls_${filterMonth.value}.xlsx`)
 }
 </script>

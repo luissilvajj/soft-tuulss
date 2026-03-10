@@ -162,6 +162,7 @@ export const useSalesStore = defineStore('sales', {
                         status: payload.status,
                         payment_method: payload.paymentMethod,
                         payment_reference: payload.paymentReference,
+                        amount_paid: payload.status === 'paid' ? payload.total : 0, 
                         date: payload.date,
                         currency: payload.currency,
                         exchange_rate: payload.exchangeRate,
@@ -266,9 +267,11 @@ export const useSalesStore = defineStore('sales', {
                     // Note: We need organization_id. Assuming it's still same user/org.
                     // RISK: user changed org while offline.
                     // For MVP Phase 2, we assume same org.
+                    const pStatus = (sale.payload as any).status
+                    const pTotal = (sale.payload as any).total
                     const { error } = await client.from('transactions').insert({
                         ...sale.payload as any,
-                        // Ensure we strip offline_flag if DB doesn't like it, although we cast to any
+                        amount_paid: pStatus === 'paid' ? pTotal : 0,
                         offline_flag: undefined,
                         // We need to inject org id if it wasn't valid in payload?
                         // Actually logic above fetches it from composable. Ideally payload should have it.

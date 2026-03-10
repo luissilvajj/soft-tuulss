@@ -290,6 +290,7 @@ const savePurchase = async () => {
     try {
         const payload = {
             ...purchaseForm.value,
+            amount_paid: purchaseForm.value.status === 'paid' ? purchaseForm.value.total : 0,
             supplier_id: purchaseForm.value.supplier_id || null,
             organization_id: organization.value!.id
         }

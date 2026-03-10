@@ -9,8 +9,8 @@
        <BaseButton 
           variant="secondary" 
           @click="refresh" 
-          :loading="pending"
-          :disabled="pending"
+          :loading="loading"
+          :disabled="loading"
        >
           <template #icon>
              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
@@ -52,12 +52,12 @@
                 </div>
             </div>
             
-            <div class="bg-primary-600 dark:bg-primary-900/40 rounded-xl border border-primary-500 dark:border-primary-500/30 p-6 shadow-sm relative overflow-hidden text-white dark:text-primary-400 transition-colors">
-                <p class="text-sm font-medium text-white/80 dark:text-primary-400/80">Estado</p>
-                <div class="mt-2 text-2xl font-bold tracking-tight">
+            <div class="bg-surface-ground rounded-xl border border-primary-500/30 p-6 shadow-sm relative overflow-hidden transition-colors">
+                <p class="text-sm font-medium text-text-secondary">Estado</p>
+                <div class="mt-2 text-2xl font-bold tracking-tight text-primary-600">
                     {{ userRole.toUpperCase() }}
                 </div>
-                <p class="text-xs text-white/60 dark:text-primary-400/60 mt-1">Suscripción Activa</p>
+                <p class="text-xs text-text-secondary mt-1">Suscripción Activa</p>
             </div>
         </div>
 
@@ -79,10 +79,12 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted, watch } from 'vue'
 import { useOrganization } from '~/composables/useOrganization'
 import { usePermissions } from '~/composables/usePermissions'
 import { useFormat } from '~/composables/useFormat'
 import { useDashboard } from '~/composables/useDashboard'
+import { useTheme } from '~/composables/useTheme'
 import BaseButton from '~/components/base/BaseButton.vue'
 
 definePageMeta({ 
@@ -94,6 +96,15 @@ const { organization } = useOrganization()
 const { canViewFinancials, userRole } = usePermissions()
 const { formatMoney } = useFormat()
 const { kpis, salesTrend, loading, fetchMetrics } = useDashboard()
+const { currentTheme } = useTheme()
+
+// Reactive Dark Mode check for Chart Options
+const isDark = computed(() => {
+    if (typeof window === 'undefined') return false
+    if (currentTheme.value === 'dark') return true
+    if (currentTheme.value === 'system') return window.matchMedia('(prefers-color-scheme: dark)').matches
+    return false
+})
 
 // Reactive Date Range (Default 'today')
 const selectedRange = ref('today')
@@ -125,9 +136,10 @@ const chartOptions = computed(() => ({
         fontFamily: 'Inter, sans-serif',
         toolbar: { show: false },
         zoom: { enabled: false },
-        animations: { enabled: true, easing: 'easeinout', speed: 800 }
+        animations: { enabled: true, easing: 'easeinout', speed: 800 },
+        background: 'transparent'
     },
-    colors: ['#4F46E5'], // Primary-600
+    colors: ['#eab308'], // Primary-500 (Yellow/Amber)
     fill: {
         type: 'gradient',
         gradient: {
@@ -156,14 +168,14 @@ const chartOptions = computed(() => ({
     },
     grid: { 
         show: true, 
-        borderColor: '#f1f5f9',
+        borderColor: isDark.value ? '#334155' : '#f1f5f9', // adapt grid lines
         strokeDashArray: 4,
         padding: { top: 0, right: 0, bottom: 0, left: 10 } 
     },
     dataLabels: { enabled: false },
-    theme: { mode: 'light' },
+    theme: { mode: isDark.value ? 'dark' : 'light' },
     tooltip: {
-        theme: 'light',
+        theme: isDark.value ? 'dark' : 'light',
         y: {
             formatter: function (val: number) {
                 return formatMoney(val)

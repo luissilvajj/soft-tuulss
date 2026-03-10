@@ -49,7 +49,7 @@ const props = withDefaults(defineProps<Props>(), {
 const variantClasses = computed(() => {
   const mapWithDark = {
     primary: 'bg-primary-600 hover:bg-primary-700 text-white shadow-sm shadow-primary-500/30 focus:ring-primary-500',
-    secondary: 'bg-surface-section text-text-heading border border-surface-border hover:bg-surface-border focus:ring-slate-500',
+    secondary: 'bg-surface-subtle text-text-heading border border-surface-border hover:bg-surface-section focus:ring-primary-500',
     outline: 'bg-transparent border border-surface-border text-text-heading hover:bg-surface-section focus:ring-primary-500',
     ghost: 'bg-transparent text-text-secondary hover:text-text-heading hover:bg-surface-subtle focus:ring-slate-500',
     danger: 'bg-status-error text-white hover:bg-red-600 shadow-sm shadow-red-500/30 focus:ring-red-500'

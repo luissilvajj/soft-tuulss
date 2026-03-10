@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen font-sans transition-colors duration-300 bg-surface-subtle text-text-heading overflow-x-hidden selection:bg-primary-500 selection:text-white">
+  <div class="min-h-screen font-sans transition-colors duration-300 bg-surface-ground text-text-heading border border-surface-border overflow-x-hidden selection:bg-primary-500 selection:text-white">
     
     <!-- Navbar -->
     <nav class="fixed w-full z-50 transition-all duration-300" :class="{ 'bg-surface-ground/80 backdrop-blur-md border-b border-surface-border': scrolled, 'bg-transparent': !scrolled }">
@@ -36,7 +36,7 @@
       <div class="max-w-4xl mx-auto px-6 relative z-10">
         <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight mb-8 leading-[1.1]">
           Gestión Inteligente para tu 
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">Negocio</span>
+          <span class="text-primary-600 dark:text-primary-400">Negocio</span>
         </h1>
         
         <p class="text-xl text-text-secondary max-w-2xl mx-auto mb-12 leading-relaxed">
@@ -45,7 +45,7 @@
         </p>
         
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
-          <NuxtLink to="/signup" class="px-8 py-4 rounded-full bg-text-heading text-surface-ground font-bold text-lg hover:bg-gray-100 transition-all hover:scale-105 shadow-xl shadow-white/10">
+          <NuxtLink to="/signup" class="px-8 py-4 rounded-full bg-primary-600 text-white hover:bg-primary-700 font-bold text-lg hover:bg-gray-100 transition-all hover:scale-105 shadow-xl shadow-white/10">
             Ver Planes Ahora
           </NuxtLink>
           <NuxtLink to="/signup" class="px-8 py-4 rounded-full text-text-heading border border-surface-border hover:bg-surface-subtle transition-colors text-lg font-bold">
@@ -65,9 +65,9 @@
                 </div>
                 <!-- Content Mock -->
                 <div class="flex gap-6 h-full">
-                  <div class="w-1/4 h-full bg-surface-subtle/30 rounded-xl border border-surface-border"></div>
+                  <div class="w-1/4 h-full bg-surface-border/30 rounded-xl border border-surface-border"></div>
                   <div class="w-3/4 h-full flex flex-col gap-4">
-                     <div class="w-full h-1/2 bg-surface-subtle/50 rounded-xl border border-surface-border p-4 relative overflow-hidden">
+                     <div class="w-full h-1/2 bg-surface-border/50 rounded-xl border border-surface-border p-4 relative overflow-hidden">
                         <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Reportes Mensuales</span>
                         <div class="mt-4 flex items-end gap-2 h-3/4 opacity-80">
                            <div class="w-1/6 h-[40%] bg-primary-500/30 rounded-t"></div>
@@ -77,25 +77,25 @@
                            <div class="w-1/6 h-[50%] bg-primary-500/40 rounded-t"></div>
                         </div>
                      </div>
-                     <div class="w-full h-1/2 bg-surface-subtle/30 rounded-xl border border-surface-border"></div>
+                     <div class="w-full h-1/2 bg-surface-border/30 rounded-xl border border-surface-border"></div>
                   </div>
                 </div>
              </div>
           </div>
           
            <!-- Phone Floating Mockup -->
-           <div class="absolute -right-8 -bottom-16 w-[280px] h-[550px] rounded-[3rem] border-8 border-[var(--color-bg-dark)] bg-surface-subtle shadow-2xl overflow-hidden hidden md:block z-20 ring-1 ring-[var(--color-border-subtle)]">
+           <div class="absolute -right-8 -bottom-16 w-[280px] h-[550px] rounded-[3rem] border-8 border-surface-ground bg-surface-subtle shadow-2xl overflow-hidden hidden md:block z-20 ring-1 ring-[var(--color-border-subtle)]">
               <div class="w-full h-full bg-surface-ground/80 p-4 flex flex-col items-center">
                  <div class="w-20 h-6 bg-surface-subtle rounded-full mb-8"></div>
                  <h3 class="text-3xl font-bold mb-2 text-text-heading">$12.4k</h3>
                  <span class="text-xs text-text-secondary mb-8">Total Ventas</span>
                  
                  <div class="w-full space-y-4">
-                    <div class="w-full h-16 bg-surface-subtle/50 rounded-2xl shadow-sm border border-surface-border flex items-center px-4 gap-3">
+                    <div class="w-full h-16 bg-surface-border/50 rounded-2xl shadow-sm border border-surface-border flex items-center px-4 gap-3">
                        <div class="w-8 h-8 rounded-full bg-status-success"></div>
                        <div class="w-32 h-2 bg-[var(--color-border-subtle)] rounded"></div>
                     </div>
-                     <div class="w-full h-16 bg-surface-subtle/30 rounded-2xl border border-surface-border flex items-center px-4 gap-3">
+                     <div class="w-full h-16 bg-surface-border/30 rounded-2xl border border-surface-border flex items-center px-4 gap-3">
                        <div class="w-8 h-8 rounded-full bg-primary-500"></div>
                        <div class="w-24 h-2 bg-[var(--color-border-subtle)] rounded"></div>
                     </div>
@@ -113,7 +113,7 @@
       <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <div class="text-center max-w-2xl mx-auto mb-16">
           <h2 class="text-sm font-bold tracking-wide text-primary-500 uppercase mb-2">Potencia tu empresa</h2>
-          <h3 class="text-3xl font-bold text-text-heading sm:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">Todo lo que necesitas para operar</h3>
+          <h3 class="text-3xl font-bold text-text-heading sm:text-4xl text-primary-600 dark:text-primary-400">Todo lo que necesitas para operar</h3>
           <p class="mt-4 text-lg text-text-secondary">
             Soft Tuuls centraliza tus operaciones en una plataforma rápida, segura y fácil de usar.
           </p>
@@ -187,7 +187,7 @@
            </div>
            
            <!-- Pro Plan (Destacado) -->
-           <div class="relative p-8 rounded-3xl bg-surface-subtle/50 border-2 border-primary-500 shadow-[0_0_30px_rgba(234,179,8,0.15)] transform md:-translate-y-4 backdrop-blur-xl">
+           <div class="relative p-8 rounded-3xl bg-surface-border/50 border-2 border-primary-500 shadow-[0_0_30px_rgba(234,179,8,0.15)] transform md:-translate-y-4 backdrop-blur-xl">
               <div class="absolute top-0 right-0 -mt-4 mr-4 bg-primary-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide shadow-lg shadow-blue-500/30">Más Popular</div>
               <h4 class="text-lg font-bold text-text-heading">Pro</h4>
               <div class="mt-4 flex items-baseline text-text-heading">

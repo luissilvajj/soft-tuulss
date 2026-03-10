@@ -11,7 +11,7 @@
          <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center shadow-lg shadow-primary-500/30 mb-8 transform hover:scale-110 transition-transform duration-300">
             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
          </div>
-        <h2 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400 tracking-tight">Crea tu Organización</h2>
+        <h2 class="text-4xl font-extrabold text-primary-600 dark:text-primary-400 tracking-tight">Crea tu Organización</h2>
         <p class="mt-4 text-text-secondary">
           Dale un nombre a tu espacio de trabajo para empezar a gestionar.
         </p>
@@ -28,7 +28,7 @@
           <div>
             <label for="orgName" class="block text-sm font-bold text-text-secondary mb-2">Nombre de la Organización</label>
             <div class="relative">
-              <input id="orgName" v-model="orgName" name="orgName" type="text" required placeholder="Ej. Startup Innovadora" class="appearance-none block w-full px-4 py-4 border border-surface-border rounded-xl shadow-sm placeholder-[var(--color-text-secondary)]/30 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface-subtle/50 text-text-heading font-medium transition-all" />
+              <input id="orgName" v-model="orgName" name="orgName" type="text" required placeholder="Ej. Startup Innovadora" class="appearance-none block w-full px-4 py-4 border border-surface-border rounded-xl shadow-sm placeholder-text-secondary/30 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface-border/50 text-text-heading font-medium transition-all" />
             </div>
             <p class="mt-3 text-xs text-text-secondary">
                Podrás cambiarlo o crear más organizaciones después.

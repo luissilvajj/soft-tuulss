@@ -10,7 +10,7 @@
              </div>
              <span class="text-xl font-bold text-text-heading tracking-tight">Soft Tuuls</span>
           </NuxtLink>
-          <h2 class="mt-8 text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400 tracking-tight">Bienvenido de nuevo</h2>
+          <h2 class="mt-8 text-3xl font-extrabold text-primary-600 dark:text-primary-400 tracking-tight">Bienvenido de nuevo</h2>
           <p class="mt-2 text-sm text-text-secondary">
             ¿No tienes cuenta?
             <NuxtLink to="/signup" class="font-bold text-primary-500 hover:text-primary-600 transition-colors">
@@ -24,7 +24,7 @@
             <div>
               <label for="email" class="block text-sm font-bold text-text-secondary">Correo electrónico</label>
               <div class="mt-2">
-                <input id="email" v-model="email" type="email" required class="appearance-none block w-full px-4 py-3 border border-surface-border rounded-xl shadow-sm placeholder-[var(--color-text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface-subtle text-text-heading sm:text-sm transition-all" placeholder="tucorreo@empresa.com" />
+                <input id="email" v-model="email" type="email" required class="appearance-none block w-full px-4 py-3 border border-surface-border rounded-xl shadow-sm placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface-ground text-text-heading focus:bg-surface-section sm:text-sm transition-all" placeholder="tucorreo@empresa.com" />
               </div>
             </div>
 
@@ -38,7 +38,7 @@
                 </div>
               </div>
               <div class="mt-2 relative">
-                <input id="password" v-model="password" :type="showPassword ? 'text' : 'password'" required class="appearance-none block w-full px-4 py-3 border border-surface-border rounded-xl shadow-sm placeholder-[var(--color-text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface-subtle text-text-heading sm:text-sm transition-all pr-10" placeholder="••••••••" />
+                <input id="password" v-model="password" :type="showPassword ? 'text' : 'password'" required class="appearance-none block w-full px-4 py-3 border border-surface-border rounded-xl shadow-sm placeholder-text-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface-ground text-text-heading focus:bg-surface-section sm:text-sm transition-all pr-10" placeholder="••••••••" />
                 <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-text-heading cursor-pointer focus:outline-none">
                   <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -90,11 +90,11 @@
           <div class="w-full aspect-[4/3] glass-panel p-8 transform rotate-3 hover:rotate-0 transition-transform duration-700 relative overflow-hidden group">
              <div class="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-primary-600/30 to-primary-400/30 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
              
-             <div class="h-8 w-1/3 bg-surface-subtle/50 rounded-lg mb-8 relative z-10 backdrop-blur-md"></div>
+             <div class="h-8 w-1/3 bg-surface-border/50 rounded-lg mb-8 relative z-10 backdrop-blur-md"></div>
              <div class="space-y-4 relative z-10">
-               <div class="h-20 w-full bg-surface-subtle/30 rounded-xl border border-surface-border backdrop-blur-sm"></div>
-               <div class="h-20 w-full bg-surface-subtle/30 rounded-xl border border-surface-border backdrop-blur-sm"></div>
-               <div class="h-20 w-full bg-surface-subtle/30 rounded-xl border border-surface-border backdrop-blur-sm"></div>
+               <div class="h-20 w-full bg-surface-border/30 rounded-xl border border-surface-border backdrop-blur-sm"></div>
+               <div class="h-20 w-full bg-surface-border/30 rounded-xl border border-surface-border backdrop-blur-sm"></div>
+               <div class="h-20 w-full bg-surface-border/30 rounded-xl border border-surface-border backdrop-blur-sm"></div>
              </div>
           </div>
        </div>

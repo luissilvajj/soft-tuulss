@@ -53,7 +53,7 @@ const navigation = computed(() => {
       nav.push({ name: 'Módulo Fiscal (Z)', href: '/app/reports/fiscal', icon: ClipboardDocumentListIcon })
   }
 
-  nav.push({ name: 'AI Analyst', href: '/app/ai-analyst', icon: SparklesIcon })
+  nav.push({ name: 'AI Analyst', href: '/app/ai', icon: SparklesIcon })
   nav.push({ name: 'Configuración', href: '/app/settings', icon: UserIcon })
 
   return nav

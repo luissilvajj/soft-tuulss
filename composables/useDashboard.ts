@@ -11,6 +11,8 @@ export const useDashboard = () => {
         avg_ticket: 0
     }))
     const salesTrend = useState<any[]>('dashboard_trend', () => [])
+    const topProducts = useState<any[]>('dashboard_top_products', () => [])
+    const paymentDistribution = useState<any[]>('dashboard_payment_dist', () => [])
     const loading = useState('dashboard_loading', () => false)
     const error = useState('dashboard_error', () => null)
     const generatingZ = ref(false)
@@ -68,6 +70,45 @@ export const useDashboard = () => {
 
             if (trendErr) throw trendErr
             salesTrend.value = trendData || []
+
+            // 3. Fetch Top 5 Products (by quantity sold)
+            const { data: topData } = await client
+                .from('transaction_items')
+                .select('product_name, quantity')
+                .gte('created_at', p_range_start)
+                .lte('created_at', p_range_end)
+            
+            if (topData) {
+                const productMap: Record<string, number> = {}
+                topData.forEach((item: any) => {
+                    const name = item.product_name || 'Sin nombre'
+                    productMap[name] = (productMap[name] || 0) + (item.quantity || 1)
+                })
+                topProducts.value = Object.entries(productMap)
+                    .map(([name, qty]) => ({ name, quantity: qty }))
+                    .sort((a, b) => b.quantity - a.quantity)
+                    .slice(0, 5)
+            }
+
+            // 4. Fetch Payment Method Distribution
+            const { data: payData } = await client
+                .from('transactions')
+                .select('payment_method')
+                .eq('organization_id', organization.value.id)
+                .eq('status', 'paid')
+                .gte('created_at', p_range_start)
+                .lte('created_at', p_range_end)
+            
+            if (payData) {
+                const payMap: Record<string, number> = {}
+                payData.forEach((tx: any) => {
+                    const method = tx.payment_method || 'other'
+                    payMap[method] = (payMap[method] || 0) + 1
+                })
+                paymentDistribution.value = Object.entries(payMap)
+                    .map(([method, count]) => ({ method, count }))
+                    .sort((a, b) => b.count - a.count)
+            }
 
         } catch (e: any) {
             console.error('Dashboard Fetch Error:', e)
@@ -158,6 +199,8 @@ export const useDashboard = () => {
     return {
         kpis,
         salesTrend,
+        topProducts,
+        paymentDistribution,
         loading,
         error,
         generatingZ,

@@ -75,6 +75,35 @@
             </div>
         </div>
 
+        <!-- Charts Row: Top Products + Payment Distribution -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <!-- Top 5 Products -->
+            <div class="bg-surface-ground rounded-xl border border-surface-border p-6 shadow-sm">
+                <h3 class="font-bold text-lg mb-4 text-text-heading">Top 5 Productos Más Vendidos</h3>
+                <div class="h-[280px]">
+                    <ClientOnly fallback="Cargando...">
+                        <apexchart v-if="topProducts.length > 0" width="100%" height="100%" type="bar" :options="topProductsChartOptions" :series="topProductsSeries"></apexchart>
+                        <div v-else class="h-full flex items-center justify-center text-text-secondary opacity-50">
+                            <span class="text-sm">Sin datos de productos aún</span>
+                        </div>
+                    </ClientOnly>
+                </div>
+            </div>
+
+            <!-- Payment Distribution -->
+            <div class="bg-surface-ground rounded-xl border border-surface-border p-6 shadow-sm">
+                <h3 class="font-bold text-lg mb-4 text-text-heading">Distribución por Método de Pago</h3>
+                <div class="h-[280px]">
+                    <ClientOnly fallback="Cargando...">
+                        <apexchart v-if="paymentDistribution.length > 0" width="100%" height="100%" type="donut" :options="paymentChartOptions" :series="paymentSeries"></apexchart>
+                        <div v-else class="h-full flex items-center justify-center text-text-secondary opacity-50">
+                            <span class="text-sm">Sin datos de pagos aún</span>
+                        </div>
+                    </ClientOnly>
+                </div>
+            </div>
+        </div>
+
         <!-- Low Stock Alert Widget -->
         <div v-if="lowStockProducts.length > 0" class="bg-surface-ground rounded-xl border border-status-error/30 p-6 shadow-sm mt-6">
             <div class="flex items-center gap-2 mb-4">
@@ -116,7 +145,7 @@ definePageMeta({
 const { organization } = useOrganization()
 const { canViewFinancials, userRole } = usePermissions()
 const { formatMoney } = useFormat()
-const { kpis, salesTrend, loading, fetchMetrics } = useDashboard()
+const { kpis, salesTrend, topProducts, paymentDistribution, loading, fetchMetrics } = useDashboard()
 const { currentTheme } = useTheme()
 
 const lowStockProducts = ref<any[]>([])
@@ -219,4 +248,49 @@ const chartOptions = computed(() => ({
 }))
 
 const refresh = () => fetchMetrics(selectedRange.value)
+
+// === Top Products Chart ===
+const topProductsSeries = computed(() => [{
+    name: 'Unidades',
+    data: topProducts.value.map(p => p.quantity)
+}])
+
+const topProductsChartOptions = computed(() => ({
+    chart: { id: 'top-products', toolbar: { show: false }, background: 'transparent' },
+    plotOptions: { bar: { horizontal: true, borderRadius: 6, barHeight: '60%' } },
+    colors: ['#3b82f6'],
+    xaxis: {
+        categories: topProducts.value.map(p => p.name.length > 20 ? p.name.slice(0, 20) + '...' : p.name),
+        labels: { style: { colors: '#64748b', fontSize: '11px' } }
+    },
+    yaxis: { labels: { style: { colors: '#64748b', fontSize: '11px' } } },
+    grid: { borderColor: isDark.value ? '#334155' : '#f1f5f9', strokeDashArray: 4 },
+    dataLabels: { enabled: true, style: { fontSize: '12px', fontWeight: 700 } },
+    theme: { mode: isDark.value ? 'dark' : 'light' },
+    tooltip: { theme: isDark.value ? 'dark' : 'light' }
+}))
+
+// === Payment Distribution Chart ===
+const paymentMethodLabels: Record<string, string> = {
+    cash: 'Efectivo',
+    card: 'Tarjeta',
+    mobile_pay: 'Pago Móvil',
+    transfer: 'Transferencia',
+    mixed: 'Pago Mixto',
+    other: 'Otro'
+}
+
+const paymentSeries = computed(() => paymentDistribution.value.map(p => p.count))
+
+const paymentChartOptions = computed(() => ({
+    chart: { id: 'payment-dist', background: 'transparent' },
+    labels: paymentDistribution.value.map(p => paymentMethodLabels[p.method] || p.method),
+    colors: ['#22c55e', '#3b82f6', '#a855f7', '#f59e0b', '#ec4899', '#64748b'],
+    legend: { position: 'bottom' as const, labels: { colors: '#64748b' } },
+    dataLabels: { enabled: true, formatter: (val: number) => `${val.toFixed(0)}%` },
+    stroke: { show: false },
+    theme: { mode: isDark.value ? 'dark' : 'light' },
+    tooltip: { theme: isDark.value ? 'dark' : 'light' },
+    plotOptions: { pie: { donut: { size: '55%', labels: { show: true, total: { show: true, label: 'Total', color: '#64748b' } } } } }
+}))
 </script>

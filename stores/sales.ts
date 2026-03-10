@@ -25,6 +25,7 @@ interface SalesState {
     cart: CartItem[]
     currentSale: {
         clientId: string
+        documentType: 'invoice' | 'delivery_note'
         paymentMethod: string
         paymentReference: string
         status: 'paid' | 'pending'
@@ -49,6 +50,7 @@ export const useSalesStore = defineStore('sales', {
         cart: [],
         currentSale: {
             clientId: '',
+            documentType: 'invoice',
             paymentMethod: 'cash',
             paymentReference: '',
             status: 'paid',
@@ -110,6 +112,7 @@ export const useSalesStore = defineStore('sales', {
             this.cart = []
             this.currentSale = {
                 clientId: '',
+                documentType: 'invoice',
                 paymentMethod: 'cash',
                 paymentReference: '',
                 status: 'paid',
@@ -153,6 +156,7 @@ export const useSalesStore = defineStore('sales', {
                     .insert({
                         organization_id: (useOrganization().organization.value as any)?.id, // Safety cast, caller ensures existence
                         type: 'sale',
+                        document_type: payload.documentType || 'invoice',
                         amount: payload.total,
                         client_id: payload.clientId,
                         status: payload.status,

@@ -180,6 +180,35 @@
                          <ClientSelector :key="clientSelectorKey" v-model="salesStore.currentSale.clientId" @create-client="showClientModal = true" />
                     </div>
 
+                    <!-- Document Type (Fiscal vs Internal) -->
+                    <div>
+                        <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Tipo de Documento</label>
+                        <div class="flex bg-surface-subtle p-1 rounded-lg border border-surface-border">
+                            <button 
+                                @click="salesStore.currentSale.documentType = 'invoice'"
+                                :class="[
+                                    'flex-1 py-2 px-3 text-sm font-bold rounded-md transition-all',
+                                    salesStore.currentSale.documentType === 'invoice' 
+                                        ? 'bg-status-success text-white shadow-sm' 
+                                        : 'text-text-secondary hover:bg-surface-border/50'
+                                ]"
+                            >
+                                Factura Fiscal
+                            </button>
+                            <button 
+                                @click="salesStore.currentSale.documentType = 'delivery_note'"
+                                :class="[
+                                    'flex-1 py-2 px-3 text-sm font-bold rounded-md transition-all',
+                                    salesStore.currentSale.documentType === 'delivery_note' 
+                                        ? 'bg-surface-ground text-text-heading shadow-sm border border-surface-border' 
+                                        : 'text-text-secondary hover:bg-surface-border/50'
+                                ]"
+                            >
+                                Nota de Entrega
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Payment Method -->
                     <div>
                         <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Método de Pago</label>
@@ -460,6 +489,7 @@ const resetCheckout = () => {
     clientSelectorKey.value++ 
     salesStore.currentSale.globalDiscount = 0
     salesStore.currentSale.isMixedPayment = false
+    salesStore.currentSale.documentType = 'invoice'
 }
 
 // Sync offline sales when coming online
@@ -678,11 +708,23 @@ const financials = computed(() => {
     const taxIva = taxGeneralAmount + taxReducedAmount
     const taxBase = baseGeneral + baseReduced
 
-    // IGTF logic (3% on total invoice minus IGTF itself, approx simplified)
+    // IGTF logic (3% on strictly the USD portion, skipped for non-fiscal docs)
     let igtfAmount = 0
-    if (salesStore.currentSale.includeIgtf) {
-        const totalBeforeIgtf = exemptAmount + taxBase + taxIva
-        igtfAmount = totalBeforeIgtf * 0.03
+    let igtfBaseInner = 0
+    
+    // Only apply IGTF if explicit toggle is ON, the document is fiscal, and sale is not entirely exempt
+    if (salesStore.currentSale.includeIgtf && salesStore.currentSale.documentType === 'invoice' && !salesStore.currentSale.isExempt) {
+         if (salesStore.currentSale.isMixedPayment) {
+             // In Mixed Payments, IGTF only applies to the USD amount physically received
+             igtfBaseInner = salesStore.currentSale.mixedPayment.usdAmount || 0
+         } else if (['cash', 'zelle'].includes(salesStore.currentSale.paymentMethod)) {
+             // In pure USD payments, it applies to the whole subtotal + IVA
+             igtfBaseInner = exemptAmount + taxBase + taxIva
+         }
+         
+         if (igtfBaseInner > 0) {
+             igtfAmount = igtfBaseInner * 0.03
+         }
     }
 
     return {
@@ -700,7 +742,10 @@ const financials = computed(() => {
 })
 
 const igtfBaseAmount = computed(() => {
-    return Math.max(0, financials.value.subtotal - (salesStore.currentSale.globalDiscount || 0))
+    // If mixed, it's strictly the USD amount typed. Else, whole eligible amount before IGTF.
+    if (salesStore.currentSale.isMixedPayment) return salesStore.currentSale.mixedPayment.usdAmount || 0
+    if (['cash', 'zelle'].includes(salesStore.currentSale.paymentMethod)) return financials.value.total - financials.value.taxIgtf
+    return 0
 })
 
 
@@ -716,6 +761,7 @@ const handleCheckout = async () => {
     try {
         const payload = {
             clientId: salesStore.currentSale.clientId,
+            documentType: salesStore.currentSale.documentType,
             status: salesStore.currentSale.status,
             paymentMethod: salesStore.currentSale.paymentMethod,
             paymentReference: salesStore.currentSale.paymentReference,
@@ -734,7 +780,11 @@ const handleCheckout = async () => {
             discount: salesStore.currentSale.globalDiscount,
             isExempt: salesStore.currentSale.isExempt,
             total: financials.value.total,
-            paymentDetails: salesStore.currentSale.isMixedPayment ? { ...salesStore.currentSale.mixedPayment } : null,
+            paymentDetails: salesStore.currentSale.isMixedPayment ? {
+                usd_amount: salesStore.currentSale.mixedPayment.usdAmount,
+                ves_amount: salesStore.currentSale.mixedPayment.vesAmount,
+                igtf_base: igtfBaseAmount.value // Store the exact base used for IGTF to help the auditor
+            } : null,
             rawItems: salesStore.cart.map(i => {
                 const taxCond = salesStore.currentSale.isExempt ? 'exempt' : (i.product.tax_condition || 'exempt')
                 let taxR = 0

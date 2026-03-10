@@ -1,5 +1,5 @@
 <template>
-  <AppModal :show="true" title="Detalle de Venta" description="Recibo de operación" @close="$emit('close')">
+  <AppModal :show="true" :title="sale.document_type === 'delivery_note' ? 'Nota de Entrega' : 'Factura Fiscal'" description="Recibo de operación" @close="$emit('close')">
     <div class="space-y-6">
         <!-- Header Info -->
         <div class="flex justify-between items-start border-b border-[var(--color-border-subtle)] pb-4">
@@ -161,6 +161,8 @@ interface ExtendedSale {
     exchange_rate: number;
     payment_method: string;
     payment_reference?: string;
+    document_type?: 'invoice' | 'delivery_note' | 'credit_note' | 'debit_note';
+    control_number?: string;
     created_at?: string;
     tax_igtf?: number;
     payment_details?: any;
@@ -183,8 +185,8 @@ const shareInvoice = async () => {
         const url = router.resolve(`/app/sales/print/${props.sale.id}`).href
         const fullUrl = window.location.origin + url
         await navigator.share({
-            title: `Factura Softtuuls #${props.sale.id.slice(0, 8)}`,
-            text: `Aquí tienes tu comprobante digital de compra. Total: ${formatMoney(showInVes.value ? paidVesAmount.value : baseUsdAmount.value, showInVes.value ? 'VES' : 'USD')}`,
+            title: props.sale.document_type === 'delivery_note' ? `Nota de Entrega #${props.sale.id.slice(0, 8)}` : `Factura Softtuuls #${props.sale.control_number || props.sale.id.slice(0, 8)}`,
+            text: `Aquí tienes tu comprobante digital. Total: ${formatMoney(showInVes.value ? paidVesAmount.value : baseUsdAmount.value, showInVes.value ? 'VES' : 'USD')}`,
             url: fullUrl
         })
     } catch (err) {

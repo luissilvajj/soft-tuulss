@@ -41,6 +41,7 @@ const navigation = computed(() => {
 
   if (canViewFinancials.value) {
       nav.push({ name: 'Reportes', href: '/app/reports', icon: ChartBarIcon })
+      nav.push({ name: 'Libros Contables', href: '/app/reports/ledgers', icon: ClipboardDocumentListIcon })
   }
 
   if (isAdmin.value) {

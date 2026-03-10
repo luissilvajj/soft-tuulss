@@ -120,6 +120,7 @@ export interface CartItem {
 // Payload for creating a sale
 export interface SalePayload {
     clientId?: string
+    documentType: 'invoice' | 'delivery_note' // NEW
     status: 'paid' | 'pending'
     paymentMethod: string
     paymentReference?: string

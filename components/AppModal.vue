@@ -3,7 +3,7 @@
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
       <!-- Backdrop -->
       <div 
-        class="fixed inset-0 bg-[var(--color-bg-dark)]/80 transition-opacity backdrop-blur-sm" 
+        class="fixed inset-0 bg-surface-subtle/80 backdrop-blur-sm z-40 transition-opacity dark:bg-black/60" 
         @click="$emit('close')"
         aria-hidden="true"
       ></div>
@@ -11,20 +11,20 @@
       <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
       <!-- Panel -->
-      <div class="inline-block align-bottom bg-[var(--color-bg-subtle)] rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-[var(--color-border-subtle)] animate-fade-in-up">
+      <div class="relative z-50 inline-block align-bottom bg-surface-ground rounded-2xl text-left overflow-hidden shadow-2xl shadow-primary-500/10 transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full border border-surface-border animate-fade-in-up">
         
-        <!-- Header -->
-        <div class="px-6 pt-6 pb-4">
+         <!-- Header -->
+         <div class="px-6 pt-6 pb-2">
            <div class="flex justify-between items-start mb-6">
              <div>
-                <h3 class="text-xl font-bold text-[var(--color-white)]" id="modal-title">
+                <h3 class="text-xl font-extrabold text-text-heading tracking-tight" id="modal-title">
                   {{ title }}
                 </h3>
-                <p v-if="description" class="text-sm text-[var(--color-text-secondary)] mt-1">
+                <p v-if="description" class="text-sm text-text-secondary mt-1">
                   {{ description }}
                 </p>
              </div>
-             <button @click="$emit('close')" class="text-[var(--color-text-secondary)] hover:text-[var(--color-accent-blue)] transition-colors">
+             <button @click="$emit('close')" class="p-1 rounded-lg text-text-secondary hover:bg-surface-subtle hover:text-text-heading transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
              </button>
           </div>
@@ -36,9 +36,9 @@
         </div>
 
         <!-- Actions Footer -->
-        <div class="px-6 py-4 bg-[var(--color-bg-dark)]/50 flex gap-3 flex-row-reverse border-t border-[var(--color-border-subtle)]">
+        <div class="px-6 py-4 bg-surface-subtle/50 flex gap-3 flex-row-reverse border-t border-surface-border">
            <slot name="actions">
-             <button @click="$emit('close')" type="button" class="px-6 py-2.5 text-sm font-bold text-[var(--color-text-secondary)] bg-transparent border border-[var(--color-border-subtle)] rounded-xl hover:bg-[var(--color-bg-dark)] focus:outline-none transition-colors">
+             <button @click="$emit('close')" type="button" class="px-6 py-2.5 text-sm font-bold text-text-secondary bg-surface-ground border border-surface-border rounded-xl hover:bg-surface-subtle hover:text-text-heading focus:outline-none transition-colors">
                Cerrar
              </button>
            </slot>

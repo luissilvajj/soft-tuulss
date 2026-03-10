@@ -2,11 +2,11 @@
   <AppModal :show="true" :title="sale.document_type === 'delivery_note' ? 'Nota de Entrega' : 'Factura Fiscal'" description="Recibo de operación" @close="$emit('close')">
     <div class="space-y-6">
         <!-- Header Info -->
-        <div class="flex justify-between items-start border-b border-[var(--color-border-subtle)] pb-4">
+        <div class="flex justify-between items-start border-b border-surface-border pb-4">
             <div>
-                <p class="text-sm text-[var(--color-text-secondary)] uppercase tracking-wider font-semibold">Cliente</p>
-                <p class="text-lg font-bold text-[var(--color-heading)]">{{ sale.client_name || 'Cliente Casual' }}</p>
-                <div class="flex items-center gap-2 mt-1">
+                <p class="text-xs text-primary-500 uppercase tracking-widest font-extrabold mb-1">Cliente</p>
+                <p class="text-xl font-bold text-text-heading">{{ sale.client_name || 'Cliente Casual' }}</p>
+                <div class="flex items-center gap-2 mt-2">
                      <span :class="[
                         'px-2 py-1 text-xs font-bold rounded-full',
                         sale.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-yellow-500/10 text-yellow-500'
@@ -14,43 +14,44 @@
                         {{ sale.status === 'paid' ? 'PAGADO' : 'PENDIENTE' }}
                     </span>
                      <!-- Currency Toggle -->
-                    <button @click="toggleCurrency" class="btn btn-xs border border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-subtle)] flex items-center gap-1">
-                         <span class="text-[10px] uppercase font-bold">{{ showInVes ? 'Ver en Dólares' : 'Ver en Bolívares' }}</span>
-                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    <button @click="toggleCurrency" class="px-3 py-1 rounded-lg text-xs font-bold border border-surface-border text-text-secondary hover:bg-surface-subtle hover:text-text-heading transition-colors flex items-center gap-1 shadow-sm bg-surface-ground">
+                         <span class="uppercase tracking-wider">{{ showInVes ? 'Ver en Dólares' : 'Ver en Bolívares' }}</span>
+                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
                     </button>
                 </div>
             </div>
             <div class="text-right">
-                <p class="text-sm text-[var(--color-text-secondary)] uppercase tracking-wider font-semibold">Fecha</p>
-                <p class="font-mono text-[var(--color-heading)]">{{ new Date(sale.created_at || Date.now()).toLocaleString() }}</p>
-                <p class="text-xs text-[var(--color-text-secondary)] mt-1">Ref: {{ sale.payment_reference || 'N/A' }}</p>
+                <p class="text-xs text-primary-500 uppercase tracking-widest font-extrabold mb-1">Fecha</p>
+                <p class="font-mono text-sm text-text-heading font-semibold">{{ new Date(sale.created_at || Date.now()).toLocaleString() }}</p>
+                <p class="text-[10px] text-text-secondary mt-1 font-mono uppercase tracking-widest">Ref: {{ sale.payment_reference || 'N/A' }}</p>
             </div>
         </div>
 
         <!-- Items Table -->
-        <div class="overflow-hidden rounded-lg border border-[var(--color-border-subtle)]">
-            <table class="min-w-full divide-y divide-[var(--color-border-subtle)]">
-                <thead class="bg-[var(--color-bg-subtle)]">
+        <!-- Items Table -->
+        <div class="overflow-hidden rounded-xl border border-surface-border shadow-sm">
+            <table class="min-w-full divide-y divide-surface-border">
+                <thead class="bg-surface-subtle">
                     <tr>
-                        <th class="px-4 py-2 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase w-16">Cant.</th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase w-full">Producto</th>
-                        <th class="px-4 py-2 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase whitespace-nowrap">Precio Unit.</th>
-                        <th class="px-4 py-2 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase whitespace-nowrap">Total</th>
+                        <th class="px-4 py-3 text-center text-[10px] font-extrabold text-text-secondary uppercase tracking-widest w-16">Cant.</th>
+                        <th class="px-4 py-3 text-left text-[10px] font-extrabold text-text-secondary uppercase tracking-widest w-full">Producto</th>
+                        <th class="px-4 py-3 text-right text-[10px] font-extrabold text-text-secondary uppercase tracking-widest whitespace-nowrap">Precio Unit.</th>
+                        <th class="px-4 py-3 text-right text-[10px] font-extrabold text-text-secondary uppercase tracking-widest whitespace-nowrap">Total</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[var(--color-border-subtle)]">
-                    <tr v-for="(item, i) in displayItems" :key="i">
-                        <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-center font-mono">{{ item.qty }}</td>
-                        <td class="px-4 py-2 text-sm text-[var(--color-heading)]">{{ item.name }}</td>
-                        <td class="px-4 py-2 text-sm text-[var(--color-text-secondary)] text-right font-mono whitespace-nowrap">
+                <tbody class="divide-y divide-surface-border bg-surface-ground">
+                    <tr v-for="(item, i) in displayItems" :key="i" class="hover:bg-surface-subtle/50 transition-colors">
+                        <td class="px-4 py-3 text-sm text-text-secondary text-center font-mono font-bold">{{ item.qty }}</td>
+                        <td class="px-4 py-3 text-sm font-semibold text-text-heading">{{ item.name }}</td>
+                        <td class="px-4 py-3 text-sm text-text-secondary text-right font-mono whitespace-nowrap">
                             {{ formatMoney(item.price, showInVes ? 'VES' : 'USD') }}
                         </td>
-                        <td class="px-4 py-2 text-sm text-[var(--color-heading)] text-right font-mono whitespace-nowrap">
+                        <td class="px-4 py-3 text-sm font-bold text-text-heading text-right font-mono whitespace-nowrap">
                              {{ formatMoney(item.price * item.qty, showInVes ? 'VES' : 'USD') }}
                         </td>
                     </tr>
                     <tr v-if="displayItems.length === 0">
-                        <td colspan="4" class="px-4 py-4 text-center text-sm text-[var(--color-text-secondary)] italic">
+                        <td colspan="4" class="px-4 py-8 text-center text-sm text-text-secondary italic">
                             No hay items registrados
                         </td>
                     </tr>
@@ -59,109 +60,104 @@
         </div>
 
         <!-- Financials -->
-        <div class="flex justify-end">
-            <div class="w-1/2 space-y-2">
+        <div class="flex justify-end mt-6">
+            <div class="w-full sm:w-2/3 md:w-1/2 space-y-4">
                  <!-- Main Display (Toggled) -->
-                <div class="border-t border-[var(--color-border-subtle)] pt-2 mt-2">
-                    <div class="flex justify-between text-lg font-bold text-[var(--color-heading)]">
+                <div class="border-t border-surface-border pt-4">
+                    <div class="flex justify-between text-xl font-extrabold text-text-heading">
                         <span>Total {{ showInVes ? 'Bolívares' : 'USD' }}</span>
                         <!-- If showing VES, use paidVesAmount. If USD, use baseUsdAmount -->
-                         <span class="font-mono whitespace-nowrap">
+                         <span class="font-mono whitespace-nowrap text-primary-600 dark:text-primary-400">
                             {{ formatMoney(showInVes ? paidVesAmount : baseUsdAmount, showInVes ? 'VES' : 'USD') }}
                          </span>
                     </div>
                 </div>
 
                 <!-- Context Box -->
-                <div class="bg-[var(--color-bg-subtle)] rounded-lg p-3 mt-4 border border-[var(--color-border-subtle)] text-sm">
+                <div class="bg-surface-subtle/50 rounded-xl p-4 border border-surface-border text-sm shadow-inner group">
                      
                      <!-- Mixed Payment Details -->
-                     <div v-if="sale.payment_details && ((sale.payment_details.usd_amount || 0) > 0 || (sale.payment_details.ves_amount || 0) > 0)" class="space-y-2">
-                        <div class="flex justify-between text-[var(--color-heading)] font-bold mb-2 border-b border-[var(--color-border-subtle)] pb-1">
+                     <div v-if="sale.payment_details && ((sale.payment_details.usd_amount || 0) > 0 || (sale.payment_details.ves_amount || 0) > 0)" class="space-y-3">
+                        <div class="flex justify-between text-text-heading font-extrabold text-xs uppercase tracking-widest mb-2 border-b border-surface-border pb-2">
                             <span>Desglose de Pago (Mixto)</span>
                         </div>
-                        <div v-if="(sale.payment_details.usd_amount || 0) > 0" class="flex justify-between text-[var(--color-text-secondary)]">
-                            <span>Pagado en Divisa</span>
-                            <span class="font-mono text-emerald-500 whitespace-nowrap">${{ Number(sale.payment_details.usd_amount).toFixed(2) }}</span>
+                        <div v-if="(sale.payment_details.usd_amount || 0) > 0" class="flex justify-between items-center text-text-secondary">
+                            <span class="font-medium">Pagado en Divisa</span>
+                            <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold whitespace-nowrap">${{ Number(sale.payment_details.usd_amount).toFixed(2) }}</span>
                         </div>
-                        <div v-if="(sale.payment_details.ves_amount || 0) > 0" class="flex justify-between text-[var(--color-text-secondary)]">
-                            <span>Pagado en Bolívares</span>
+                        <div v-if="(sale.payment_details.ves_amount || 0) > 0" class="flex justify-between items-center text-text-secondary">
+                            <span class="font-medium">Pagado en Bolívares</span>
                             <div class="text-right">
-                                <span class="font-mono text-[var(--color-accent-blue)] block whitespace-nowrap">Bs. {{ Number(sale.payment_details.ves_amount).toLocaleString('es-VE', { minimumFractionDigits: 2 }) }}</span>
+                                <span class="font-mono font-bold text-primary-600 block whitespace-nowrap">Bs. {{ Number(sale.payment_details.ves_amount).toLocaleString('es-VE', { minimumFractionDigits: 2 }) }}</span>
                             </div>
                         </div>
-                         <div v-if="(sale.tax_igtf || 0) > 0" class="flex justify-between text-[var(--color-text-secondary)] text-xs mt-1 pt-1 border-t border-[var(--color-border-subtle)] dashed">
+                         <div v-if="(sale.tax_igtf || 0) > 0" class="flex justify-between text-text-secondary text-xs mt-2 pt-2 border-t border-surface-border/50 border-dashed">
                             <span>Base IGTF (Divisa)</span>
-                            <span class="font-mono whitespace-nowrap">${{ Number(sale.payment_details.igtf_base || sale.payment_details.usd_amount).toFixed(2) }}</span>
+                            <span class="font-mono font-semibold whitespace-nowrap">${{ Number(sale.payment_details.igtf_base || sale.payment_details.usd_amount).toFixed(2) }}</span>
                         </div>
                      </div>
 
                      <!-- Standard Single Method Details -->
                      <div v-else>
-                        <div class="flex justify-between text-[var(--color-text-secondary)] mb-1">
-                            <span>Método de Pago</span>
-                            <span class="capitalize font-medium text-[var(--color-heading)]">{{ displayPaymentMethod(sale.payment_method) }}</span>
+                         <div class="flex justify-between items-center text-text-secondary">
+                            <span class="font-medium">Método de Pago</span>
+                            <span class="text-text-heading font-semibold capitalize">{{ displayPaymentMethod(sale.payment_method) }}</span>
                         </div>
-                        <div class="flex justify-between text-[var(--color-text-secondary)] mb-1">
-                            <span>Tasa de Cambio</span>
-                            <span class="font-mono whitespace-nowrap">{{ Number(sale.exchange_rate).toFixed(2) }} Bs/$</span>
+                        <div v-if="sale.exchange_rate" class="flex items-center justify-between text-text-secondary mt-2 pt-2 border-t border-surface-border/50 border-dashed">
+                            <span class="font-medium">Tasa de Cambio</span>
+                            <span class="font-mono text-xs">{{ Number(sale.exchange_rate).toLocaleString('es-VE', { minimumFractionDigits: 2 }) }} Bs/$</span>
                         </div>
-                        
-                        <div class="border-t border-[var(--color-border-subtle)] my-2"></div>
-                        
-                        <!-- Reference Values -->
-                        <div v-if="showInVes" class="flex justify-between font-medium text-emerald-500">
-                            <span>Equivalente en Divisa</span>
-                            <span class="font-mono whitespace-nowrap">{{ formatMoney(baseUsdAmount, 'USD') }}</span>
-                        </div>
-                        <div v-else class="flex justify-between font-medium text-[var(--color-accent-blue)]">
-                            <span>Equivalente en Bolívares</span>
-                            <span class="font-mono whitespace-nowrap">{{ formatMoney(paidVesAmount, 'VES') }}</span>
+                        <!-- Provide alternative context based on state -->
+                        <div v-if="sale.exchange_rate" class="flex items-center justify-between mt-2 pt-2 border-t border-surface-border/50 border-dashed">
+                             <span class="text-xs text-text-secondary truncate pr-2">Equivalente {{ showInVes ? 'en Dólares' : 'en Bolívares' }}</span>
+                             <span class="font-mono text-xs font-bold text-text-heading whitespace-nowrap">
+                                 {{ showInVes ? `$`+baseUsdAmount.toFixed(2) : `Bs. `+paidVesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2 }) }}
+                             </span>
                         </div>
                      </div>
 
                      <!-- Common Reference -->
-                     <div v-if="sale.payment_reference" class="mt-2 pt-2 border-t border-[var(--color-border-subtle)]">
-                        <div class="flex justify-between text-[var(--color-text-secondary)]">
+                     <div v-if="sale.payment_reference" class="mt-4 pt-4 border-t border-surface-border">
+                        <div class="flex justify-between text-text-secondary">
                             <span>Referencia</span>
                             <span class="font-mono whitespace-nowrap">{{ sale.payment_reference }}</span>
                         </div>
                     </div>
 
                     <!-- Retenciones Fiscales (B2B) -->
-                    <div v-if="sale.document_type === 'invoice' && ((sale.tax_general_amount || 0) > 0 || (sale.tax_reduced_amount || 0) > 0)" class="mt-4 pt-4 border-t-2 border-dashed border-[var(--color-border-subtle)]">
+                    <div v-if="sale.document_type === 'invoice' && ((sale.tax_general_amount || 0) > 0 || (sale.tax_reduced_amount || 0) > 0)" class="mt-4 pt-4 border-t-2 border-dashed border-surface-border">
                         <div class="flex justify-between items-center mb-2">
-                             <span class="font-bold text-sm text-[var(--color-heading)]">Retención de IVA (B2B)</span>
+                             <span class="font-bold text-sm text-text-heading">Retención de IVA (B2B)</span>
                         </div>
                         
                         <!-- Mostrando Retención Existente -->
-                        <div v-if="retention" class="bg-status-success/10 border border-status-success/20 rounded-md p-2 text-xs">
-                             <div class="flex justify-between text-status-success font-bold mb-1">
+                        <div v-if="retention" class="bg-emerald-500/10 border border-emerald-500/20 rounded-md p-2 text-xs">
+                             <div class="flex justify-between text-emerald-500 font-bold mb-1">
                                  <span>Retenido ({{ retention.percentage }}%)</span>
                                  <span class="font-mono">{{ formatMoney(retention.amount_retained, 'USD') }}</span>
                              </div>
-                             <div class="flex justify-between text-status-success/80">
+                             <div class="flex justify-between text-emerald-500/80">
                                  <span>Comprobante:</span>
                                  <span class="font-mono">{{ retention.retention_number }}</span>
                              </div>
                         </div>
 
                         <!-- Formulario para agregar -->
-                        <div v-else-if="showRetentionForm" class="space-y-2 mt-2 bg-[var(--color-bg-subtle)] p-2 rounded-md border border-[var(--color-border-subtle)]">
+                        <div v-else-if="showRetentionForm" class="space-y-2 mt-2 bg-surface-subtle p-2 rounded-md border border-surface-border">
                              <div>
-                                 <label class="block text-[10px] uppercase text-[var(--color-text-secondary)] font-bold mb-1">Porcentaje</label>
+                                 <label class="block text-[10px] uppercase text-text-secondary font-bold mb-1">Porcentaje</label>
                                   <div class="flex gap-2">
-                                     <button @click="retentionForm.percentage = 75" :class="['flex-1 py-1 rounded text-xs font-bold border', retentionForm.percentage === 75 ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]']">75%</button>
-                                     <button @click="retentionForm.percentage = 100" :class="['flex-1 py-1 rounded text-xs font-bold border', retentionForm.percentage === 100 ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]']">100%</button>
+                                     <button @click="retentionForm.percentage = 75" :class="['flex-1 py-1 rounded text-xs font-bold border', retentionForm.percentage === 75 ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-surface-border text-text-secondary']">75%</button>
+                                     <button @click="retentionForm.percentage = 100" :class="['flex-1 py-1 rounded text-xs font-bold border', retentionForm.percentage === 100 ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-surface-border text-text-secondary']">100%</button>
                                   </div>
                              </div>
                              <div>
-                                 <label class="block text-[10px] uppercase text-[var(--color-text-secondary)] font-bold mb-1">Nro Comprobante</label>
-                                 <input v-model="retentionForm.retention_number" type="text" class="w-full text-xs p-1.5 border border-[var(--color-border-subtle)] rounded bg-[var(--color-surface)] text-[var(--color-heading)] focus:ring-1 focus:ring-primary-500 outline-none" placeholder="Ej. 202405000012">
+                                 <label class="block text-[10px] uppercase text-text-secondary font-bold mb-1">Nro Comprobante</label>
+                                 <input v-model="retentionForm.retention_number" type="text" class="w-full text-xs p-1.5 border border-surface-border rounded bg-surface-ground text-text-heading focus:ring-1 focus:ring-primary-500 outline-none" placeholder="Ej. 202405000012">
                              </div>
                              <div class="flex gap-2 pt-1">
                                   <button @click="saveRetention" :disabled="savingRetention || !retentionForm.retention_number" class="flex-1 bg-primary-600 text-white rounded py-1.5 text-xs font-bold disabled:opacity-50">Guardar</button>
-                                  <button @click="showRetentionForm = false" class="px-3 border border-[var(--color-border-subtle)] rounded text-[var(--color-text-secondary)] text-xs font-bold">Cancelar</button>
+                                  <button @click="showRetentionForm = false" class="px-3 border border-surface-border rounded text-text-secondary text-xs font-bold">Cancelar</button>
                              </div>
                         </div>
                         
@@ -291,7 +287,7 @@ const issueCreditNote = async () => {
 
     isGeneratingCreditNote.value = true
     try {
-        const response = await $fetch('/api/sales/credit-note', {
+        const response: any = await $fetch('/api/sales/credit-note', {
             method: 'POST',
             body: {
                 transactionId: props.sale.id,
@@ -431,17 +427,20 @@ const saveRetention = async () => {
     if (!props.sale.organization_id || !retentionForm.value.retention_number) return
     savingRetention.value = true
     try {
-        // Calcular el IVA retenido matemáticamente en base de USD
         const totalIvaUsd = (Number(props.sale.tax_general_amount) || 0) + (Number(props.sale.tax_reduced_amount) || 0)
-        const amountRetained = totalIvaUsd * (retentionForm.value.percentage / 100)
-        
-        const { data, error } = await supabase.from('fiscal_retentions').insert({
-            organization_id: props.sale.organization_id,
-            transaction_id: props.sale.id,
-            percentage: retentionForm.value.percentage,
-            retention_number: retentionForm.value.retention_number,
-            amount_retained: amountRetained
-        }).select().single()
+        const payload: any = {
+             organization_id: organization.value.id,
+             transaction_id: props.sale.id,
+             percentage: retentionForm.value.percentage,
+             retention_number: retentionForm.value.retention_number,
+             amount_retained: Number((totalIvaUsd * (retentionForm.value.percentage / 100)).toFixed(2))
+        }
+
+        const { data, error } = await supabase
+            .from('fiscal_retentions')
+            .upsert(payload, { onConflict: 'transaction_id' })
+            .select()
+            .single()
 
         if (error) throw error
         

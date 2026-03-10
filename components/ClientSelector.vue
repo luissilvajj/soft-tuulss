@@ -12,8 +12,8 @@
         @keydown.up.prevent="selectPrev"
         @keydown.enter.prevent="selectCurrent"
         @keydown.esc="closeDropdown"
-        class="w-full bg-[var(--color-bg-dark)] border border-[var(--color-border)] rounded-xl py-3 pl-4 pr-10 text-[var(--color-text-primary)] focus:border-[var(--color-primary)] outline-none transition-all placeholder-gray-400 font-medium truncate"
-        placeholder="Buscar cliente (Nombre o Cédula)..."
+        class="w-full bg-surface-ground border border-surface-border rounded-xl py-3 pl-4 pr-10 text-text-heading focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder-text-secondary font-medium truncate"
+        placeholder="Buscar por nombre, cédula o RIF (V26899, J-40...)..."
       />
       
       <!-- Icons (Loading or Clear or Search) -->
@@ -80,18 +80,36 @@ const searchQuery = ref('')
 const container = ref(null)
 const activeIndex = ref(-1)
 
+// Normaliza strings de cédula/RIF para búsqueda flexible
+// V-26.899.123 -> 26899123, J-40123456-7 -> 401234567
+const normalizeIdentity = (str: string) => {
+    if (!str) return ''
+    return str.replace(/[VJEGP\-\.\s]/gi, '').toLowerCase()
+}
+
 const filteredClients = computed(() => {
     if (!clients.value) return []
     // Si no hay búsqueda, retorna los 5 primeros directamente sin filtrar (Fast path)
     if (!searchQuery.value) return clients.value.slice(0, 5) 
     
-    // Si hay búsqueda, filtra normalmente (Lazy evaluation de LowerCase)
-    const q = searchQuery.value.toLowerCase()
-    return clients.value.filter(c => 
-        (c.name && c.name.toLowerCase().includes(q)) || 
-        (c.identity_document && c.identity_document.toLowerCase().includes(q)) ||
-        (c.email && c.email.toLowerCase().includes(q))
-    ).slice(0, 10)
+    const rawQuery = searchQuery.value.trim()
+    const q = rawQuery.toLowerCase()
+    const qNormalized = normalizeIdentity(rawQuery)
+    
+    return clients.value.filter(c => {
+        // Búsqueda por nombre
+        if (c.name && c.name.toLowerCase().includes(q)) return true
+        // Búsqueda por email
+        if (c.email && c.email.toLowerCase().includes(q)) return true
+        // Búsqueda inteligente de cédula/RIF (normalizada)
+        if (c.identity_document) {
+            const docNormalized = normalizeIdentity(c.identity_document)
+            if (docNormalized.includes(qNormalized)) return true
+            // También comparar con el original
+            if (c.identity_document.toLowerCase().includes(q)) return true
+        }
+        return false
+    }).slice(0, 10)
 })
 
 const selectedClient = computed(() => {

@@ -16,6 +16,14 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     Exportar a Excel (.xlsx)
                 </button>
+                <button 
+                    @click="exportTXT"
+                    :disabled="loading || transactions.length === 0"
+                    class="btn bg-surface-subtle text-text-heading border border-surface-border hover:bg-surface-ground px-4 py-2 flex items-center gap-2 transition-colors"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Declaración TXT (Pórtico)
+                </button>
             </div>
         </div>
 
@@ -222,18 +230,17 @@ const exportExcel = () => {
     // Transform API objects into Worksheet format
     const worksheetData = transactions.value.map((t, index) => {
         return {
-            "Nro. Op.": index + 1,
-            "Fecha": new Date(t.date).toLocaleDateString('es-VE'),
-            "RIF / C.I.": t.client?.identity_document || 'V000000000',
-            "Nombre / Razón Social": t.client?.name || 'Consumidor Final',
-            "Tipo Doc.": t.document_type === 'credit_note' ? 'NC' : (t.document_type === 'delivery_note' ? 'NE' : 'Fac'),
-            "Nro. Comprobante": t.control_number || t.id.slice(0, 8),
-            "Factura Afectada": t.document_type === 'credit_note' && t.related_transaction_id ? t.related_transaction_id.slice(0, 8) : '',
-            "Total Venta c/IVA": Number(t.amount || 0),
+            "Número de Operación": index + 1,
+            "Fecha de la Factura": new Date(t.date).toLocaleDateString('es-VE'),
+            "RIF": t.client?.identity_document || 'V000000000',
+            "Nombre o Razón Social": t.client?.name || 'Consumidor Final',
+            "Número de Factura": t.id.slice(0, 8),
+            "Número de Control": t.control_number || t.id.slice(0, 8),
+            "Total de Ventas con IVA": Number(t.amount || 0),
             "Ventas Exentas": Number(t.exempt_amount || 0),
-            "Base Imponible (16%)": Number(t.tax_base || 0),
-            "Impuesto IVA (16%)": Number(t.tax_general_amount || 0),
-            "Base IGTF Divisas": Number(t.payment_details?.igtf_base || 0),
+            "Base Imponible": Number(t.tax_base || 0),
+            "Impuesto IVA": Number(t.tax_general_amount || t.tax_reduced_amount || 0),
+            "IVA Retenido": 0, // Por ahora 0 hasta integrar modulo de comprobantes
             "IGTF Percibido": Number(t.tax_igtf || 0)
         }
     })
@@ -241,21 +248,20 @@ const exportExcel = () => {
     // Create workbook and worksheet
     const worksheet = XLSX.utils.json_to_sheet(worksheetData)
     
-    // Auto-adjust column width (Basic Approach)
+    // Auto-adjust column width
     const wscols = [
-        { wch: 8 },  // Op
-        { wch: 12 }, // Fecha
-        { wch: 15 }, // RIF
-        { wch: 30 }, // Nombre
-        { wch: 10 }, // Tipo
-        { wch: 18 }, // Ctrl
-        { wch: 18 }, // Factura afect.
-        { wch: 18 }, // Total
-        { wch: 18 }, // Exento
-        { wch: 18 }, // Base 16
-        { wch: 18 }, // IVA 16
-        { wch: 18 }, // Base IGTF
-        { wch: 18 }  // IGTF
+        { wch: 20 }, // Num Op
+        { wch: 18 }, // Fecha
+        { wch: 16 }, // RIF
+        { wch: 35 }, // Nombre
+        { wch: 18 }, // Num Fac
+        { wch: 18 }, // Num Control
+        { wch: 22 }, // Total Ventas
+        { wch: 18 }, // Exentas
+        { wch: 18 }, // Base 
+        { wch: 15 }, // IVA
+        { wch: 15 }, // Retenido
+        { wch: 15 }  // IGTF
     ]
     worksheet['!cols'] = wscols
 
@@ -270,23 +276,74 @@ const exportExcel = () => {
 const exportPurchasesExcel = () => {
     if (transactions.value.length === 0) return
     const worksheetData = transactions.value.map((t: any, index: number) => ({
-        'Nro. Op.': index + 1,
-        'Fecha': new Date(t.date).toLocaleDateString('es-VE'),
-        'RIF Proveedor': t.supplier?.rif || 'Sin RIF',
-        'Nombre Proveedor': t.supplier?.name || 'Sin Nombre',
-        'Nro. Factura': t.invoice_number || '-',
-        'Nro. Control': t.control_number || '-',
-        'Total Compra c/IVA': Number(t.total || 0),
-        'Compras Exentas': Number(t.exempt_amount || 0),
-        'Base Imponible (16%)': Number(t.tax_base || 0),
-        'Crédito Fiscal IVA': Number(t.tax_amount || 0),
-        'IGTF': Number(t.igtf_amount || 0),
-        'Estado': t.status === 'paid' ? 'Pagado' : t.status === 'pending' ? 'Pendiente' : 'Parcial'
+        "Número de Operación": index + 1,
+        "Fecha de la Factura": new Date(t.date).toLocaleDateString('es-VE'),
+        "RIF": t.supplier?.rif || 'V000000000',
+        "Nombre o Razón Social": t.supplier?.name || 'Sin Nombre',
+        "Número de Factura": t.invoice_number || '-',
+        "Número de Control": t.control_number || '-',
+        "Total de Compras con IVA": Number(t.total || 0),
+        "Compras Exentas": Number(t.exempt_amount || 0),
+        "Base Imponible": Number(t.tax_base || 0),
+        "Impuesto IVA": Number(t.tax_amount || 0),
+        "IVA Retenido": 0, // Placeholder
+        "IGTF Percibido": Number(t.igtf_amount || 0)
     }))
     const worksheet = XLSX.utils.json_to_sheet(worksheetData)
-    worksheet['!cols'] = [{ wch: 8 }, { wch: 12 }, { wch: 15 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 12 }, { wch: 12 }]
+    // Usamos el mismo patrón de ancho que ventas
+    worksheet['!cols'] = [{ wch: 20 }, { wch: 18 }, { wch: 16 }, { wch: 35 }, { wch: 18 }, { wch: 18 }, { wch: 22 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 15 }]
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, `Compras_${filterMonth.value}`)
     XLSX.writeFile(workbook, `Libro_Compras_Softtuuls_${filterMonth.value}.xlsx`)
+}
+
+// === TXT EXPORT LOGIC FOR SENIAT PORTAL ===
+const exportTXT = () => {
+    if (transactions.value.length === 0) return
+
+    let txtContent = ''
+    
+    // El SENIAT tiene un formato tubular de campos separados por tabulador.
+    // Asumiremos la siguiente estructura: 
+    // RIF_EMPRESA | FECHA | NUM_FAC | NUM_CTRL | TIPO_DOC | RIF_CLIENTE | TOTAL | EXENTO | BASE | IVA | IGTF
+    
+    // Por ahora (Fase 19) usaremos un prototipo TXT general como prueba base
+    const myRif = organization.value?.identity_document || 'J000000000'
+
+    transactions.value.forEach((t) => {
+        const dateObj = new Date(t.date)
+        const day = String(dateObj.getDate()).padStart(2, '0')
+        const mon = String(dateObj.getMonth() + 1).padStart(2, '0')
+        const yyyy = dateObj.getFullYear()
+        
+        const fechaFormat = `${day}/${mon}/${yyyy}` // Formato SENIAT dd/mm/yyyy
+
+        const clientRif = (ledgerType.value === 'purchases' ? t.supplier?.rif : t.client?.identity_document) || 'V000000000'
+        
+        let tipoDocumento = '01' // 01 = Factura, 02 = Nota de Debito, 03 = Nota de Credito
+        if(t.document_type === 'credit_note') tipoDocumento = '03'
+        if(t.document_type === 'debit_note') tipoDocumento = '02'
+
+        const nroFactura = t.invoice_number || t.id.split('-')[0]
+        const nroControl = t.control_number || nroFactura
+        const total = (ledgerType.value === 'purchases' ? t.total : t.amount) || '0.00'
+        const base = t.tax_base || '0.00'
+        const iva = (ledgerType.value === 'purchases' ? t.tax_amount : (t.tax_general_amount || t.tax_reduced_amount)) || '0.00'
+
+        // Armamos la fila concatenada por tabulador \t
+        const row = [myRif, fechaFormat, nroFactura, nroControl, tipoDocumento, clientRif, Number(total).toFixed(2), Number(base).toFixed(2), Number(iva).toFixed(2)].join('\t')
+        
+        txtContent += row + '\n'
+    })
+
+    // Construir Blob y descargarlo artificialmente
+    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `Declaracion_${ledgerType.value.toUpperCase()}_${filterMonth.value}.txt`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
 }
 </script>

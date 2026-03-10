@@ -130,19 +130,19 @@
                              <span class="font-bold text-sm text-text-heading">Retención de IVA (B2B)</span>
                         </div>
                         
-                        <!-- Mostrando Retención Existente -->
-                        <div v-if="retention" class="bg-emerald-500/10 border border-emerald-500/20 rounded-md p-2 text-xs">
+                        <!-- Mostrando Retención IVA Existente -->
+                        <div v-if="retentionIva" class="bg-emerald-500/10 border border-emerald-500/20 rounded-md p-2 text-xs">
                              <div class="flex justify-between text-emerald-500 font-bold mb-1">
-                                 <span>Retenido ({{ retention.percentage }}%)</span>
-                                 <span class="font-mono">{{ formatMoney(retention.amount_retained, 'USD') }}</span>
+                                 <span>Retenido ({{ retentionIva.percentage }}%)</span>
+                                 <span class="font-mono">{{ formatMoney(retentionIva.amount_retained, 'USD') }}</span>
                              </div>
                              <div class="flex justify-between text-emerald-500/80">
                                  <span>Comprobante:</span>
-                                 <span class="font-mono">{{ retention.retention_number }}</span>
+                                 <span class="font-mono">{{ retentionIva.retention_number }}</span>
                              </div>
                         </div>
 
-                        <!-- Formulario para agregar -->
+                        <!-- Formulario para agregar IVA -->
                         <div v-else-if="showRetentionForm" class="space-y-2 mt-2 bg-surface-subtle p-2 rounded-md border border-surface-border">
                              <div>
                                  <label class="block text-[10px] uppercase text-text-secondary font-bold mb-1">Porcentaje</label>
@@ -156,15 +156,59 @@
                                  <input v-model="retentionForm.retention_number" type="text" class="w-full text-xs p-1.5 border border-surface-border rounded bg-surface-ground text-text-heading focus:ring-1 focus:ring-primary-500 outline-none" placeholder="Ej. 202405000012">
                              </div>
                              <div class="flex gap-2 pt-1">
-                                  <button @click="saveRetention" :disabled="savingRetention || !retentionForm.retention_number" class="flex-1 bg-primary-600 text-white rounded py-1.5 text-xs font-bold disabled:opacity-50">Guardar</button>
+                                  <button @click="saveRetention('iva')" :disabled="savingRetention || !retentionForm.retention_number" class="flex-1 bg-primary-600 text-white rounded py-1.5 text-xs font-bold disabled:opacity-50">Guardar</button>
                                   <button @click="showRetentionForm = false" class="px-3 border border-surface-border rounded text-text-secondary text-xs font-bold">Cancelar</button>
                              </div>
                         </div>
                         
-                        <!-- Boton Activar Toggle -->
-                        <button v-else-if="!retention" @click="showRetentionForm = true" class="w-full py-1.5 mt-1 border border-dashed border-primary-300 text-primary-600 hover:bg-primary-50 rounded-md text-xs font-bold transition-colors">
-                            + Cargar Comprobante Retención
+                        <!-- Boton Activar Toggle IVA -->
+                        <button v-else-if="!retentionIva" @click="showRetentionForm = true" class="w-full py-1.5 mt-1 border border-dashed border-primary-300 text-primary-600 hover:bg-primary-50 rounded-md text-xs font-bold transition-colors">
+                            + Cargar Comprobante Retención IVA
                         </button>
+
+                        <!-- === Retención de ISLR === -->
+                        <div class="mt-3 pt-3 border-t border-surface-border/50">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-sm text-text-heading">Retención de ISLR (Servicios)</span>
+                            </div>
+                            
+                            <!-- Mostrando Retención ISLR existente -->
+                            <div v-if="retentionIslr" class="bg-blue-500/10 border border-blue-500/20 rounded-md p-2 text-xs">
+                                <div class="flex justify-between text-blue-600 font-bold mb-1">
+                                    <span>Retenido ISLR ({{ retentionIslr.percentage }}%)</span>
+                                    <span class="font-mono">{{ formatMoney(retentionIslr.amount_retained, 'USD') }}</span>
+                                </div>
+                                <div class="flex justify-between text-blue-500/80">
+                                    <span>Comprobante:</span>
+                                    <span class="font-mono">{{ retentionIslr.retention_number }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Formulario ISLR -->
+                            <div v-else-if="showIslrForm" class="space-y-2 mt-2 bg-surface-subtle p-2 rounded-md border border-surface-border">
+                                <div>
+                                    <label class="block text-[10px] uppercase text-text-secondary font-bold mb-1">Porcentaje ISLR</label>
+                                    <div class="flex gap-2">
+                                        <button @click="retentionForm.percentage = 1" :class="['flex-1 py-1 rounded text-xs font-bold border', retentionForm.percentage === 1 ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-surface-border text-text-secondary']">1%</button>
+                                        <button @click="retentionForm.percentage = 2" :class="['flex-1 py-1 rounded text-xs font-bold border', retentionForm.percentage === 2 ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-surface-border text-text-secondary']">2%</button>
+                                        <button @click="retentionForm.percentage = 3" :class="['flex-1 py-1 rounded text-xs font-bold border', retentionForm.percentage === 3 ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-surface-border text-text-secondary']">3%</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] uppercase text-text-secondary font-bold mb-1">Nro Comprobante ISLR</label>
+                                    <input v-model="retentionForm.retention_number" type="text" class="w-full text-xs p-1.5 border border-surface-border rounded bg-surface-ground text-text-heading focus:ring-1 focus:ring-blue-500 outline-none" placeholder="Ej. ISLR-20240500012">
+                                </div>
+                                <div class="flex gap-2 pt-1">
+                                    <button @click="saveRetention('islr')" :disabled="savingRetention || !retentionForm.retention_number" class="flex-1 bg-blue-600 text-white rounded py-1.5 text-xs font-bold disabled:opacity-50">Guardar ISLR</button>
+                                    <button @click="showIslrForm = false" class="px-3 border border-surface-border rounded text-text-secondary text-xs font-bold">Cancelar</button>
+                                </div>
+                            </div>
+
+                            <!-- Botón para activar formulario ISLR -->
+                            <button v-else-if="!retentionIslr" @click="showIslrForm = true; retentionForm.percentage = 2" class="w-full py-1.5 mt-1 border border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 rounded-md text-xs font-bold transition-colors">
+                                + Cargar Comprobante Retención ISLR
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -404,10 +448,15 @@ const formatMoney = (amount: number, currency: 'USD' | 'VES') => {
 }
 
 // === Retenciones Fiscales Logic ===
-const retention = ref<any>(null)
+const retentions = ref<any[]>([])
 const showRetentionForm = ref(false)
+const showIslrForm = ref(false)
+
 const savingRetention = ref(false)
-const retentionForm = ref({ percentage: 75, retention_number: '' })
+const retentionForm = ref({ percentage: 75, retention_number: '', type: 'iva' })
+
+const retentionIva = computed(() => retentions.value.find(r => r.type === 'iva'))
+const retentionIslr = computed(() => retentions.value.find(r => r.type === 'islr'))
 
 const fetchRetention = async () => {
     if (props.sale.document_type !== 'invoice') return
@@ -416,37 +465,53 @@ const fetchRetention = async () => {
             .from('fiscal_retentions')
             .select('*')
             .eq('transaction_id', props.sale.id)
-            .maybeSingle()
-        if (data) retention.value = data
+        if (data) retentions.value = data
     } catch (e) {
         console.error('Error fetching retentions:', e)
     }
 }
 
-const saveRetention = async () => {
+const saveRetention = async (type: 'iva' | 'islr') => {
     if (!props.sale.organization_id || !retentionForm.value.retention_number) return
     savingRetention.value = true
     try {
-        const totalIvaUsd = (Number(props.sale.tax_general_amount) || 0) + (Number(props.sale.tax_reduced_amount) || 0)
+        let amountRetained = 0
+
+        if (type === 'iva') {
+            const totalIvaUsd = (Number(props.sale.tax_general_amount) || 0) + (Number(props.sale.tax_reduced_amount) || 0)
+            amountRetained = Number((totalIvaUsd * (retentionForm.value.percentage / 100)).toFixed(2))
+        } else {
+            // ISLR percibe sobre la Base Imponible (Servicios)
+            amountRetained = Number(((Number(props.sale.tax_base) || 0) * (retentionForm.value.percentage / 100)).toFixed(2))
+        }
+
         const payload: any = {
              organization_id: organization.value.id,
              transaction_id: props.sale.id,
              percentage: retentionForm.value.percentage,
              retention_number: retentionForm.value.retention_number,
-             amount_retained: Number((totalIvaUsd * (retentionForm.value.percentage / 100)).toFixed(2))
+             amount_retained: amountRetained,
+             type: type
         }
 
         const { data, error } = await supabase
             .from('fiscal_retentions')
-            .upsert(payload, { onConflict: 'transaction_id' })
+            .upsert(payload, { onConflict: 'transaction_id,type' })
             .select()
             .single()
 
         if (error) throw error
         
-        toast.success('Retención de IVA cargada correctamente')
-        retention.value = data
+        toast.success(`Retención de ${type.toUpperCase()} cargada correctamente`)
+        
+        // Push o Update array local
+        const idx = retentions.value.findIndex(r => r.type === type)
+        if (idx !== -1) retentions.value[idx] = data
+        else retentions.value.push(data)
+        
         showRetentionForm.value = false
+        showIslrForm.value = false
+        retentionForm.value.retention_number = ''
     } catch (e: any) {
         toast.error(e.message || 'Error al guardar retención')
     } finally {

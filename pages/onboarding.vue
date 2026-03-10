@@ -1,42 +1,42 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[var(--color-bg-dark)] transition-colors duration-300 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+  <div class="min-h-screen flex items-center justify-center bg-surface-subtle transition-colors duration-300 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
     
     <!-- Background Ambience -->
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[var(--color-accent-blue)]/20 rounded-full blur-[120px] -z-10"></div>
-    <div class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[var(--color-accent-violet)]/10 rounded-full blur-[100px] -z-10"></div>
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary-500/20 rounded-full blur-[120px] -z-10"></div>
+    <div class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-primary-500/10 rounded-full blur-[100px] -z-10"></div>
 
     <div class="max-w-md w-full space-y-8 relative z-10 animate-fade-in-up">
       <!-- Header -->
       <div class="text-center">
-         <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--color-accent-blue)] to-[var(--color-accent-violet)] flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-8 transform hover:scale-110 transition-transform duration-300">
+         <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center shadow-lg shadow-primary-500/30 mb-8 transform hover:scale-110 transition-transform duration-300">
             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
          </div>
-        <h2 class="text-4xl font-extrabold text-gradient tracking-tight">Crea tu Organización</h2>
-        <p class="mt-4 text-[var(--color-text-secondary)]">
+        <h2 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400 tracking-tight">Crea tu Organización</h2>
+        <p class="mt-4 text-text-secondary">
           Dale un nombre a tu espacio de trabajo para empezar a gestionar.
         </p>
       </div>
 
       <!-- Card -->
       <div v-if="checkingOrgs" class="glass-panel p-12 text-center shadow-2xl animate-pulse">
-           <svg class="mx-auto h-12 w-12 text-[var(--color-accent-blue)] animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-           <p class="mt-4 text-[var(--color-text-secondary)] font-medium">Buscando tus espacios...</p>
+           <svg class="mx-auto h-12 w-12 text-primary-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+           <p class="mt-4 text-text-secondary font-medium">Buscando tus espacios...</p>
       </div>
 
       <div v-else class="glass-panel p-8 shadow-2xl relative overflow-hidden">
         <form class="space-y-6" @submit.prevent="createOrganization">
           <div>
-            <label for="orgName" class="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">Nombre de la Organización</label>
+            <label for="orgName" class="block text-sm font-bold text-text-secondary mb-2">Nombre de la Organización</label>
             <div class="relative">
-              <input id="orgName" v-model="orgName" name="orgName" type="text" required placeholder="Ej. Startup Innovadora" class="appearance-none block w-full px-4 py-4 border border-[var(--color-border-subtle)] rounded-xl shadow-sm placeholder-[var(--color-text-secondary)]/30 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent bg-[var(--color-bg-subtle)]/50 text-[var(--color-white)] font-medium transition-all" />
+              <input id="orgName" v-model="orgName" name="orgName" type="text" required placeholder="Ej. Startup Innovadora" class="appearance-none block w-full px-4 py-4 border border-surface-border rounded-xl shadow-sm placeholder-[var(--color-text-secondary)]/30 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface-subtle/50 text-text-heading font-medium transition-all" />
             </div>
-            <p class="mt-3 text-xs text-[var(--color-text-secondary)]">
+            <p class="mt-3 text-xs text-text-secondary">
                Podrás cambiarlo o crear más organizaciones después.
             </p>
           </div>
 
           <div>
-            <button type="submit" :disabled="loading" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-500/20 text-sm font-bold text-white bg-gradient-to-r from-[var(--color-accent-blue)] to-[var(--color-accent-violet)] hover:from-indigo-500 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-accent-blue)] disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]">
+            <button type="submit" :disabled="loading" class="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg shadow-primary-500/20 text-sm font-bold text-white bg-gradient-to-r from-primary-600 to-primary-400 hover:from-primary-500 hover:to-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]">
                <span v-if="loading" class="flex items-center gap-2">
                   <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                   Configurando...

@@ -1,17 +1,17 @@
 <template>
-  <div class="min-h-screen flex bg-[var(--color-bg-dark)] transition-colors duration-300 font-sans">
+  <div class="min-h-screen flex bg-surface-subtle transition-colors duration-300 font-sans">
     <!-- Left Side - Form -->
     <div class="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
       <div class="mx-auto w-full max-w-sm lg:w-96">
         <div>
           <NuxtLink to="/" class="flex items-center gap-2 group">
-             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--color-accent-blue)] to-[var(--color-accent-violet)] flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
+             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform duration-300">
                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
              </div>
-             <span class="text-xl font-bold text-[var(--color-white)] tracking-tight">Soft Tuuls</span>
+             <span class="text-xl font-bold text-text-heading tracking-tight">Soft Tuuls</span>
           </NuxtLink>
-          <h2 class="mt-8 text-3xl font-extrabold text-gradient tracking-tight">Recuperar contraseña</h2>
-          <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
+          <h2 class="mt-8 text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400 tracking-tight">Recuperar contraseña</h2>
+          <p class="mt-2 text-sm text-text-secondary">
             Introduce tu correo y te enviaremos las instrucciones.
           </p>
         </div>
@@ -19,14 +19,14 @@
         <div class="mt-10">
           <form @submit.prevent="handleReset" class="space-y-6">
             <div>
-              <label for="email" class="block text-sm font-bold text-[var(--color-text-secondary)]">Correo electrónico</label>
+              <label for="email" class="block text-sm font-bold text-text-secondary">Correo electrónico</label>
               <div class="mt-2">
-                <input id="email" v-model="email" type="email" required class="appearance-none block w-full px-4 py-3 border border-[var(--color-border-subtle)] rounded-xl shadow-sm placeholder-[var(--color-text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-blue)] focus:border-transparent bg-[var(--color-bg-subtle)] text-[var(--color-white)] sm:text-sm transition-all" placeholder="tucorreo@empresa.com" />
+                <input id="email" v-model="email" type="email" required class="appearance-none block w-full px-4 py-3 border border-surface-border rounded-xl shadow-sm placeholder-[var(--color-text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-surface-subtle text-text-heading sm:text-sm transition-all" placeholder="tucorreo@empresa.com" />
               </div>
             </div>
 
             <div>
-              <button type="submit" :disabled="loading" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-500/20 text-sm font-bold text-white bg-gradient-to-r from-[var(--color-accent-blue)] to-[var(--color-accent-violet)] hover:from-indigo-500 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-accent-blue)] disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95">
+              <button type="submit" :disabled="loading" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-primary-500/20 text-sm font-bold text-white bg-gradient-to-r from-primary-600 to-primary-400 hover:from-primary-500 hover:to-primary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95">
                 <span v-if="loading" class="flex items-center gap-2">
                   <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                   Enviando...
@@ -36,7 +36,7 @@
             </div>
             
             <div class="flex items-center justify-center">
-              <NuxtLink to="/login" class="text-sm font-medium text-[var(--color-accent-blue)] hover:text-[var(--color-accent-violet)]">
+              <NuxtLink to="/login" class="text-sm font-medium text-primary-500 hover:text-primary-600">
                 Volver al inicio de sesión
               </NuxtLink>
             </div>
@@ -72,22 +72,22 @@
     </div>
     
     <!-- Right Side - Image/Art -->
-    <div class="hidden lg:block relative w-0 flex-1 overflow-hidden bg-[var(--color-bg-dark)]">
+    <div class="hidden lg:block relative w-0 flex-1 overflow-hidden bg-surface-subtle">
        <div class="absolute inset-0 bg-gradient-to-br from-[var(--color-bg-dark)] to-[#000000]"></div>
        <!-- Decorators -->
-       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--color-accent-blue)]/20 rounded-full blur-[120px]"></div>
-       <div class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[var(--color-accent-violet)]/20 rounded-full blur-[100px]"></div>
+       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-500/20 rounded-full blur-[120px]"></div>
+       <div class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-primary-500/20 rounded-full blur-[100px]"></div>
        
        <div class="relative w-full h-full flex items-center justify-center p-20">
           <!-- Abstract UI Representation -->
           <div class="w-full aspect-[4/3] glass-panel p-8 transform rotate-3 hover:rotate-0 transition-transform duration-700 relative overflow-hidden group">
-             <div class="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-[var(--color-accent-blue)]/30 to-[var(--color-accent-violet)]/30 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+             <div class="absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br from-primary-600/30 to-primary-400/30 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
              
-             <div class="h-8 w-1/3 bg-[var(--color-bg-subtle)]/50 rounded-lg mb-8 relative z-10 backdrop-blur-md"></div>
+             <div class="h-8 w-1/3 bg-surface-subtle/50 rounded-lg mb-8 relative z-10 backdrop-blur-md"></div>
              <div class="space-y-4 relative z-10">
-               <div class="h-20 w-full bg-[var(--color-bg-subtle)]/30 rounded-xl border border-[var(--color-border-subtle)] backdrop-blur-sm"></div>
-               <div class="h-20 w-full bg-[var(--color-bg-subtle)]/30 rounded-xl border border-[var(--color-border-subtle)] backdrop-blur-sm"></div>
-               <div class="h-20 w-full bg-[var(--color-bg-subtle)]/30 rounded-xl border border-[var(--color-border-subtle)] backdrop-blur-sm"></div>
+               <div class="h-20 w-full bg-surface-subtle/30 rounded-xl border border-surface-border backdrop-blur-sm"></div>
+               <div class="h-20 w-full bg-surface-subtle/30 rounded-xl border border-surface-border backdrop-blur-sm"></div>
+               <div class="h-20 w-full bg-surface-subtle/30 rounded-xl border border-surface-border backdrop-blur-sm"></div>
              </div>
           </div>
        </div>

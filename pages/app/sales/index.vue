@@ -47,22 +47,22 @@
     >
         <!-- Custom Columns -->
         <template #col-created_at="{ item }">
-            <span class="font-mono text-sm text-gray-600">
+            <span class="font-mono text-sm text-text-secondary">
                 {{ new Date(item.created_at || '').toLocaleDateString() }}
             </span>
         </template>
 
         <template #col-client="{ item }">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center text-primary-600 font-bold text-xs shrink-0 border border-indigo-100">
+                <div class="w-8 h-8 rounded-full bg-primary-500/10 flex items-center justify-center text-primary-600 dark:text-primary-400 font-bold text-xs shrink-0 border border-primary-500/20">
                     {{ getClientName(item).charAt(0).toUpperCase() }}
                 </div>
-                <span class="font-bold text-gray-900 truncate max-w-[150px]">{{ getClientName(item) }}</span>
+                <span class="font-bold text-text-heading truncate max-w-[150px]">{{ getClientName(item) }}</span>
             </div>
         </template>
 
         <template #col-payment_method="{ item }">
-            <span class="text-sm text-gray-600 capitalize">
+            <span class="text-sm text-text-secondary capitalize">
                 {{ getPaymentMethodLabel(item.payment_method) }}
             </span>
         </template>
@@ -70,14 +70,14 @@
         <template #col-status="{ item }">
              <span :class="[
                 'px-2.5 py-0.5 rounded-full text-xs font-medium border',
-                item.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-600 border-gray-200'
+                item.status === 'paid' ? 'bg-status-success/10 text-status-success border-status-success/20' : 'bg-surface-subtle text-text-secondary border-surface-border'
              ]">
                 {{ item.status === 'paid' ? 'Pagado' : item.status }}
             </span>
         </template>
 
         <template #col-amount="{ item }">
-            <div class="font-bold font-mono text-sm text-gray-900">
+            <div class="font-bold font-mono text-sm text-text-heading">
                 {{ formatAmount(item) }}
             </div>
         </template>
@@ -102,7 +102,7 @@
         <template #card-badge="{ item }">
              <span :class="[
                 'px-2 py-1 rounded-md text-[10px] font-bold border',
-                item.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-600 border-gray-200'
+                item.status === 'paid' ? 'bg-status-success/10 text-status-success border-status-success/20' : 'bg-surface-subtle text-text-secondary border-surface-border'
              ]">
                 {{ item.status === 'paid' ? 'Pagado' : item.status }}
             </span>
@@ -110,7 +110,7 @@
 
         <template #mobile-actions="{ item }">
             <div class="flex flex-col gap-1 w-full">
-                <div class="flex justify-between items-center text-xs text-gray-500 mb-2">
+                <div class="flex justify-between items-center text-xs text-text-secondary mb-2">
                      <span>{{ new Date(item.created_at || '').toLocaleDateString() }}</span>
                      <span>{{ getPaymentMethodLabel(item.payment_method) }}</span>
                 </div>
@@ -122,13 +122,13 @@
     </UiDataList>
 
     <!-- Empty State -->
-    <div v-else class="py-12 bg-white rounded-2xl border border-gray-200 shadow-sm text-center">
+    <div v-else class="py-12 bg-surface-ground rounded-2xl border border-surface-border shadow-sm text-center">
         <div class="flex flex-col items-center justify-center max-w-sm mx-auto p-6">
-            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
-                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            <div class="w-16 h-16 bg-surface-subtle rounded-full flex items-center justify-center mb-4 border border-surface-border">
+                <svg class="w-8 h-8 text-text-secondary opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
             </div>
-            <h3 class="text-lg font-bold text-gray-900 mb-1">No hay ventas registradas</h3>
-            <p class="text-gray-500 text-sm mb-6">Tus operaciones de venta aparecerán aquí. ¡Comienza hoy!</p>
+            <h3 class="text-lg font-bold text-text-heading mb-1">No hay ventas registradas</h3>
+            <p class="text-text-secondary text-sm mb-6">Tus operaciones de venta aparecerán aquí. ¡Comienza hoy!</p>
             <NuxtLink to="/app/sales/new" class="btn btn-primary">
                 Crear Primera Venta
             </NuxtLink>

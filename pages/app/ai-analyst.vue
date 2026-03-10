@@ -16,7 +16,7 @@
                 <div class="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center text-white shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
-                <div class="bg-white p-4 rounded-2xl rounded-tl-none border border-surface-border shadow-sm max-w-lg">
+                <div class="bg-surface-ground p-4 rounded-2xl rounded-tl-none border border-surface-border shadow-sm max-w-lg">
                     <p class="text-text-body font-medium">
                         Hola, soy tu Analista Financiero IA. 🤖
                     </p>
@@ -28,7 +28,7 @@
         </div>
 
         <!-- Input Area -->
-        <div class="p-4 bg-white border-t border-surface-border sticky bottom-0">
+        <div class="p-4 bg-surface-ground rounded-b-xl border-t border-surface-border sticky bottom-0">
              <div class="relative">
                 <BaseInput 
                     placeholder="Pregúntale a tu asistente (ej. ¿Cuál fue el producto más vendido?)..." 

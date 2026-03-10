@@ -37,36 +37,36 @@ const resolve = (item: any, key: string) => {
 
     <div v-else>
       <!-- Usage Check -->
-      <div v-if="!items || items.length === 0" class="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-gray-500">
+      <div v-if="!items || items.length === 0" class="rounded-xl border border-dashed border-surface-border bg-surface-subtle p-8 text-center text-text-secondary">
         No hay datos para mostrar
       </div>
 
       <div v-else>
         <!-- Desktop Table (Hidden on Mobile) -->
-        <div class="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm lg:block">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+        <div class="hidden overflow-hidden rounded-xl border border-surface-border bg-surface-ground shadow-sm lg:block">
+          <table class="min-w-full divide-y divide-surface-border">
+            <thead class="bg-surface-subtle">
               <tr>
                 <th 
                   v-for="col in columns" 
                   :key="col.key"
-                  class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500"
+                  class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-secondary"
                   :class="col.class"
                 >
                   {{ col.label }}
                 </th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200 bg-white">
+            <tbody class="divide-y divide-surface-border bg-surface-ground">
               <tr 
                 v-for="(item, index) in items" 
                 :key="index"
-                class="transition-colors hover:bg-gray-50"
+                class="transition-colors hover:bg-surface-subtle"
               >
                 <td 
                   v-for="col in columns" 
                   :key="col.key"
-                  class="whitespace-nowrap px-6 py-4 text-sm text-gray-900"
+                  class="whitespace-nowrap px-6 py-4 text-sm text-text-heading"
                 >
                   <!-- Slot for specific column key -->
                   <slot :name="`col-${col.key}`" :item="item" :value="resolve(item, col.key)">
@@ -83,12 +83,12 @@ const resolve = (item: any, key: string) => {
           <div 
             v-for="(item, index) in items" 
             :key="index" 
-            class="relative flex flex-col justify-between rounded-xl bg-white p-4 shadow-sm ring-1 ring-black/5"
+            class="relative flex flex-col justify-between rounded-xl bg-surface-ground p-4 shadow-sm border border-surface-border"
           >
             <!-- Card Header: Title & Subtitle/Price -->
             <div class="mb-2">
               <div class="flex justify-between items-start">
-                  <h3 class="text-base font-semibold leading-tight text-gray-900 line-clamp-2">
+                  <h3 class="text-base font-semibold leading-tight text-text-heading line-clamp-2">
                     <slot name="card-title" :item="item">
                         {{ titleKey ? resolve(item, titleKey) : 'Item #' + (index + 1) }}
                     </slot>
@@ -105,8 +105,8 @@ const resolve = (item: any, key: string) => {
             </div>
 
             <!-- Card Body: Generic Fields -->
-            <div class="mt-2 space-y-1 text-sm text-gray-500">
-                 <div class="group flex items-center justify-between border-t border-gray-100 pt-2">
+            <div class="mt-2 space-y-1 text-sm text-text-secondary">
+                 <div class="group flex items-center justify-between border-t border-surface-border pt-2">
                      <slot name="mobile-actions" :item="item"></slot>
                  </div>
             </div>

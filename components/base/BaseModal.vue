@@ -11,7 +11,7 @@
         <div class="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
           <!-- Backdrop -->
           <div 
-            class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm transition-opacity" 
+            class="fixed inset-0 bg-black/40 backdrop-blur-md transition-opacity" 
             aria-hidden="true"
             @click="closeOnBackdrop ? $emit('close') : null"
           ></div>
@@ -22,14 +22,14 @@
           <!-- Panel -->
           <div 
             :class="[
-              'relative inline-block transform overflow-hidden rounded-2xl bg-surface-ground text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:align-middle border border-surface-border',
+              'relative inline-block transform overflow-hidden rounded-2xl bg-surface-ground text-left align-bottom shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/10 dark:border-white/5 transition-all sm:my-8 sm:w-full sm:align-middle',
               maxWidthClass
             ]"
           >
             <!-- Header -->
-            <div class="border-b border-surface-border bg-surface-section/50 px-6 py-4 flex items-center justify-between">
+            <div class="border-b border-surface-border bg-gradient-to-b from-surface-subtle/50 to-transparent px-6 py-5 flex items-center justify-between">
               <div>
-                <h3 v-if="title" class="text-lg font-bold text-text-heading" :id="id + '-title'">
+                <h3 v-if="title" class="text-xl font-bold tracking-tight text-text-heading" :id="id + '-title'">
                   {{ title }}
                 </h3>
                 <p v-if="description" class="mt-1 text-sm text-text-secondary">
@@ -38,23 +38,23 @@
               </div>
               <button 
                 type="button" 
-                class="rounded-lg p-1 text-text-secondary hover:bg-surface-subtle hover:text-text-heading transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="rounded-full p-2 text-text-secondary hover:bg-surface-subtle hover:text-text-heading hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-500"
                 @click="$emit('close')"
               >
                 <span class="sr-only">Cerrar</span>
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
   
             <!-- Content -->
-            <div class="px-6 py-6">
+            <div class="px-6 py-6 bg-surface-ground">
               <slot />
             </div>
   
             <!-- Footer Actions -->
-            <div v-if="$slots.actions" class="bg-surface-section/30 px-6 py-4 border-t border-surface-border flex flex-row-reverse gap-3">
+            <div v-if="$slots.actions" class="bg-surface-subtle/30 px-6 py-4 border-t border-surface-border flex flex-row-reverse gap-3 rounded-b-2xl">
               <slot name="actions" />
             </div>
           </div>

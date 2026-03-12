@@ -332,6 +332,9 @@ const parseMovementRef = (mv: any) => {
 }
 
 const parseDescription = (trx: any) => {
+    if (trx.document_type === 'credit_note') return 'Anulación / Nota de Crédito'
+    if (trx.document_type === 'debit_note') return 'Nota de Débito'
+    if (trx.document_type === 'delivery_note') return 'Nota de Entrega'
     if (trx.description) return trx.description
     if (trx.type === 'sale') return 'Venta Registrada'
     if (trx.type === 'expense') return 'Gasto Operativo'

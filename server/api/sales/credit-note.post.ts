@@ -48,6 +48,7 @@ export default defineEventHandler(async (event) => {
         .from('transactions')
         .insert({
             organization_id: original.organization_id,
+            date: new Date().toISOString().split('T')[0],
             type: 'sale',
             document_type: 'credit_note',
             amount: -Math.abs(Number(original.amount || 0)),

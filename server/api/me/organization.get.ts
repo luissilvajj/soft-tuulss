@@ -4,79 +4,61 @@ import { createClient } from '@supabase/supabase-js'
 export default defineEventHandler(async (event) => {
     try {
         const user = await serverSupabaseUser(event)
-
-        if (!user) {
-            return { error: 'Unauthorized: No user session' }
-        }
+        if (!user) return { error: 'Unauthorized' }
 
         const client = await serverSupabaseClient(event)
         const userId = user.id
 
-        // --- STRATEGY 1: SERVICE KEY (GOD MODE) ---
-        // We try this FIRST because we know RLS/RPC migrations might be missing.
         const config = useRuntimeConfig()
         const serviceKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
         const url = process.env.SUPABASE_URL
 
-        if (serviceKey && url) {
-            // console.log('OrgFetch: Attempting Service Key Strategy')
-            const supabaseAdmin = createClient(url, serviceKey, {
-                auth: { autoRefreshToken: false, persistSession: false }
-            })
+        const fullColumns = 'id, name, logo_url, subscription_status, created_at, address, fiscal_doc, phone, receipt_footer'
+        const minimalColumns = 'id, name, logo_url, subscription_status, created_at'
 
-            const { data: adminData, error: adminError } = await supabaseAdmin
+        // helper to fetch
+        const fetchOrg = async (supabase: any, cols: string) => {
+            return await supabase
                 .from('organization_members')
-                .select(`
-                    role,
-                    organization: organizations(id, name, logo_url, subscription_status, created_at, address, fiscal_doc, phone, receipt_footer)
-                `)
+                .select(`role, organization: organizations(${cols})`)
                 .eq('user_id', userId)
                 .limit(1)
                 .maybeSingle()
-
-            if (adminData && adminData.organization) {
-                // console.log('OrgFetch: Success via Service Key')
-                return {
-                    ...adminData.organization,
-                    role: adminData.role
-                }
-            }
-            if (adminError) {
-                console.error('OrgFetch: Service Key Error:', adminError)
-            }
-        } else {
-            console.warn('OrgFetch: Missing Service Key env vars', { hasKey: !!serviceKey, hasUrl: !!url })
         }
 
-
-        // --- STRATEGY 2: RPC (Legacy / Fallback) ---
-        // Only if Service Key failed or returned nothing
-        const { data: rpcData } = await client.rpc('get_my_main_organization')
-        if (rpcData) return rpcData
-
-
-        // --- STRATEGY 3: Standard RLS Select (Fallback) ---
-        const { data: rlsData } = await client
-            .from('organization_members')
-            .select(`role, organization: organizations(id, name, logo_url, subscription_status, created_at, address, fiscal_doc, phone, receipt_footer)`)
-            .eq('user_id', userId)
-            .limit(1)
-            .maybeSingle()
-
-        if (rlsData && rlsData.organization) {
-            return {
-                ...rlsData.organization,
-                role: rlsData.role
+        // STRATEGY 1: ADMIN CLIENT
+        if (serviceKey && url) {
+            const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
+            
+            // Try Full
+            const { data, error } = await fetchOrg(admin, fullColumns)
+            if (!error && data?.organization) {
+                return { ...data.organization, role: data.role }
+            }
+            
+            // Fallback to minimal
+            const { data: minData } = await fetchOrg(admin, minimalColumns)
+            if (minData?.organization) {
+                return { ...minData.organization, role: minData.role }
             }
         }
 
-        return null // Explicit null if nothing found (trigger Onboarding)
+        // STRATEGY 2: USER CLIENT
+        const { data: rlsData, error: rlsError } = await fetchOrg(client, fullColumns)
+        if (!rlsError && rlsData?.organization) {
+            return { ...rlsData.organization, role: rlsData.role }
+        }
+
+        // Final Fallback: Minimal RLS
+        const { data: finalData } = await fetchOrg(client, minimalColumns)
+        if (finalData?.organization) {
+            return { ...finalData.organization, role: finalData.role }
+        }
+
+        return null
 
     } catch (e: any) {
-        console.error('Server Exception fetchOrg:', e)
-        return {
-            error: 'Server Exception: ' + e.message,
-            stack: e.stack
-        }
+        console.error('Resilient Org Fetch Error:', e)
+        return null
     }
 })

@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
                 .from('organization_members')
                 .select(`
                     role,
-                    organization: organizations(*)
+                    organization: organizations(id, name, logo_url, subscription_status, created_at, address, fiscal_doc, phone, receipt_footer)
                 `)
                 .eq('user_id', userId)
                 .limit(1)
@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
         // --- STRATEGY 3: Standard RLS Select (Fallback) ---
         const { data: rlsData } = await client
             .from('organization_members')
-            .select(`role, organization: organizations(*)`)
+            .select(`role, organization: organizations(id, name, logo_url, subscription_status, created_at, address, fiscal_doc, phone, receipt_footer)`)
             .eq('user_id', userId)
             .limit(1)
             .maybeSingle()

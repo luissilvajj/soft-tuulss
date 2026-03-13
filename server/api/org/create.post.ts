@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
         // 4. CHECK IF USER ALREADY HAS AN ORG (Owner role)
         const { data: existingMember } = await adminClient
             .from('organization_members')
-            .select('organization:organizations(*)')
+            .select('organization:organizations(id, name, logo_url, subscription_status, created_at, address, fiscal_doc, phone, receipt_footer)')
             .eq('user_id', userId)
             .eq('role', 'owner')
             .limit(1)

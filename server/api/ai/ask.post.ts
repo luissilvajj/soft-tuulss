@@ -84,9 +84,24 @@ export default defineEventHandler(async (event) => {
 
         console.log("[AI] Generated SQL:", sql)
 
-        // Security Validation
-        if (!sql.toLowerCase().includes(organization_id.toLowerCase()) && !sql.toLowerCase().includes('error')) {
-            throw createError({ statusCode: 403, statusMessage: 'Error de seguridad: Filtro de organización ausente.' })
+        // 6. Security Validation (Digital Vault)
+        const lowerSql = sql.toLowerCase()
+        
+        // Layer 1: Strictly only SELECT
+        if (!lowerSql.startsWith('select')) {
+            throw createError({ statusCode: 403, statusMessage: 'Seguridad: Solo se permiten consultas de lectura (SELECT).' })
+        }
+
+        // Layer 2: Forbidden Keywords Blacklist
+        const forbidden = ['drop', 'delete', 'update', 'insert', 'alter', 'truncate', 'grant', 'revoke', 'create', 'upsert']
+        const found = forbidden.find(word => lowerSql.includes(word + ' ') || lowerSql.includes(' ' + word))
+        if (found) {
+            throw createError({ statusCode: 403, statusMessage: `Seguridad: Palabra reservada no permitida detectada (${found}).` })
+        }
+
+        // Layer 3: Mandatory Organization Filter
+        if (!lowerSql.includes(organization_id.toLowerCase())) {
+            throw createError({ statusCode: 403, statusMessage: 'Seguridad: La consulta no incluye el filtro de tu organización.' })
         }
 
         // Step B: Execute SQL

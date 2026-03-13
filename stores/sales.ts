@@ -154,29 +154,29 @@ export const useSalesStore = defineStore('sales', {
                 const { data: sale, error: saleError } = await client
                     .from('transactions')
                     .insert({
-                        organization_id: (useOrganization().organization.value as any)?.id, // Safety cast, caller ensures existence
+                        organization_id: (useOrganization().organization.value as any)?.id,
                         type: 'sale',
                         document_type: payload.documentType || 'invoice',
-                        amount: payload.total,
+                        amount: Number(payload.total || 0),
                         client_id: payload.clientId,
                         status: payload.status,
                         payment_method: payload.paymentMethod,
                         payment_reference: payload.paymentReference,
-                        amount_paid: payload.status === 'paid' ? payload.total : 0, 
+                        amount_paid: payload.status === 'paid' ? Number(payload.total || 0) : 0, 
                         date: payload.date,
                         currency: payload.currency,
-                        exchange_rate: payload.exchangeRate,
-                        subtotal: payload.subtotal,
-                        tax_iva: payload.taxIva,
-                        tax_igtf: payload.taxIgtf,
+                        exchange_rate: Number(payload.exchangeRate || 1),
+                        subtotal: Number(payload.subtotal || 0),
+                        tax_iva: Number(payload.taxIva || 0),
+                        tax_igtf: Number(payload.taxIgtf || 0),
                         is_exempt: payload.isExempt,
 
-                        exempt_amount: payload.exemptAmount || 0,
-                        tax_base: payload.taxBase || 0,
-                        tax_general_amount: payload.taxGeneralAmount || 0,
-                        tax_reduced_amount: payload.taxReducedAmount || 0,
+                        exempt_amount: Number(payload.exemptAmount || 0),
+                        tax_base: Number(payload.taxBase || 0),
+                        tax_general_amount: Number(payload.taxGeneralAmount || 0),
+                        tax_reduced_amount: Number(payload.taxReducedAmount || 0),
 
-                        discount: payload.discount,
+                        discount: Number(payload.discount || 0),
                         items_snapshot: payload.itemsSnapshot,
                         payment_details: payload.paymentDetails
                     } as any)

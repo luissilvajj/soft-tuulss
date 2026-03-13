@@ -146,6 +146,12 @@ export interface Database {
                     exchange_rate: number
                     items_snapshot: Json
                     created_by: string
+                    exempt_amount: number
+                    tax_base: number
+                    tax_general_amount: number
+                    tax_reduced_amount: number
+                    tax_igtf: number
+                    subtotal: number
                 }
                 Insert: {
                     amount?: number
@@ -178,6 +184,12 @@ export interface Database {
                     exchange_rate?: number
                     items_snapshot?: Json
                     created_by?: string
+                    exempt_amount?: number
+                    tax_base?: number
+                    tax_general_amount?: number
+                    tax_reduced_amount?: number
+                    tax_igtf?: number
+                    subtotal?: number
                 }
             }
             transaction_items: {

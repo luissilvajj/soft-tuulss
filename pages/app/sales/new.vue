@@ -90,7 +90,7 @@
                                  <p class="text-sm font-medium text-gray-900">{{ product.name }}</p>
                                  <p class="text-xs text-gray-400">SKU: {{ product.sku || '-' }} • Stock: {{ product.stock }}</p>
                             </div>
-                            <span class="text-sm font-semibold text-gray-900">{{ formatDisplayPrice(product.price) }}</span>
+                            <span class="text-sm font-semibold text-gray-900">{{ fmtPrice(product.price) }}</span>
                         </div>
                     </div>
                 </div>
@@ -132,7 +132,7 @@
                                     </div>
                                 </td>
                                 <td class="py-4 text-right font-mono text-sm text-gray-600">
-                                    {{ formatDisplayPrice(item.product.price) }}
+                                    {{ fmtPrice(item.product.price) }}
                                 </td>
                                 <td class="py-3 text-center">
                                     <!-- Per Item Discount -->
@@ -145,7 +145,7 @@
                                     >
                                 </td>
                                 <td class="py-4 text-right font-bold font-mono text-sm text-gray-900">
-                                    {{ formatDisplayPrice((item.product.price * item.quantity) - (item.discount || 0)) }}
+                                    {{ fmtPrice((item.product.price * item.quantity) - (item.discount || 0)) }}
                                 </td>    
                                 <td class="py-3 text-center">
                                     <button @click="salesStore.removeFromCart(index)" class="text-gray-300 hover:text-status-error transition-colors p-1">
@@ -337,31 +337,31 @@
                     <div class="space-y-1 text-sm">
                         <div class="flex justify-between text-text-secondary">
                             <span>Subtotal Bruto</span>
-                            <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.subtotal) }}</span>
+                            <span class="font-bold text-text-heading">{{ fmtPrice(financials.subtotal) }}</span>
                         </div>
                         <div v-if="salesStore.currentSale.globalDiscount > 0" class="flex justify-between text-status-success">
                             <span>Descuento Global</span>
-                            <span class="font-bold">-{{ formatDisplayPrice(salesStore.currentSale.globalDiscount) }}</span>
+                            <span class="font-bold">-{{ fmtPrice(salesStore.currentSale.globalDiscount) }}</span>
                         </div>
                         <div v-if="financials.exemptAmount > 0" class="flex justify-between text-text-secondary">
                             <span>Monto Exento</span>
-                            <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.exemptAmount) }}</span>
+                            <span class="font-bold text-text-heading">{{ fmtPrice(financials.exemptAmount) }}</span>
                         </div>
                         <div v-if="financials.taxBase > 0" class="flex justify-between text-text-secondary">
                             <span>Base Imponible</span>
-                            <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.taxBase) }}</span>
+                            <span class="font-bold text-text-heading">{{ fmtPrice(financials.taxBase) }}</span>
                         </div>
                         <div v-if="financials.taxGeneralAmount > 0" class="flex justify-between text-text-secondary">
                             <span>IVA (16%)</span>
-                             <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.taxGeneralAmount) }}</span>
+                             <span class="font-bold text-text-heading">{{ fmtPrice(financials.taxGeneralAmount) }}</span>
                         </div>
                         <div v-if="financials.taxReducedAmount > 0" class="flex justify-between text-text-secondary">
                             <span>IVA Reducido (8%)</span>
-                             <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.taxReducedAmount) }}</span>
+                             <span class="font-bold text-text-heading">{{ fmtPrice(financials.taxReducedAmount) }}</span>
                         </div>
                         <div v-if="financials.taxIgtf > 0" class="flex justify-between text-text-secondary">
                             <span>IGTF (3%)</span>
-                             <span class="font-bold text-text-heading">{{ formatDisplayPrice(financials.taxIgtf) }}</span>
+                             <span class="font-bold text-text-heading">{{ fmtPrice(financials.taxIgtf) }}</span>
                         </div>
                     </div>
 
@@ -369,9 +369,9 @@
                     <div class="flex justify-between items-end border-t border-dashed border-surface-border pt-3">
                         <span class="text-lg font-bold text-text-secondary mb-1">Total</span>
                          <div class="text-right">
-                              <span class="block text-3xl font-black text-primary-600 dark:text-primary-500 leading-none">{{ formatDisplayPrice(financials.total) }}</span>
+                              <span class="block text-3xl font-black text-primary-600 dark:text-primary-500 leading-none">{{ fmtPrice(financials.total) }}</span>
                               <span class="text-[10px] text-text-secondary dark:text-gray-400 font-mono font-medium block mt-1">
-                                 ~ {{ salesStore.currentSale.currency === 'USD' ? `Bs. ${(financials.total * salesStore.currentSale.exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 })}` : `$ ${(financials.total).toLocaleString('en-US', { maximumFractionDigits: 2 })}` }}
+                                 ~ {{ salesStore.currentSale.currency === 'USD' ? `Bs. ${(financials.total * salesStore.currentSale.exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 })}` : `$ ${financials.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }}
                               </span>
                          </div>
                     </div>
@@ -465,7 +465,15 @@ const { organization } = useOrganization()
 // Use 'products' from inventory composable but we might want local search results separated
 // flexible implementation: use search logic from inventory or keep local filter
 const { products: allProducts, loading: loadingProducts, fetchProducts } = useInventory()
-const { formatPrice, formatDisplayPrice, formatPriceInBs } = useFormat()
+const { formatPrice, formatDisplayPrice, formatPriceInBs, formatMoney } = useFormat()
+
+// Currency-aware price formatter for POS display
+const fmtPrice = (amount: number) => {
+    if (salesStore.currentSale.currency === 'VES') {
+        return formatMoney(amount * salesStore.currentSale.exchangeRate, 'VES')
+    }
+    return formatMoney(amount, 'USD')
+}
 const { rate, loading: loadingRate, fetchLatestRate } = useExchangeRate()
 const toast = useToast()
 const isOnline = useOnline()
@@ -803,7 +811,7 @@ const handleCheckout = async () => {
                 }
             }),
             itemsSnapshot: salesStore.cart.map(i => {
-                const taxCond = salesStore.currentSale.isExempt ? 'exempt' : (i.product.tax_condition || 'exempt')
+                const taxCond = salesStore.currentSale.isExempt ? 'exempt' : (i.product.tax_condition || 'general')
                 let taxR = 0
                 if (taxCond === 'general') taxR = 16.00
                 if (taxCond === 'reduced') taxR = 8.00

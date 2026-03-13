@@ -150,7 +150,7 @@ const fetchClients = async () => {
         console.log('ClientSelector: Fetching clients for org', organization.value.id)
         const { data, error } = await client
             .from('clients')
-            .select('*')
+            .select('id, organization_id, name, email, phone, identity_document, is_special_taxpayer, created_at')
             .eq('organization_id', organization.value.id)
             .order('created_at', { ascending: false })
         

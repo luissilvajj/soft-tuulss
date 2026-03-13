@@ -48,7 +48,25 @@ export const useTransactions = () => {
             let query = client
                 .from('transactions')
                 .select(`
-                    *,
+                    id,
+                    organization_id,
+                    type,
+                    amount,
+                    client_id,
+                    status,
+                    payment_method,
+                    payment_reference,
+                    date,
+                    currency,
+                    exchange_rate,
+                    created_at,
+                    subtotal,
+                    exempt_amount,
+                    tax_base,
+                    tax_general_amount,
+                    tax_reduced_amount,
+                    tax_igtf,
+                    items_snapshot,
                     client:clients(name)
                 `, { count: 'exact' })
                 .eq('organization_id', organization.value.id)
@@ -111,6 +129,7 @@ export const useTransactions = () => {
                     created_at,
                     product:products(name),
                     transaction:transactions!inner(
+                        id,
                         type,
                         date,
                         client_id,

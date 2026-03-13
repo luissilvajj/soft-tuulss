@@ -93,7 +93,7 @@ export const useDashboard = () => {
             // 4. Fetch Payment Method Distribution
             const { data: payData } = await client
                 .from('transactions')
-                .select('payment_method')
+                .select('payment_method, amount, subtotal, tax_general_amount, tax_reduced_amount, tax_igtf')
                 .eq('organization_id', organization.value.id)
                 .eq('status', 'paid')
                 .gte('created_at', p_range_start)
@@ -135,7 +135,7 @@ export const useDashboard = () => {
             // 1. Get today's total aggregates directly from transactions
             const { data: txs, error: fetchErr } = await client
                 .from('transactions')
-                .select('subtotal, exempt_amount, tax_base, tax_general_amount, tax_reduced_amount, tax_igtf')
+                .select('id, amount, subtotal, exempt_amount, tax_base, tax_general_amount, tax_reduced_amount, tax_igtf')
                 .eq('organization_id', organization.value.id)
                 .eq('status', 'paid')
                 .gte('created_at', today.toISOString())

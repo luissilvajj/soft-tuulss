@@ -63,7 +63,7 @@ const fetchData = async () => {
     try {
         const { data: txs, error } = await client
             .from('transactions')
-            .select('*')
+            .select('id, organization_id, type, amount, date, status, currency, exchange_rate, created_at, subtotal, exempt_amount, tax_base, tax_general_amount, tax_reduced_amount, tax_igtf')
             .order('date', { ascending: false })
             .limit(50)
         

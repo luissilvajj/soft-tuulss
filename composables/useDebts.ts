@@ -33,7 +33,7 @@ export const useDebts = () => {
             // Need columns: id, date, due_date, amount, amount_paid, status, client(name)
             const { data: rxData, error: rxErr } = await client
                 .from('transactions')
-                .select('id, date, due_date, amount, amount_paid, status, control_number, exchange_rate, client:clients(name)')
+                .select('id, date, due_date, amount, amount_paid, status, control_number, exchange_rate, subtotal, exempt_amount, tax_base, tax_general_amount, tax_reduced_amount, tax_igtf, client:clients(name)')
                 .eq('organization_id', organization.value.id)
                 .in('type', ['sale'])
                 .in('status', ['pending', 'partial'])

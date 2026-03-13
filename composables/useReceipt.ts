@@ -134,11 +134,23 @@ export const useReceipt = () => {
     const printingFiscal = ref(false)
 
     const checkFiscalAgent = async () => {
+        // Prevent Mixed Content errors if on HTTPS and agent is on HTTP
+        if (process.client && window.location.protocol === 'https:' && FISCAL_AGENT_URL.startsWith('http:')) {
+            console.warn('Fiscal Agent check skipped: Mixed Content (HTTPS -> HTTP local) usually blocked by browsers.')
+            fiscalAgentOnline.value = false
+            return
+        }
+
         try {
-            const res = await fetch(`${FISCAL_AGENT_URL}/status`, { signal: AbortSignal.timeout(2000) })
-            const data = await res.json()
-            fiscalAgentOnline.value = data.status === 'online'
-        } catch {
+            const res = await fetch(`${FISCAL_AGENT_URL}/status`, { 
+                mode: 'no-cors', // Try to avoid some CORS/Mixed Content preflights if just checking existence
+                signal: AbortSignal.timeout(2000) 
+            })
+            // console.log('Fiscal Agent check res:', res.type)
+            // Note: with no-cors, we can't read the body, but we know it reached something
+            fiscalAgentOnline.value = true 
+        } catch (e) {
+            // console.warn('Fiscal Agent offline:', e)
             fiscalAgentOnline.value = false
         }
     }

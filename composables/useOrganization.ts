@@ -105,7 +105,7 @@ export const useOrganization = () => {
                         const orgIds = memberships.map((m: any) => m.organization_id)
                         const { data: orgDetails, error: orgError } = await client
                             .from('organizations')
-                            .select('id, name, logo_url, subscription_status, subscription_plan, trial_ends_at, current_period_end, stripe_customer_id, stripe_subscription_id, fiscal_doc, address, phone, receipt_footer, last_payment_failure, created_at')
+                            .select('id, name, logo_url, fiscal_doc, address, phone, receipt_footer, created_at')
                             .in('id', orgIds)
 
                         if (orgError) {

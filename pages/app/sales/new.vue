@@ -507,7 +507,7 @@ watch(isOnline, (online) => {
 
 // Initial Load
 onMounted(async () => {
-    console.log('Softtuuls Build: 1.0.2 - Numeric & Select Fix Applied')
+    console.log('Softtuuls Build: 1.0.3 - Schema Alignment Applied')
     // 1. Fetch Inventory if empty
     if (allProducts.value.length === 0) {
         await fetchProducts()

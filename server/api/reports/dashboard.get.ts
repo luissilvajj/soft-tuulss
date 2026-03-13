@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     // 1. Fetch History (Last 10 days)
     const { data: history, error: historyError } = await client
         .from('mv_daily_sales_stats')
-        .select('*')
+        .select('day, total_count, total_usd, organization_id')
         .eq('organization_id', orgId) // Secure Filter
         .limit(10)
         .order('day', { ascending: false })

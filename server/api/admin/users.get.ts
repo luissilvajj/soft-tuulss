@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     // 2. Fetch Profiles (Names)
     const { data: profiles, error: dbError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, avatar_url')
 
     if (dbError) throw createError({ statusCode: 500, statusMessage: dbError.message })
 

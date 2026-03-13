@@ -73,7 +73,7 @@ export default defineEventHandler(async (event) => {
     if (type === 'sales') {
         const { data: transactions } = await db
             .from('transactions')
-            .select('*')
+            .select('id, amount, client_id, date, status, type, currency, exchange_rate, organization_id')
             .eq('organization_id', orgId)
             .gte('date', start)
             .lte('date', end)
@@ -116,7 +116,7 @@ export default defineEventHandler(async (event) => {
         // but maybe filter created_at if requested? Usually inventory report is "Current Status".
         const { data: products } = await db
             .from('products')
-            .select('*')
+            .select('id, name, organization_id, price, sku, stock, cost, created_at')
             .eq('organization_id', orgId)
 
         if (!products) return { summary: {}, items: [] }

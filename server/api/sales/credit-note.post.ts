@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     // 1. Validate original transaction
     const { data: original, error: origErr } = await client
         .from('transactions')
-        .select('*')
+        .select('id, organization_id, amount, client_id, status, type, document_type, currency, exchange_rate, subtotal, tax_iva, tax_igtf, is_exempt, exempt_amount, tax_base, tax_general_amount, tax_reduced_amount, discount, items_snapshot')
         .eq('id', transactionId)
         .eq('organization_id', organizationId)
         .single()
@@ -80,7 +80,7 @@ export default defineEventHandler(async (event) => {
     // 3. Clone Items as negative
     const { data: items, error: itemsErr } = await client
         .from('transaction_items')
-        .select('*')
+        .select('id, transaction_id, product_id, quantity, price_at_transaction, organization_id, created_at, discount, tax_condition, tax_rate')
         .eq('transaction_id', original.id)
 
     if (itemsErr) {

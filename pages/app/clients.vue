@@ -137,8 +137,6 @@
         </template>
     </UiDataList>
 
-    </div>
-
     <!-- Empty State -->
     <div v-else-if="!loading && clients.length === 0" class="glass-panel p-12 text-center border-dashed border-2 border-surface-border rounded-xl">
          <div class="w-24 h-24 bg-surface-subtle rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">

@@ -251,8 +251,6 @@
   </div>
 </template>
 
-<!-- Scoped styles removed in favor of semantic Tailwind classes -->
-</style>
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'

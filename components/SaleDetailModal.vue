@@ -267,7 +267,6 @@
             </div>
         </div>
     </template>
-    </template>
   </AppModal>
 </template>
 

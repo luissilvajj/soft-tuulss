@@ -15,17 +15,17 @@
             <!-- Currency Toggle -->
             <div class="flex items-center bg-surface-subtle rounded-lg p-1 border border-surface-border">
                 <button 
-                    @click="salesStore.currentSale.currency = 'USD'"
+                    @click="setCurrency('USD')"
                     :class="[
                         'px-3 py-1 text-xs font-bold rounded-md transition-all',
-                        salesStore.currentSale.currency === 'USD' ? 'bg-surface-ground text-text-heading shadow-sm ring-1 ring-surface-border' : 'text-text-secondary hover:text-text-heading'
+                        salesStore.currentSale.currency === 'USD' ? 'bg-surface-ground text-primary-600 shadow-sm ring-1 ring-surface-border' : 'text-text-secondary hover:text-text-heading'
                     ]"
                 >USD</button>
                 <button 
-                    @click="salesStore.currentSale.currency = 'VES'"
+                    @click="setCurrency('VES')"
                     :class="[
                         'px-3 py-1 text-xs font-bold rounded-md transition-all',
-                        salesStore.currentSale.currency === 'VES' ? 'bg-surface-ground text-text-heading shadow-sm ring-1 ring-surface-border' : 'text-text-secondary hover:text-text-heading'
+                        salesStore.currentSale.currency === 'VES' ? 'bg-surface-ground text-primary-600 shadow-sm ring-1 ring-surface-border' : 'text-text-secondary hover:text-text-heading'
                     ]"
                 >VES</button>
             </div>
@@ -44,7 +44,7 @@
     </div>
 
     <!-- Content -->
-    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-0 overflow-y-auto lg:overflow-hidden pb-20 lg:pb-0">
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-0 overflow-y-auto lg:overflow-visible pb-20 lg:pb-0">
         <!-- Left: Search & Table -->
         <div class="lg:col-span-8 flex flex-col gap-6 min-h-0 order-2 lg:order-1">
             <!-- Search Section -->
@@ -169,7 +169,7 @@
         </div>
 
         <!-- Right: Summary -->
-        <div class="lg:col-span-4 flex flex-col min-h-0 order-1 lg:order-2">
+        <div class="lg:col-span-4 flex flex-col min-h-0 order-1 lg:order-2 lg:sticky lg:top-0 h-fit lg:max-h-[calc(100vh-12rem)]">
             <div class="bg-surface-ground border border-surface-border rounded-2xl shadow-sm flex flex-col h-full overflow-hidden">
                 
                 <!-- Scrollable Content Area -->
@@ -368,12 +368,12 @@
                     <!-- Grand Total -->
                     <div class="flex justify-between items-end border-t border-dashed border-surface-border pt-3">
                         <span class="text-lg font-bold text-text-secondary mb-1">Total</span>
-                        <div class="text-right">
-                             <span class="block text-3xl font-black text-primary-600 leading-none">{{ formatDisplayPrice(financials.total) }}</span>
-                             <span class="text-[10px] text-gray-400 font-mono font-medium block mt-1">
-                                ~ {{ salesStore.currentSale.currency === 'USD' ? `Bs. ${(financials.total * salesStore.currentSale.exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 })}` : `$ ${(financials.total).toLocaleString('en-US', { maximumFractionDigits: 2 })}` }}
-                             </span>
-                        </div>
+                         <div class="text-right">
+                              <span class="block text-3xl font-black text-primary-600 dark:text-primary-500 leading-none">{{ formatDisplayPrice(financials.total) }}</span>
+                              <span class="text-[10px] text-text-secondary dark:text-gray-400 font-mono font-medium block mt-1">
+                                 ~ {{ salesStore.currentSale.currency === 'USD' ? `Bs. ${(financials.total * salesStore.currentSale.exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 })}` : `$ ${(financials.total).toLocaleString('en-US', { maximumFractionDigits: 2 })}` }}
+                              </span>
+                         </div>
                     </div>
 
                     <!-- Checkout Button -->
@@ -603,7 +603,15 @@ const saveClient = async () => {
     }
 }
 
-// Payment Methods Logic
+// Currency Logic
+const setCurrency = (currency: 'USD' | 'VES') => {
+    salesStore.currentSale.currency = currency
+    // Reset mixed payment values to avoid confusion when switching base currency
+    if (salesStore.currentSale.isMixedPayment) {
+        salesStore.currentSale.mixedPayment.usdAmount = 0
+        salesStore.currentSale.mixedPayment.vesAmount = 0
+    }
+}
 const setPaymentMethod = (method: string) => {
     salesStore.currentSale.paymentMethod = method
     if (method !== 'exchanged' && method !== 'cash_usd') {
@@ -642,30 +650,23 @@ const needsReference = computed(() => {
 })
 
 const availableMethods = computed(() => {
+    const methods = [
+        { id: 'mobile_pay', label: 'Pago Móvil' },
+        { id: 'card', label: 'Punto de Venta' },
+        { id: 'transfer', label: 'Transferencia' },
+        { id: 'zelle', label: 'Zelle' },
+        { id: 'cash', label: 'Efectivo' },
+        { id: 'credit', label: 'Venta a Crédito' }
+    ]
+
     if (salesStore.currentSale.isMixedPayment) {
-         return [
-            { id: 'mobile_pay', label: 'Pago Móvil' },
-            { id: 'cash', label: 'Efectivo' },
-            { id: 'card', label: 'Punto de Venta' },
-            { id: 'transfer', label: 'Transferencia' },
-            { id: 'zelle', label: 'Zelle' },
-        ]
+        return methods.filter(m => ['mobile_pay', 'card', 'transfer', 'zelle', 'cash'].includes(m.id))
     }
 
     if (salesStore.currentSale.currency === 'USD') {
-        return [
-            { id: 'cash', label: 'Efectivo ($)' },
-            { id: 'zelle', label: 'Zelle' },
-            { id: 'mobile_pay', label: 'Pago Móvil' }, 
-             { id: 'card', label: 'Punto de Venta' },
-        ]
+        return methods.filter(m => ['cash', 'zelle', 'mobile_pay', 'card', 'credit'].includes(m.id))
     } else {
-        return [
-            { id: 'mobile_pay', label: 'Pago Móvil' },
-            { id: 'card', label: 'Punto de Venta' },
-            { id: 'transfer', label: 'Transferencia' },
-            { id: 'cash', label: 'Efectivo' }, 
-        ]
+        return methods.filter(m => ['mobile_pay', 'card', 'transfer', 'cash', 'credit'].includes(m.id))
     }
 })
 
@@ -685,7 +686,8 @@ const financials = computed(() => {
         if (salesStore.currentSale.isExempt) {
             exemptAmount += itemTotal
         } else {
-            const taxCond = item.product?.tax_condition || 'exempt'
+            // Updated default logic: Use General (16%) if not explicitly exempt.
+            const taxCond = item.product?.tax_condition || 'general'
             if (taxCond === 'exempt') exemptAmount += itemTotal
             else if (taxCond === 'general') baseGeneral += itemTotal
             else if (taxCond === 'reduced') baseReduced += itemTotal
@@ -786,7 +788,7 @@ const handleCheckout = async () => {
                 igtf_base: igtfBaseAmount.value // Store the exact base used for IGTF to help the auditor
             } : null,
             rawItems: salesStore.cart.map(i => {
-                const taxCond = salesStore.currentSale.isExempt ? 'exempt' : (i.product.tax_condition || 'exempt')
+                const taxCond = salesStore.currentSale.isExempt ? 'exempt' : (i.product.tax_condition || 'general')
                 let taxR = 0
                 if (taxCond === 'general') taxR = 16.00
                 if (taxCond === 'reduced') taxR = 8.00

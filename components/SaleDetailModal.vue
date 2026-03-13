@@ -5,7 +5,7 @@
         <div class="flex justify-between items-start border-b border-surface-border pb-4">
             <div>
                 <p class="text-xs text-primary-500 uppercase tracking-widest font-extrabold mb-1">Cliente</p>
-                <p class="text-xl font-bold text-text-heading">{{ sale.client_name || 'Cliente Casual' }}</p>
+                <p class="text-xl font-bold text-text-heading">{{ sale.client?.name || sale.client_name || 'Cliente Casual' }}</p>
                 <div class="flex items-center gap-2 mt-2">
                      <span :class="[
                         'px-2 py-1 text-xs font-bold rounded-full',
@@ -220,39 +220,35 @@
     </div>
 
     <template #actions>
-        <button v-if="sale.document_type === 'invoice'" @click="issueCreditNote" :disabled="isGeneratingCreditNote" class="btn bg-red-100 text-red-800 border border-red-200 hover:bg-red-200 transition-colors flex items-center gap-2 mr-auto disabled:opacity-50">
-            <svg class="w-4 h-4" :class="{'animate-spin': isGeneratingCreditNote}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path v-if="!isGeneratingCreditNote" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            Anular (Nota Crédito)
-        </button>
+        <div class="flex flex-wrap items-center justify-end gap-3 w-full">
+            <BaseButton v-if="sale.document_type === 'invoice'" @click="issueCreditNote" :disabled="isGeneratingCreditNote" :loading="isGeneratingCreditNote" variant="danger" class="mr-auto">
+                {{ isGeneratingCreditNote ? 'Anulando...' : 'Anular (Nota Crédito)' }}
+            </BaseButton>
 
-        <button v-if="canShare" @click="shareInvoice" class="btn bg-surface-ground text-text-heading border border-surface-border hover:bg-surface-subtle transition-colors flex items-center gap-2 mr-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-            Compartir
-        </button>
-        <button @click="downloadPDF" :disabled="generating" class="btn bg-primary-100 text-primary-800 border border-primary-200 hover:bg-primary-200 transition-colors flex items-center gap-2 mr-2 disabled:opacity-50">
-            <svg class="w-4 h-4" :class="{'animate-spin': generating}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path v-if="!generating" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            PDF A4
-        </button>
-        <button @click="printInvoice" class="btn bg-[var(--color-bg-subtle)] text-[var(--color-heading)] border border-[var(--color-border-subtle)] hover:bg-[var(--color-border-subtle)] transition-colors flex items-center gap-2 mr-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            Imprimir
-        </button>
-        <button v-if="fiscalAgentOnline" @click="printFiscal" :disabled="printingFiscal" class="btn bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-200 transition-colors flex items-center gap-2 mr-2 disabled:opacity-50">
-            <svg class="w-4 h-4" :class="{'animate-spin': printingFiscal}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path v-if="!printingFiscal" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
-                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            Imprimir Fiscal
-        </button>
-        <button @click="$emit('close')" class="w-full btn btn-primary">
-            Cerrar
-        </button>
+            <BaseButton v-if="canShare" @click="shareInvoice" variant="secondary" class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                Compartir
+            </BaseButton>
+            
+            <BaseButton @click="downloadPDF" :loading="generating" variant="primary" class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                PDF A4
+            </BaseButton>
+
+            <BaseButton @click="printInvoice" variant="secondary" class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                Imprimir
+            </BaseButton>
+
+            <BaseButton v-if="fiscalAgentOnline" @click="printFiscal" :loading="printingFiscal" variant="success" class="flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+                Imprimir Fiscal
+            </BaseButton>
+
+            <BaseButton @click="$emit('close')" variant="secondary" class="min-w-[100px]">
+                Cerrar
+            </BaseButton>
+        </div>
     </template>
   </AppModal>
 </template>
@@ -286,6 +282,9 @@ interface ExtendedSale {
     payment_details?: any;
     items?: any[];
     items_snapshot?: any;
+    client?: {
+        name: string;
+    };
 }
 
 const props = defineProps<{

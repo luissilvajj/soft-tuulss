@@ -168,15 +168,13 @@ const sendMessage = async () => {
     scrollToBottom()
 
     try {
-        const { data, error } = await client.functions.invoke('ask-ai', {
+        const data = await $fetch('/api/ai/ask', {
+            method: 'POST',
             body: { 
                 question: question,
                 organization_id: organization.value.id
             }
-        })
-
-        if (error) throw error
-        if (data.error) throw new Error(data.error)
+        }) as any
 
         messages.value.push({ 
             role: 'assistant', 

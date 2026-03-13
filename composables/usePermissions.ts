@@ -1,3 +1,4 @@
+import { computed } from 'vue'
 import { useOrganization } from './useOrganization'
 
 export const usePermissions = () => {
@@ -12,12 +13,12 @@ export const usePermissions = () => {
     const isSeniatAuditor = computed(() => userRole.value === 'seniat_auditor')
     
     // Groupings
-    const isStaff = computed(() => ['owner', 'admin', 'cashier'].includes(userRole.value))
+    const isStaff = computed(() => ['owner', 'admin', 'cashier', 'member'].includes(userRole.value))
 
     // Capabilities
-    const canEditInventory = computed(() => isAdmin.value)
+    const canEditInventory = computed(() => isAdmin.value || userRole.value === 'member')
     const canManageTeam = computed(() => isOwner.value) // Strict owner
-    const canViewFinancials = computed(() => isAdmin.value)
+    const canViewFinancials = computed(() => isAdmin.value || userRole.value === 'member')
     const canProcessRefunds = computed(() => isAdmin.value) // Example
     const canCreateSales = computed(() => isStaff.value) // Not auditors
 

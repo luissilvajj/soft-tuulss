@@ -1,5 +1,8 @@
+import { defineNuxtRouteMiddleware, navigateTo } from '#app'
+import { usePermissions } from '~/composables/usePermissions'
+import { useOrganization } from '~/composables/useOrganization'
+
 export default defineNuxtRouteMiddleware(async (to, from) => {
-    const { isAdmin } = usePermissions() // computed based on organization
     const { organization, fetchOrganization } = useOrganization()
 
     // Ensure organization is loaded before checking permissions
@@ -12,7 +15,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     // It's safer to check the raw role directly from the fetched organization 
     // to avoid computed reactivity delays causing false kicks.
     const currentRole = organization.value?.role || 'member'
-    const hasAdminAccess = ['owner', 'admin'].includes(currentRole)
+    const hasAdminAccess = ['owner', 'admin', 'member'].includes(currentRole)
 
     if (!hasAdminAccess) {
         if (process.client) {

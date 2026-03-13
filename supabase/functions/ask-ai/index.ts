@@ -45,15 +45,20 @@ serve(async (req) => {
         // 1. Prepare Prompt
         const systemPrompt = SYSTEM_PROMPT_TEMPLATE.replace('{{ORGANIZATION_ID}}', organization_id)
 
+        const apiKey = Deno.env.get('DEEPSEEK_API_KEY')
+        if (!apiKey) {
+            throw new Error("Configuración incompleta: Falta la API Key de AI (DeepSeek) en el servidor.")
+        }
+
         // 2. Call DeepSeek API
         const response = await fetch(DEEPSEEK_API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${Deno.env.get('DEEPSEEK_API_KEY')}`
+                'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "deepseek-coder", // or deepseek-chat
+                model: "deepseek-coder", 
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: question }
@@ -64,7 +69,8 @@ serve(async (req) => {
         })
 
         if (!response.ok) {
-            throw new Error(`DeepSeek API Error: ${response.statusText}`)
+            const errBody = await response.text().catch(() => 'No extra info')
+            throw new Error(`AI API Error (${response.status}): ${response.statusText}. Detalle: ${errBody}`)
         }
 
         const aiData = await response.json()

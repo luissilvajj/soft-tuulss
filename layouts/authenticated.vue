@@ -13,9 +13,10 @@ import {
   ShoppingBagIcon,
   CurrencyDollarIcon
 } from '@heroicons/vue/24/outline';
+import { computed, onMounted, nextTick } from 'vue';
 import SyncIndicator from '~/components/status/SyncIndicator.vue';
-
 import { usePermissions } from '~/composables/usePermissions';
+import { useOrganization } from '~/composables/useOrganization';
 
 const user = useSupabaseUser();
 const client = useSupabaseClient();
@@ -81,9 +82,13 @@ const ensureGlobalState = async (userId: string) => {
             .maybeSingle()
         
         if (orgData && orgData.organization) {
+            // Map common display roles to system roles if needed
+            let mappedRole = orgData.role || 'member'
+            if (mappedRole === 'Usuario') mappedRole = 'member'
+            
             organization.value = {
                 ...orgData.organization,
-                role: orgData.role || 'Usuario' // Explicitly set role
+                role: mappedRole
             }
         }
     }

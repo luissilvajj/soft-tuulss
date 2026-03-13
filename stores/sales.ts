@@ -191,11 +191,11 @@ export const useSalesStore = defineStore('sales', {
                     organization_id: (useOrganization().organization.value as any)?.id,
                     transaction_id: sale.id,
                     product_id: item.productId,
-                    quantity: item.quantity,
-                    price_at_transaction: item.price,
-                    discount: item.discount,
+                    quantity: Number(item.quantity || 0),
+                    price_at_transaction: Number(item.price || 0),
+                    discount: Number(item.discount || 0),
                     tax_condition: item.taxCondition || 'exempt',
-                    tax_rate: item.taxRate || 0
+                    tax_rate: Number(item.taxRate || 0)
                 }))
 
                 const { error: itemsError } = await client

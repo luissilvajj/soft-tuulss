@@ -90,7 +90,7 @@ const fetchKardex = async () => {
     try {
         const { data, error } = await client
             .from('inventory_ledger')
-            .select('*')
+            .select('id, product_id, change_reason, quantity_changed, new_stock, user_id, created_at')
             .eq('product_id', props.productId)
             .order('created_at', { ascending: false })
             .limit(50)

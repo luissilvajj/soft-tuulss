@@ -86,7 +86,7 @@ const fetchProducts = async () => {
     if (!organization.value?.id) return
     const { data } = await client
         .from('products')
-        .select('*')
+        .select('id, name, sku, price, stock, tax_condition')
         .eq('organization_id', organization.value.id)
     
     if (data) allProducts.value = data as any

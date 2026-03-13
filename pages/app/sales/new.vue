@@ -507,6 +507,7 @@ watch(isOnline, (online) => {
 
 // Initial Load
 onMounted(async () => {
+    console.log('Softtuuls Build: 1.0.2 - Numeric & Select Fix Applied')
     // 1. Fetch Inventory if empty
     if (allProducts.value.length === 0) {
         await fetchProducts()
@@ -803,11 +804,11 @@ const handleCheckout = async () => {
                 
                 return {
                     productId: i.product.id,
-                    quantity: i.quantity,
-                    price: i.product.price,
-                    discount: i.discount,
+                    quantity: Number(i.quantity || 0),
+                    price: Number(i.product.price || 0),
+                    discount: Number(i.discount || 0),
                     taxCondition: taxCond as 'exempt' | 'general' | 'reduced',
-                    taxRate: taxR
+                    taxRate: Number(taxR || 0)
                 }
             }),
             itemsSnapshot: salesStore.cart.map(i => {
@@ -819,11 +820,11 @@ const handleCheckout = async () => {
                 return {
                     id: i.product.id,
                     name: i.product.name,
-                    qty: i.quantity,
-                    price: i.product.price,
-                    discount: i.discount,
+                    qty: Number(i.quantity || 0),
+                    price: Number(i.product.price || 0),
+                    discount: Number(i.discount || 0),
                     taxCondition: taxCond as 'exempt' | 'general' | 'reduced',
-                    taxRate: taxR
+                    taxRate: Number(taxR || 0)
                 }
             })
         }

@@ -100,7 +100,7 @@ const fetchZReports = async () => {
     try {
         const { data, error } = await client
             .from('fiscal_z_reports')
-            .select('*')
+            .select('id, organization_id, closing_date, z_correlative_number, total_sales, total_exempt, total_base_general, total_tax_general, total_base_reduced, total_tax_reduced, total_igtf, created_at')
             .eq('organization_id', organization.value.id)
             .gte('closing_date', dateStore.startDate)
             .lte('closing_date', dateStore.endDate)

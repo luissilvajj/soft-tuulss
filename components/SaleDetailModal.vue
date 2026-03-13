@@ -499,7 +499,7 @@ const fetchRetention = async () => {
     try {
         const { data, error } = await supabase
             .from('fiscal_retentions')
-            .select('*')
+            .select('id, transaction_id, type, percentage, amount_retained, retention_number')
             .eq('transaction_id', props.sale.id)
         if (data) retentions.value = data
     } catch (e) {

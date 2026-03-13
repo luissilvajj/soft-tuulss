@@ -6,9 +6,9 @@
               <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white shadow-lg">
                   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
               </div>
-              AI Analyst
+              Sofia <span class="text-xs font-normal text-text-secondary bg-surface-subtle px-2 py-0.5 rounded-full ml-1">AI Analyst</span>
           </h1>
-          <p class="mt-1 text-sm text-text-secondary ml-[52px]">Pregunta sobre tus ventas, clientes o productos y obtén datos reales al instante.</p>
+          <p class="mt-1 text-sm text-text-secondary ml-[52px]">Hola, soy Sofia. Pregunta sobre tus ventas, clientes o productos y obtendré los datos para ti.</p>
       </div>
 
       <!-- Chat Container -->
@@ -17,9 +17,9 @@
           <div ref="scrollRef" class="flex-1 overflow-y-auto p-5 space-y-4">
               <!-- Empty State -->
               <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center">
-                  <div class="text-6xl mb-4">🔮</div>
-                  <h3 class="font-bold text-text-heading text-lg">Haz una pregunta a tu negocio</h3>
-                  <p class="text-sm text-text-secondary mt-1 max-w-md">Pregunta en lenguaje natural y el AI Analyst consultará tus datos reales para responderte.</p>
+                  <div class="text-6xl mb-4">✨</div>
+                  <h3 class="font-bold text-text-heading text-lg">Habla con Sofia</h3>
+                  <p class="text-sm text-text-secondary mt-1 max-w-md">Puedo analizar tus ventas hoy, comparar periodos o encontrar a tus mejores clientes.</p>
                   
                   <!-- Quick Suggestions -->
                   <div class="mt-6 flex flex-wrap gap-2 justify-center max-w-lg">
@@ -74,7 +74,7 @@
                               </tbody>
                           </table>
                       </div>
-                      <p v-else-if="msg.data && msg.data.length === 0" class="mt-2 text-xs italic opacity-70">
+                      <p v-else-if="msg.data && msg.data.length === 0 && !msg.text?.includes('Error')" class="mt-2 text-xs italic opacity-70">
                           (Sin resultados para este periodo)
                       </p>
                   </div>
@@ -88,7 +88,7 @@
                           <div class="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
                           <div class="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
                       </div>
-                      <span class="text-xs text-text-secondary ml-1">Analizando datos...</span>
+                      <span class="text-xs text-text-secondary ml-1">Sofia está pensando...</span>
                   </div>
               </div>
           </div>
@@ -99,7 +99,7 @@
                   <input 
                     v-model="inputText" 
                     type="text" 
-                    placeholder="Escribe tu pregunta (ej. ¿Cuánto vendí hoy?)..." 
+                    placeholder="Escribe tu pregunta a Sofia..." 
                     class="w-full pl-5 pr-14 py-3.5 rounded-xl bg-surface-subtle border border-surface-border focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-text-heading placeholder-text-secondary"
                     :disabled="loading"
                   >
@@ -112,7 +112,7 @@
                   </button>
               </form>
               <p class="text-[10px] text-center text-text-secondary mt-2 opacity-60">
-                  AI Analyst ejecuta consultas reales en tus datos. Los resultados pueden contener errores.
+                  Sofia Build 1.2.0 • Consultas reales en tiempo real.
               </p>
           </div>
       </div>
@@ -141,7 +141,7 @@ const quickSuggestions = [
     'Ventas de la semana por cajero',
     'Top 5 clientes del mes',
     '¿Cuánto vendí por Zelle esta semana?',
-    'Ventas del mes en dólares'
+    '¿Ventas del mes en dólares?'
 ]
 
 const scrollToBottom = () => {
@@ -161,7 +161,6 @@ const formatValue = (val: any) => {
 
 const renderMarkdown = (text: string) => {
     if (!text) return ''
-    // Basic cleanup of strange symbols if any remain
     const cleanText = text.replace(/\^/g, '')
     return marked.parse(cleanText)
 }
@@ -180,12 +179,19 @@ const sendMessage = async () => {
     loading.value = true
     scrollToBottom()
 
+    // Context Support: Last 6 messages (3 turns)
+    const contextHistory = messages.value.slice(-7, -1).map(m => ({
+        role: m.role,
+        text: m.text || ''
+    }))
+
     try {
         const data = await $fetch('/api/ai/ask', {
             method: 'POST',
             body: { 
                 question: question,
-                organization_id: organization.value.id
+                organization_id: organization.value.id,
+                history: contextHistory
             }
         }) as any
 
@@ -197,15 +203,19 @@ const sendMessage = async () => {
         })
 
     } catch (e: any) {
-        console.error("[AI Chat Error]", e)
-        const errorMessage = e.data?.statusMessage || e.statusMessage || e.message || 'No pude procesar tu pregunta.'
+        console.error("[Sofia Chat Error]", e)
+        const errorMessage = e.data?.statusMessage || e.statusMessage || e.message || 'Sofia tuvo un pequeño error.'
         messages.value.push({ 
             role: 'assistant', 
-            text: `⚠️ Error: ${errorMessage}` 
+            text: `⚠️ Error Sofia: ${errorMessage}` 
         })
     } finally {
         loading.value = false
         scrollToBottom()
     }
 }
+
+onMounted(() => {
+    console.log('Sofia System Initialized - Build 1.2.0')
+})
 </script>

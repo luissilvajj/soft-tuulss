@@ -186,10 +186,11 @@ const sendMessage = async () => {
         })
 
     } catch (e: any) {
-        console.error(e)
+        console.error("[AI Chat Error]", e)
+        const errorMessage = e.data?.statusMessage || e.statusMessage || e.message || 'No pude procesar tu pregunta.'
         messages.value.push({ 
             role: 'assistant', 
-            text: `⚠️ Error: ${e.message || 'No pude procesar tu pregunta. Intenta reformularla.'}` 
+            text: `⚠️ Error: ${errorMessage}` 
         })
     } finally {
         loading.value = false

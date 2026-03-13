@@ -91,14 +91,16 @@ export default defineEventHandler(async (event) => {
 
         if (dbError) {
             console.error("[AI] DB Error:", dbError)
+            const dbMsg = dbError.message || JSON.stringify(dbError)
+            
             // SPECIFIC CHECK: If ai_run_sql doesn't exist, tell the user
-            if (dbError.message.includes('function public.ai_run_sql') || dbError.code === '42883') {
+            if (dbMsg.includes('function public.ai_run_sql') || dbError.code === '42883') {
                 throw createError({ 
                     statusCode: 500, 
-                    statusMessage: 'Infraestructura IA faltante: Por favor ejecuta el script de base de datos (fix_ai_analyst_rpc.sql) en Supabase.' 
+                    statusMessage: 'Infraestructura IA faltante: Por favor ejecuta el script SQL en Supabase.' 
                 })
             }
-            throw createError({ statusCode: 500, statusMessage: `Error de base de datos: ${dbError.message}` })
+            throw createError({ statusCode: 500, statusMessage: `Error de base de datos: ${dbMsg}` })
         }
 
         return {
@@ -108,10 +110,13 @@ export default defineEventHandler(async (event) => {
         }
 
     } catch (e: any) {
-        console.error("[AI] Final Catch:", e)
+        console.error("[AI] Final Error Catch:", e)
+        const statusCode = e.statusCode || 500
+        const statusMessage = e.statusMessage || e.message || 'Error interno desconocido'
+        
         throw createError({
-            statusCode: e.statusCode || 500,
-            statusMessage: e.statusMessage || e.message || 'Error interno desconocido'
+            statusCode,
+            statusMessage
         })
     }
 })

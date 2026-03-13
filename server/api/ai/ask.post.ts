@@ -40,13 +40,15 @@ export default defineEventHandler(async (event) => {
     // 3. Setup Config
     const config = useRuntimeConfig()
     const apiKey = config.deepseekApiKey || process.env.DEEPSEEK_API_KEY
-    const supabaseUrl = process.env.SUPABASE_URL
-    const serviceKey = config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY
+    const supabaseUrl = process.env.SUPABASE_URL || config.public?.supabase?.url
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY
 
-    if (!apiKey) throw createError({ statusCode: 500, statusMessage: 'AI Service Not Configured' })
-    if (!supabaseUrl || !serviceKey) throw createError({ statusCode: 500, statusMessage: 'Supabase Config Missing' })
+    console.log("[AI] Config check:", { hasApiKey: !!apiKey, hasUrl: !!supabaseUrl, hasServiceKey: !!serviceKey })
 
-    // 4. Prepare Prompt
+    if (!apiKey) throw createError({ statusCode: 500, statusMessage: 'AI Service Not Configured (DEEPSEEK_API_KEY missing)' })
+    if (!supabaseUrl || !serviceKey) throw createError({ statusCode: 500, statusMessage: 'Supabase Config Missing (URL or Service Role Key)' })
+
+    // 4. Prepare Prompt... (rest of the logic)
     const systemPrompt = SYSTEM_PROMPT_TEMPLATE.replace('{{ORGANIZATION_ID}}', organization_id)
 
     try {
@@ -66,6 +68,9 @@ export default defineEventHandler(async (event) => {
                 temperature: 0.1,
                 max_tokens: 500
             }
+        }).catch(err => {
+            console.error("[AI] DeepSeek Fetch Error:", err)
+            throw createError({ statusCode: 502, statusMessage: `Error llamando a DeepSeek: ${err.message}` })
         }) as any
 
         let generatedSql = aiResponse.choices?.[0]?.message?.content || ''
@@ -77,15 +82,22 @@ export default defineEventHandler(async (event) => {
 
         // 6. Security Validation
         if (!generatedSql.toLowerCase().includes(organization_id.toLowerCase())) {
-            throw createError({ statusCode: 403, statusMessage: 'Error de seguridad: Filtro de organización ausente.' })
+            throw createError({ statusCode: 403, statusMessage: 'Error de seguridad: Filtro de organización ausente en la consulta generada.' })
         }
 
-        // 7. Execute SQL via Admin Client (using the safe RPC)
+        // 7. Execute SQL via Admin Client
         const adminClient = createClient(supabaseUrl, serviceKey)
         const { data: result, error: dbError } = await adminClient.rpc('ai_run_sql', { query: generatedSql })
 
         if (dbError) {
             console.error("[AI] DB Error:", dbError)
+            // SPECIFIC CHECK: If ai_run_sql doesn't exist, tell the user
+            if (dbError.message.includes('function public.ai_run_sql') || dbError.code === '42883') {
+                throw createError({ 
+                    statusCode: 500, 
+                    statusMessage: 'Infraestructura IA faltante: Por favor ejecuta el script de base de datos (fix_ai_analyst_rpc.sql) en Supabase.' 
+                })
+            }
             throw createError({ statusCode: 500, statusMessage: `Error de base de datos: ${dbError.message}` })
         }
 
@@ -96,10 +108,10 @@ export default defineEventHandler(async (event) => {
         }
 
     } catch (e: any) {
-        console.error("[AI] Error:", e)
+        console.error("[AI] Final Catch:", e)
         throw createError({
             statusCode: e.statusCode || 500,
-            statusMessage: e.statusMessage || e.message
+            statusMessage: e.statusMessage || e.message || 'Error interno desconocido'
         })
     }
 })

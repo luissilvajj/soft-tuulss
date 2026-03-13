@@ -44,7 +44,12 @@
                             : 'bg-surface-subtle border border-surface-border text-text-body rounded-bl-md'
                     ]"
                   >
-                      <p v-if="msg.text" class="whitespace-pre-wrap">{{ msg.text }}</p>
+                      <div 
+                        v-if="msg.text" 
+                        class="prose prose-sm max-w-none dark:prose-invert"
+                        :class="msg.role === 'user' ? 'text-white' : 'text-text-body'"
+                        v-html="renderMarkdown(msg.text)"
+                      ></div>
                       
                       <!-- SQL Preview (collapsible) -->
                       <details v-if="msg.sql" class="mt-2">
@@ -117,6 +122,7 @@
 <script setup lang="ts">
 import { useOrganization } from '~/composables/useOrganization'
 import { useToast } from "vue-toastification"
+import { marked } from 'marked'
 
 definePageMeta({ layout: 'authenticated' })
 
@@ -151,6 +157,13 @@ const getKeys = (obj: any) => Object.keys(obj)
 const formatValue = (val: any) => {
     if (typeof val === 'number') return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     return val
+}
+
+const renderMarkdown = (text: string) => {
+    if (!text) return ''
+    // Basic cleanup of strange symbols if any remain
+    const cleanText = text.replace(/\^/g, '')
+    return marked.parse(cleanText)
 }
 
 const useSuggestion = (text: string) => {

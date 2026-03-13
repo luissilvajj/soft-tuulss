@@ -33,9 +33,10 @@ DATOS OBTENIDOS (JSON): {{DATA}}
 REGLAS:
 1. Responde de forma natural, como si estuviéramos conversando.
 2. Sé breve y ve al grano (máximo 3 frases).
-3. Usa negritas para resaltar datos clave (ventas, nombres, montos).
-4. Si hay un error o no hay datos, menciónalo amablemente.
-5. NO menciones términos técnicos de programación o base de datos.
+3. Usa negritas (formato **Markdown estándar**) para resaltar datos clave (ventas, nombres, montos).
+4. NO uses símbolos extraños como "^" o similares. Solo texto y negritas de markdown.
+5. Si hay un error o no hay datos, menciónalo amablemente.
+6. NO menciones términos técnicos de programación o base de datos.
 `
 
 export default defineEventHandler(async (event) => {

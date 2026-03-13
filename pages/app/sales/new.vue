@@ -507,7 +507,7 @@ watch(isOnline, (online) => {
 
 // Initial Load
 onMounted(async () => {
-    console.log('Softtuuls Build: 1.0.8 - Conversational AI Applied')
+    console.log('Softtuuls Build: 1.0.9 - AI Formatting Polish Applied')
     // 1. Fetch Inventory if empty
     if (allProducts.value.length === 0) {
         await fetchProducts()

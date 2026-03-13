@@ -2,11 +2,15 @@ import type { Product } from '~/types/models'
 
 import type { Database } from '~/types/database.types'
 import { useOrganization } from './useOrganization'
+import { useSupabaseClient, useSupabaseUser, useState } from '#imports'
+import { useAuditLogs } from './useAuditLogs'
 
 export interface InventoryFilter {
     search?: string
     page?: number
     limit?: number
+    sortBy?: string
+    sortDesc?: boolean
 }
 
 export const useInventory = () => {
@@ -40,8 +44,15 @@ export const useInventory = () => {
                 .select('*', { count: 'exact' })
                 .eq('organization_id', organization.value.id)
                 .is('deleted_at', null)
-                .order('name')
+                
+            // Apply sorting
+            if (filters.sortBy) {
+                query = query.order(filters.sortBy, { ascending: !filters.sortDesc })
+            } else {
+                query = query.order('name')
+            }
 
+            // Apply searching
             if (filters.search) {
                 // Using .or to search in name or sku
                 query = query.or(`name.ilike.%${filters.search}%,sku.ilike.%${filters.search}%`)

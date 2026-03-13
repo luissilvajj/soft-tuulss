@@ -8,9 +8,13 @@ export interface TransactionFilter {
     search?: string
     page?: number
     limit?: number
+    sortBy?: string
+    sortDesc?: boolean
 }
 
 import type { Database } from '~/types/database.types'
+import { useSupabaseClient, useState } from '#imports'
+import { useOrganization } from './useOrganization'
 
 export const useTransactions = () => {
     const client = useSupabaseClient<Database>()
@@ -28,9 +32,6 @@ export const useTransactions = () => {
     const fetchTransactions = async (filters: TransactionFilter = {}) => {
         if (!organization.value?.id) return
 
-        // If applying filters, we generally WANT to show loading to indicate filtering is happening
-        // But for initial load (no filters or default), we can cache.
-        // Simplified: Use current length check. Use a refined strategy if needed.
         const isFiltering = Object.keys(filters).length > 0
 
         if (transactions.value.length === 0 || isFiltering) {
@@ -42,6 +43,7 @@ export const useTransactions = () => {
             const limit = filters.limit || 20
             const from = (page - 1) * limit
             const to = from + limit - 1
+            const sortBy = filters.sortBy || 'date'
 
             let query = client
                 .from('transactions')
@@ -50,8 +52,12 @@ export const useTransactions = () => {
                     client:clients(name)
                 `, { count: 'exact' })
                 .eq('organization_id', organization.value.id)
-                .order('date', { ascending: false })
-                .order('created_at', { ascending: false })
+
+            if (filters.sortBy) {
+                 query = query.order(filters.sortBy, { ascending: !filters.sortDesc })
+            } else {
+                 query = query.order('date', { ascending: false }).order('created_at', { ascending: false })
+            }
 
             // Apply Filters
             if (filters.type && filters.type !== 'all') {

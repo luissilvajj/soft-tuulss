@@ -96,6 +96,30 @@
         </div>
     </div>
 
+    <!-- Duplicate Handling Selection -->
+    <div v-if="duplicates.length > 0 && parsedData.length > 0" class="mt-4 p-4 border border-surface-border rounded-xl bg-surface-ground">
+        <h4 class="text-sm font-bold text-text-heading mb-2 flex items-center gap-2">
+            <svg class="w-4 h-4 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            ¿Qué hacemos con los {{ duplicates.length }} productos que ya existen?
+        </h4>
+        <div class="space-y-2 mt-3">
+            <label class="flex items-start gap-3 p-3 border border-surface-border rounded-lg cursor-pointer hover:bg-surface-subtle transition-colors" :class="{'ring-2 ring-primary-500 border-primary-500': duplicateAction === 'update'}">
+                <input type="radio" v-model="duplicateAction" value="update" class="mt-1 text-primary-600 focus:ring-primary-500 border-surface-border">
+                <div>
+                     <p class="text-sm font-bold text-text-heading">Actualizar Precios y Stock (Recomendado)</p>
+                     <p class="text-xs text-text-secondary">Los productos existentes serán sobreescritos con los datos de este archivo Excel.</p>
+                </div>
+            </label>
+            <label class="flex items-start gap-3 p-3 border border-surface-border rounded-lg cursor-pointer hover:bg-surface-subtle transition-colors" :class="{'ring-2 ring-primary-500 border-primary-500': duplicateAction === 'ignore'}">
+                <input type="radio" v-model="duplicateAction" value="ignore" class="mt-1 text-primary-600 focus:ring-primary-500 border-surface-border">
+                <div>
+                     <p class="text-sm font-bold text-text-heading">Ignorarlos (Solo importar nuevos)</p>
+                     <p class="text-xs text-text-secondary">Los productos con SKU duplicado serán saltados y mantendrán su precio/stock actual en Softtuuls.</p>
+                </div>
+            </label>
+        </div>
+    </div>
+
     <!-- Error Display -->
     <div v-if="error" class="mt-4 p-4 bg-status-error/10 border border-status-error/20 rounded-xl text-status-error text-sm font-bold flex items-center gap-2">
             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -110,7 +134,7 @@
           :disabled="invalidCount > 0"
           @click="confirmImport"
       >
-          Importar {{ parsedData.length }} Productos
+          Importar {{ duplicateAction === 'ignore' ? parsedData.length - invalidCount - duplicates.length : parsedData.length - invalidCount }} Productos
       </BaseButton>
       <BaseButton 
           variant="ghost" 
@@ -141,6 +165,7 @@ const fileInput = ref(null)
 const parsedData = ref([])
 const error = ref('')
 const importing = ref(false)
+const duplicateAction = ref('update') // 'update' or 'ignore'
 
 const duplicates = computed(() => {
     return parsedData.value.filter(item => props.existingSkus.includes(item.sku))
@@ -164,7 +189,16 @@ const previewData = computed(() => parsedData.value.slice(0, 50)) // Show max 50
 const reset = () => {
     parsedData.value = []
     error.value = ''
+    duplicateAction.value = 'update'
     if(fileInput.value) fileInput.value.value = ''
+}
+
+const parseTaxCondition = (val) => {
+    if (!val) return 'exempt'
+    const str = String(val).toLowerCase().trim()
+    if (str.includes('16') || str.includes('general')) return 'general'
+    if (str.includes('8') || str.includes('reducid')) return 'reduced'
+    return 'exempt'
 }
 
 const processFile = async (file) => {
@@ -172,8 +206,6 @@ const processFile = async (file) => {
     if (!file) return
 
     // [FIX - FASE 3] Protección contra Out Of Memory (OOM)
-    // El hilo principal de JS colapsará si parsea > 5MB de Excel masivo sincrónicamente.
-    // Idealmente, esto deberia subir a una Edge Function, pero como mitigación cortafuego:
     if (file.size > 5 * 1024 * 1024) { 
         error.value = "⚠️ Archivo demasiado grande (>5MB). Por favor divídelo en varios archivos u optimiza el Excel para evitar congelar el navegador."
         return
@@ -200,6 +232,7 @@ const processFile = async (file) => {
             const cost = parseFloat(row[getKey('costo')] || row[getKey('cost')] || 0)
             const stock = parseInt(row[getKey('stock')] || row[getKey('cantidad')] || 0)
             const category = row[getKey('categoria')] || row[getKey('category')] || ''
+            const tax_condition = parseTaxCondition(row[getKey('iva')] || row[getKey('tax')] || row[getKey('impuesto')] || '')
 
             const isValid = sku && name && !isNaN(price)
             let err = ''
@@ -213,8 +246,9 @@ const processFile = async (file) => {
                 cost,
                 stock,
                 category,
+                tax_condition,
                 isValid,
-                isDuplicate: false, // Se recalcula después
+                isDuplicate: props.existingSkus.includes(String(sku).trim()), 
                 error: err
             }
         })
@@ -226,7 +260,6 @@ const processFile = async (file) => {
         })
         parsedData.value.forEach(item => {
             if (skuCount[item.sku] > 1) {
-                item.isDuplicate = true
                 item.isValid = false
                 item.error = 'SKU duplicado en el archivo'
             }
@@ -251,8 +284,18 @@ const handleDrop = (event) => {
 const confirmImport = async () => {
     importing.value = true
     try {
-        // Filter out invalid items just in case, though button is disabled
-        const validItems = parsedData.value.filter(i => i.isValid)
+        let validItems = parsedData.value.filter(i => i.isValid)
+        
+        if (duplicateAction.value === 'ignore') {
+             validItems = validItems.filter(i => !i.isDuplicate)
+        }
+
+        if (validItems.length === 0) {
+            error.value = "No hay elementos válidos para importar después de aplicar los filtros."
+            importing.value = false
+            return
+        }
+
         await emit('import', validItems)
         // Parent is responsible for closing or showing success
         // But we stay loading until parent finishes
@@ -269,8 +312,8 @@ watch(() => props.show, (val) => {
 // === Descargar Plantilla Excel ===
 const downloadTemplate = () => {
     const templateData = [
-        { SKU: 'PROD-001', Nombre: 'Producto Ejemplo', Precio: 10.50, Costo: 5.00, Stock: 100, Categoria: 'General' },
-        { SKU: 'PROD-002', Nombre: 'Segundo Producto', Precio: 25.00, Costo: 12.00, Stock: 50, Categoria: 'Electrónica' },
+        { SKU: 'PROD-001', Nombre: 'Producto Ejemplo', Precio: 10.50, Costo: 5.00, Stock: 100, Categoria: 'General', 'IVA (Exento/General/Reducido)': 'General' },
+        { SKU: 'PROD-002', Nombre: 'Segundo Producto', Precio: 25.00, Costo: 12.00, Stock: 50, Categoria: 'Electrónica', 'IVA (Exento/General/Reducido)': 'Exento' },
     ]
     const worksheet = XLSX.utils.json_to_sheet(templateData)
     worksheet['!cols'] = [
@@ -280,6 +323,7 @@ const downloadTemplate = () => {
         { wch: 12 }, // Costo
         { wch: 10 }, // Stock
         { wch: 18 }, // Categoria
+        { wch: 25 }, // IVA
     ]
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Productos')

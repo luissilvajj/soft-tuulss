@@ -1,11 +1,15 @@
 import type { Client } from '~/types/models'
-
 import type { Database } from '~/types/database.types'
+import { useSupabaseClient, useState } from '#imports'
+import { useOrganization } from './useOrganization'
+import { useAuditLogs } from './useAuditLogs'
 
 export interface ClientFilter {
     page?: number
     limit?: number
     search?: string
+    sortBy?: string
+    sortDesc?: boolean
 }
 
 export const useClients = () => {
@@ -33,8 +37,14 @@ export const useClients = () => {
                 .from('clients')
                 .select('*', { count: 'exact' })
                 .eq('organization_id', organization.value.id)
-                .order('created_at', { ascending: false })
-                .range(from, to)
+
+            if (filters.sortBy) {
+                 query = query.order(filters.sortBy, { ascending: !filters.sortDesc })
+            } else {
+                 query = query.order('created_at', { ascending: false })
+            }
+                
+            query = query.range(from, to)
 
             if (search && search.length >= 2) {
                  query = query.or(`name.ilike.%${search}%,identity_document.ilike.%${search}%,email.ilike.%${search}%`)

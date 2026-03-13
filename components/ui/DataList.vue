@@ -5,19 +5,41 @@
  * 
  * Props:
  * - items: Array of data objects
- * - columns: Array of { key, label, class? }
+ * - columns: Array of { key, label, class?, sortable? }
  * - titleKey: Key to use for the card title (mobile)
  * - subtitleKey: Key to use for the card subtitle/price (mobile)
  * - loading: Boolean state
+ * - limit: Number of items per page
+ * - total: Total items available (optional)
  */
 
-defineProps<{
+const props = defineProps<{
   items: any[];
-  columns: { key: string; label: string; class?: string }[];
+  columns: { key: string; label: string; class?: string; sortable?: boolean }[];
   titleKey?: string;
   subtitleKey?: string;
   loading?: boolean;
+  limit?: number;
+  total?: number;
 }>();
+
+import { ref } from 'vue'
+
+const emit = defineEmits(['update:limit', 'sort'])
+
+const sortCol = ref('')
+const sortAsc = ref(true)
+
+const handleSort = (key: string, isSortable?: boolean) => {
+    if (!isSortable) return
+    if (sortCol.value === key) {
+        sortAsc.value = !sortAsc.value
+    } else {
+        sortCol.value = key
+        sortAsc.value = true
+    }
+    emit('sort', { key: sortCol.value, asc: sortAsc.value })
+}
 
 // Using standard slots and destructuring instead of deep resolution on every cell render.
 // Emitting utility functions only when strictly needed for simple paths.
@@ -30,6 +52,28 @@ const resolve = (item: any, key: string) => {
 
 <template>
   <div>
+    <!-- Table Controls Header -->
+    <div v-if="limit !== undefined" class="flex justify-between items-center mb-4">
+        <div class="text-sm text-text-secondary">
+            <span v-if="total !== undefined">Mostrando <b>{{ items?.length || 0 }}</b> de <b>{{ total }}</b> resultados</span>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-text-secondary">
+            <span>Mostrar:</span>
+            <select 
+                :value="limit" 
+                @input="$emit('update:limit', Number(($event.target as HTMLSelectElement).value))"
+                class="bg-surface-subtle border border-surface-border text-text-heading rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-primary-500"
+            >
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+                <option :value="500">500</option>
+                <option :value="1000">1000</option>
+            </select>
+        </div>
+    </div>
+
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center p-8">
       <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-primary-600"></div>
@@ -50,10 +94,17 @@ const resolve = (item: any, key: string) => {
                 <th 
                   v-for="col in columns" 
                   :key="col.key"
-                  class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-secondary"
-                  :class="col.class"
+                  class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-secondary select-none"
+                  :class="[col.class, col.sortable ? 'cursor-pointer hover:bg-surface-section transition-colors group' : '']"
+                  @click="handleSort(col.key, col.sortable)"
                 >
-                  {{ col.label }}
+                  <div class="flex items-center gap-1">
+                      {{ col.label }}
+                      <span v-if="col.sortable" class="text-text-secondary/50 group-hover:text-text-secondary transition-colors" :class="{'text-primary-600': sortCol === col.key}">
+                          <svg v-if="sortCol !== col.key || !sortAsc" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                          <svg v-if="sortCol === col.key && sortAsc" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                      </span>
+                  </div>
                 </th>
               </tr>
             </thead>

@@ -75,13 +75,7 @@
             <span class="font-mono text-text-secondary">${{ (item.cost || 0).toFixed(4) }}</span>
         </template>
 
-        <template #col-actions="{ item }">
-            <div class="flex justify-end gap-2">
-                <button @click="openRestockModal(item)" class="text-status-success hover:text-green-700 text-sm font-bold transition-colors">+ Stock</button>
-                <button @click="openEditModal(item)" class="text-primary-600 hover:text-primary-800 text-sm font-bold transition-colors">Editar</button>
-                <button @click="handleDelete(item)" class="text-status-error hover:text-red-700 text-sm font-bold transition-colors">Borrar</button>
-            </div>
-        </template>
+
 
         <!-- Mobile Card Customization -->
         <template #card-subtitle="{ item }">
@@ -97,13 +91,30 @@
                 {{ item.stock }} Unid.
             </span>
         </template>
+        
+        <template #col-actions="{ item }">
+            <div class="flex justify-end gap-1.5 opacity-60 hover:opacity-100 transition-opacity">
+                <button @click="openRestockModal(item)" class="p-1.5 text-primary-600 hover:bg-primary-50 hover:text-primary-700 rounded-lg transition-colors border border-transparent hover:border-primary-200" title="Añadir Stock">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </button>
+                <button @click="openEditModal(item)" class="p-1.5 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors border border-transparent hover:border-emerald-200" title="Editar Producto">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                </button>
+                <button @click="openKardexModal(item)" class="p-1.5 text-purple-600 hover:bg-purple-50 hover:text-purple-700 rounded-lg transition-colors border border-transparent hover:border-purple-200" title="Ver Auditoría Kardex">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </button>
+                <button @click="handleDelete(item)" class="p-1.5 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors border border-transparent hover:border-red-200" title="Eliminar Producto">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            </div>
+        </template>
 
         <template #mobile-actions="{ item }">
              <span class="text-xs text-text-secondary font-mono">{{ item.sku }}</span>
              <div class="flex gap-3">
-                 <button @click="openKardexModal(item)" class="text-text-secondary font-bold text-sm hover:text-text-heading"><svg class="w-4 h-4 inline-block -mt-1 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Kardex</button>
-                 <button @click="openRestockModal(item)" class="text-status-success font-bold text-sm">Reponer</button>
-                 <button @click="openEditModal(item)" class="text-primary-600 font-bold text-sm">Editar</button>
+                 <button @click="openKardexModal(item)" class="text-purple-600 font-bold text-sm hover:text-purple-700"><svg class="w-4 h-4 inline-block -mt-1 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Kardex</button>
+                 <button @click="openRestockModal(item)" class="text-primary-600 font-bold text-sm">Reponer</button>
+                 <button @click="openEditModal(item)" class="text-emerald-600 font-bold text-sm">Editar</button>
              </div>
         </template>
     </UiDataList>
@@ -130,7 +141,7 @@
     <!-- Modals -->
     <AppImportModal 
         :show="showImportModal" 
-        :existing-skus="products.map(p => p.sku)"
+        :existing-skus="products.map((p: any) => p.sku)"
         @close="showImportModal = false"
         @import="handleImport" 
     />
@@ -240,16 +251,16 @@
   </div>
 </template>
 
-<style scoped>
-/* Scoped styles removed in favor of semantic Tailwind classes */
+<!-- Scoped styles removed in favor of semantic Tailwind classes -->
 </style>
 
 <script setup lang="ts">
+import { ref, onMounted, watch, computed } from 'vue'
+import { definePageMeta } from '#imports'
 import { useOrganization } from '~/composables/useOrganization'
 import { useInventory } from '~/composables/useInventory'
 import { watchDebounced } from '@vueuse/core'
 import { useToast } from "vue-toastification"
-import { ref, onMounted, watch, computed } from 'vue'
 import UiDataList from '~/components/ui/DataList.vue'
 import BaseButton from '~/components/base/BaseButton.vue'
 import BaseInput from '~/components/base/BaseInput.vue'
@@ -259,10 +270,10 @@ import KardexModal from '~/components/KardexModal.vue'
 definePageMeta({ layout: 'authenticated' })
 
 const columns = [
-  { key: 'product', label: 'Producto' },
-  { key: 'stock', label: 'Stock', class: 'text-center' },
-  { key: 'price', label: 'Precio', class: 'text-right' },
-  { key: 'cost', label: 'Costo (Prom)', class: 'text-right hidden sm:table-cell' },
+  { key: 'product', label: 'Producto', sortable: true },
+  { key: 'stock', label: 'Stock', class: 'text-center', sortable: true },
+  { key: 'price', label: 'Precio', class: 'text-right', sortable: true },
+  { key: 'cost', label: 'Costo (Prom)', class: 'text-right hidden sm:table-cell', sortable: true },
   { key: 'actions', label: '', class: 'text-right' }
 ]
 
@@ -282,15 +293,39 @@ const openKardexModal = (product: any) => {
     showKardexModal.value = true
 }
 
-// --- Server Side Pagination ---
+// --- Server Side Pagination & Sorting ---
 const page = ref(1)
+const limit = ref(50)
 const searchQuery = ref('')
-const totalPages = computed(() => Math.max(1, Math.ceil(totalProducts.value / 50)))
+const sortCol = ref('name')
+const sortAsc = ref(true)
+
+const totalPages = computed(() => Math.max(1, Math.ceil(totalProducts.value / limit.value)))
 
 // refresh() - Función central para cargar/recargar productos
 const refresh = () => {
     if (!organization.value?.id) return
-    fetchProducts({ page: page.value, limit: 50, search: searchQuery.value })
+    fetchProducts({ 
+        page: page.value, 
+        limit: limit.value, 
+        search: searchQuery.value,
+        sortBy: sortCol.value,
+        sortDesc: !sortAsc.value
+    })
+}
+
+const handleSort = (sortData: { key: string, asc: boolean }) => {
+    // Map UI column keys back to DB column names
+    const dbKeyMap: Record<string, string> = {
+        'product': 'name',
+        'stock': 'stock',
+        'price': 'price',
+        'cost': 'cost'
+    }
+    sortCol.value = dbKeyMap[sortData.key] || 'name'
+    sortAsc.value = sortData.asc
+    page.value = 1 // Reset pagination
+    refresh()
 }
 
 // Debounce Search

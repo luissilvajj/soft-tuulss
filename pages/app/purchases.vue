@@ -26,39 +26,37 @@
             </button>
         </div>
 
-        <div class="bg-surface-ground rounded-xl border border-surface-border overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-surface-subtle text-text-secondary font-medium text-xs uppercase border-b border-surface-border">
-                        <tr>
-                            <th class="px-6 py-4">Nombre</th>
-                            <th class="px-6 py-4">RIF</th>
-                            <th class="px-6 py-4">Teléfono</th>
-                            <th class="px-6 py-4">Contacto</th>
-                            <th class="px-6 py-4 text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-surface-border">
-                        <tr v-if="loadingSuppliers">
-                            <td colspan="5" class="px-6 py-8 text-center text-text-secondary">Cargando...</td>
-                        </tr>
-                        <tr v-else-if="suppliers.length === 0">
-                            <td colspan="5" class="px-6 py-8 text-center text-text-secondary">No hay proveedores registrados</td>
-                        </tr>
-                        <tr v-for="s in suppliers" :key="s.id" class="hover:bg-surface-subtle transition-colors">
-                            <td class="px-6 py-4 font-semibold text-text-heading">{{ s.name }}</td>
-                            <td class="px-6 py-4 font-mono">{{ s.rif || '-' }}</td>
-                            <td class="px-6 py-4">{{ s.phone || '-' }}</td>
-                            <td class="px-6 py-4">{{ s.contact_person || '-' }}</td>
-                            <td class="px-6 py-4 text-right">
-                                <button @click="openSupplierModal(s)" class="text-primary-600 hover:text-primary-800 text-sm font-bold mr-3">Editar</button>
-                                <button @click="deleteSupplier(s.id)" class="text-status-error hover:text-red-700 text-sm font-bold">Borrar</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <UiDataList
+            :items="suppliers"
+            :columns="supplierColumns"
+            :loading="loadingSuppliers"
+            title-key="name"
+            v-model:limit="limitSuppliers"
+            :total="totalSuppliers"
+            @sort="handleSortSuppliers"
+        >
+            <template #col-name="{ item }">
+                <span class="font-semibold text-text-heading">{{ item.name }}</span>
+            </template>
+            <template #col-rif="{ item }">
+                <span class="font-mono">{{ item.rif || '-' }}</span>
+            </template>
+            <template #col-phone="{ item }">
+                <span>{{ item.phone || '-' }}</span>
+            </template>
+            <template #col-contact="{ item }">
+                 <span>{{ item.contact_person || '-' }}</span>
+            </template>
+            <template #col-actions="{ item }">
+                <div class="flex justify-end gap-2 text-right">
+                    <button @click="openSupplierModal(item)" class="text-primary-600 hover:text-primary-800 text-sm font-bold mr-3">Editar</button>
+                    <button @click="deleteSupplier(item.id)" class="text-status-error hover:text-red-700 text-sm font-bold">Borrar</button>
+                </div>
+            </template>
+            <template #mobile-actions="{ item }">
+                <button @click="openSupplierModal(item)" class="text-primary-600 font-bold text-sm">Editar</button>
+            </template>
+        </UiDataList>
     </div>
 
     <!-- ═══ PURCHASES TAB ═══ -->
@@ -71,46 +69,45 @@
             </button>
         </div>
 
-        <div class="bg-surface-ground rounded-xl border border-surface-border overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-surface-subtle text-text-secondary font-medium text-xs uppercase border-b border-surface-border">
-                        <tr>
-                            <th class="px-6 py-4">Fecha</th>
-                            <th class="px-6 py-4">Proveedor</th>
-                            <th class="px-6 py-4">Factura</th>
-                            <th class="px-6 py-4 text-right">Subtotal</th>
-                            <th class="px-6 py-4 text-right">IVA</th>
-                            <th class="px-6 py-4 text-right">Total</th>
-                            <th class="px-6 py-4">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-surface-border">
-                        <tr v-if="loadingPurchases">
-                            <td colspan="7" class="px-6 py-8 text-center text-text-secondary">Cargando...</td>
-                        </tr>
-                        <tr v-else-if="purchases.length === 0">
-                            <td colspan="7" class="px-6 py-8 text-center text-text-secondary">No hay compras registradas</td>
-                        </tr>
-                        <tr v-for="p in purchases" :key="p.id" class="hover:bg-surface-subtle transition-colors">
-                            <td class="px-6 py-4 font-mono">{{ new Date(p.date).toLocaleDateString('es-VE') }}</td>
-                            <td class="px-6 py-4 font-semibold text-text-heading">{{ p.supplier?.name || 'Sin proveedor' }}</td>
-                            <td class="px-6 py-4 font-mono">{{ p.invoice_number || '-' }}</td>
-                            <td class="px-6 py-4 text-right font-mono">${{ Number(p.subtotal).toFixed(2) }}</td>
-                            <td class="px-6 py-4 text-right font-mono">${{ Number(p.tax_amount).toFixed(2) }}</td>
-                            <td class="px-6 py-4 text-right font-bold text-text-heading">${{ Number(p.total).toFixed(2) }}</td>
-                            <td class="px-6 py-4">
-                                <span :class="[
-                                    'px-2 py-1 text-xs font-bold rounded-full',
-                                    p.status === 'paid' ? 'bg-status-success/10 text-status-success' :
-                                    p.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
-                                ]">{{ p.status === 'paid' ? 'Pagado' : p.status === 'pending' ? 'Pendiente' : 'Parcial' }}</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <UiDataList
+            :items="purchases"
+            :columns="purchaseColumns"
+            :loading="loadingPurchases"
+            title-key="supplier"
+            subtitle-key="total"
+            v-model:limit="limitPurchases"
+            :total="totalPurchases"
+            @sort="handleSortPurchases"
+        >
+            <template #card-subtitle="{ item }">
+               <span class="text-text-heading font-bold">${{ Number(item.total).toFixed(2) }}</span>
+            </template>
+            <template #col-date="{ item }">
+                <span class="font-mono">{{ new Date(item.date).toLocaleDateString('es-VE') }}</span>
+            </template>
+            <template #col-supplier="{ item }">
+                 <span class="font-semibold text-text-heading">{{ item.supplier?.name || 'Sin proveedor' }}</span>
+            </template>
+            <template #col-invoice="{ item }">
+                 <span class="font-mono">{{ item.invoice_number || '-' }}</span>
+            </template>
+            <template #col-subtotal="{ item }">
+                 <span class="font-mono">${{ Number(item.subtotal).toFixed(2) }}</span>
+            </template>
+            <template #col-iva="{ item }">
+                 <span class="font-mono">${{ Number(item.tax_amount).toFixed(2) }}</span>
+            </template>
+             <template #col-total="{ item }">
+                 <span class="font-bold text-text-heading">${{ Number(item.total).toFixed(2) }}</span>
+            </template>
+            <template #col-status="{ item }">
+                <span :class="[
+                    'px-2 py-1 text-xs font-bold rounded-full',
+                    item.status === 'paid' ? 'bg-status-success/10 text-status-success' :
+                    item.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
+                ]">{{ item.status === 'paid' ? 'Pagado' : item.status === 'pending' ? 'Pendiente' : 'Parcial' }}</span>
+            </template>
+        </UiDataList>
     </div>
 
     <!-- ═══ SUPPLIER MODAL ═══ -->
@@ -186,11 +183,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useSupabaseClient, definePageMeta } from '#imports'
 import { useOrganization } from '~/composables/useOrganization'
 import { useToast } from 'vue-toastification'
 import BaseInput from '~/components/base/BaseInput.vue'
+import UiDataList from '~/components/ui/DataList.vue'
 
 definePageMeta({ layout: 'authenticated', middleware: 'admin-auth' })
 
@@ -200,6 +198,24 @@ const toast = useToast()
 
 const activeTab = ref('purchases')
 
+const supplierColumns = [
+    { key: 'name', label: 'Nombre' },
+    { key: 'rif', label: 'RIF' },
+    { key: 'phone', label: 'Teléfono' },
+    { key: 'contact', label: 'Contacto' },
+    { key: 'actions', label: '', class: 'text-right' }
+]
+
+const purchaseColumns = [
+    { key: 'date', label: 'Fecha' },
+    { key: 'supplier', label: 'Proveedor' },
+    { key: 'invoice', label: 'Factura' },
+    { key: 'subtotal', label: 'Subtotal', class: 'text-right hidden sm:table-cell' },
+    { key: 'iva', label: 'IVA', class: 'text-right hidden sm:table-cell' },
+    { key: 'total', label: 'Total', class: 'text-right' },
+    { key: 'status', label: 'Estado' }
+]
+
 // ─── Suppliers ─────────────────────
 const suppliers = ref<any[]>([])
 const loadingSuppliers = ref(false)
@@ -208,13 +224,32 @@ const editingSupplier = ref(false)
 const savingSupplier = ref(false)
 const supplierForm = ref({ id: '', name: '', rif: '', phone: '', email: '', contact_person: '', address: '' })
 
+const limitSuppliers = ref(20)
+const totalSuppliers = ref(0)
+const sortColSuppliers = ref('name')
+const sortAscSuppliers = ref(true)
+
 const fetchSuppliers = async () => {
     if (!organization.value?.id) return
     loadingSuppliers.value = true
-    const { data } = await client.from('suppliers').select('*').eq('organization_id', organization.value.id).order('name')
+    const { data, count } = await client.from('suppliers')
+        .select('*', { count: 'exact' })
+        .eq('organization_id', organization.value.id)
+        .order(sortColSuppliers.value, { ascending: sortAscSuppliers.value })
+        .limit(limitSuppliers.value)
+
     suppliers.value = data || []
+    if (count !== null) totalSuppliers.value = count
     loadingSuppliers.value = false
 }
+
+const handleSortSuppliers = (sortData: any) => {
+    sortColSuppliers.value = sortData.key
+    sortAscSuppliers.value = sortData.asc
+    fetchSuppliers()
+}
+
+watch(limitSuppliers, fetchSuppliers)
 
 const openSupplierModal = (s?: any) => {
     if (s) {
@@ -263,17 +298,32 @@ const purchaseForm = ref({
     payment_method: 'transfer', status: 'paid', notes: ''
 })
 
+const limitPurchases = ref(20)
+const totalPurchases = ref(0)
+const sortColPurchases = ref('date')
+const sortAscPurchases = ref(false)
+
 const fetchPurchases = async () => {
     if (!organization.value?.id) return
     loadingPurchases.value = true
-    const { data } = await client.from('purchases')
-        .select('*, supplier:suppliers(name, rif)')
+    const { data, count } = await client.from('purchases')
+        .select('*, supplier:suppliers(name, rif)', { count: 'exact' })
         .eq('organization_id', organization.value.id)
-        .order('date', { ascending: false })
-        .limit(50)
+        .order(sortColPurchases.value, { ascending: sortAscPurchases.value })
+        .limit(limitPurchases.value)
+        
     purchases.value = data || []
+    if (count !== null) totalPurchases.value = count
     loadingPurchases.value = false
 }
+
+const handleSortPurchases = (sortData: any) => {
+    sortColPurchases.value = sortData.key
+    sortAscPurchases.value = sortData.asc
+    fetchPurchases()
+}
+
+watch(limitPurchases, fetchPurchases)
 
 const openPurchaseModal = () => {
     purchaseForm.value = {

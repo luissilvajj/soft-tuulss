@@ -82,6 +82,9 @@
         :columns="columns"
         :loading="loading"
         title-key="name"
+        v-model:limit="limit"
+        :total="totalClients"
+        @sort="handleSort"
     >
         <template #col-client="{ item }">
             <div class="flex items-center gap-3">
@@ -134,25 +137,6 @@
         </template>
     </UiDataList>
 
-    <!-- Pagination -->
-    <div v-if="totalPages > 1 && (loading || clients.length > 0)" class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm bg-surface-ground p-4 rounded-xl border border-surface-border">
-         <span class="text-text-secondary font-medium">Mostrando página <span class="text-text-heading font-bold">{{ page }}</span> de <span class="text-text-heading font-bold">{{ totalPages }}</span></span>
-         <div class="flex gap-2">
-             <button 
-                @click="page > 1 && page--" 
-                :disabled="page === 1"
-                class="px-4 py-2 border border-surface-border rounded-lg hover:bg-surface-subtle disabled:opacity-50 transition-colors font-medium text-text-secondary"
-            >
-                 Anterior
-             </button>
-             <button 
-                @click="page < totalPages && page++" 
-                :disabled="page === totalPages"
-                class="px-4 py-2 border border-surface-border rounded-lg hover:bg-surface-subtle disabled:opacity-50 transition-colors font-medium text-text-secondary"
-            >
-                 Siguiente
-             </button>
-         </div>
     </div>
 
     <!-- Empty State -->
@@ -234,10 +218,10 @@ import { useClients } from '~/composables/useClients'
 definePageMeta({ layout: 'authenticated' })
 
 const columns = [
-  { key: 'client', label: 'Cliente' },
+  { key: 'client', label: 'Cliente', sortable: true },
   { key: 'contact', label: 'Contacto' },
-  { key: 'identity', label: 'Identidad' },
-  { key: 'location', label: 'location' },
+  { key: 'identity', label: 'Identidad', sortable: true },
+  { key: 'location', label: 'Ubicación' },
   { key: 'actions', label: '', class: 'text-right' }
 ]
 useAuthGuard()
@@ -255,24 +239,37 @@ const newClient = ref({ name: '', email: '', phone: '', identity_document: '', a
 // Search & Pagination Server-Side Logic
 const searchQuery = ref('')
 const page = ref(1)
-const limit = 20
+const limit = ref(20)
+const sortCol = ref('created_at')
+const sortAsc = ref(false)
 
 const totalPages = computed(() => {
-    return Math.ceil(totalClients.value / limit)
+    return Math.ceil(totalClients.value / limit.value)
 })
+
+const handleSort = (sortData) => {
+    const dbKeyMap = {
+        'client': 'name',
+        'identity': 'identity_document'
+    }
+    sortCol.value = dbKeyMap[sortData.key] || 'created_at'
+    sortAsc.value = sortData.asc
+    page.value = 1
+    fetchClients({ page: page.value, limit: limit.value, search: searchQuery.value, sortBy: sortCol.value, sortDesc: !sortAsc.value })
+}
 
 import { watchDebounced } from '@vueuse/core'
 
 watchDebounced(searchQuery, () => {
     page.value = 1
     if (organization.value?.id) {
-        fetchClients({ page: page.value, limit, search: searchQuery.value })
+        fetchClients({ page: page.value, limit: limit.value, search: searchQuery.value, sortBy: sortCol.value, sortDesc: !sortAsc.value })
     }
 }, { debounce: 500 })
 
-watch(page, (newPage) => {
+watch([page, limit], () => {
     if (organization.value?.id) {
-        fetchClients({ page: newPage, limit, search: searchQuery.value })
+        fetchClients({ page: page.value, limit: limit.value, search: searchQuery.value, sortBy: sortCol.value, sortDesc: !sortAsc.value })
     }
 })
 
@@ -329,14 +326,14 @@ const openWhatsapp = (client) => {
 watch(() => organization.value?.id, (newId) => {
    if(newId) {
        page.value = 1
-       fetchClients({ page: page.value, limit })
+       fetchClients({ page: page.value, limit: limit.value })
    }
 }, { immediate: false })
 
 onMounted(async () => {
   if(!organization.value?.id) await fetchOrganization()
   if(organization.value?.id && clients.value.length === 0) {
-      fetchClients({ page: page.value, limit })
+      fetchClients({ page: page.value, limit: limit.value })
   }
 })
 

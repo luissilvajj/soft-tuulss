@@ -138,7 +138,7 @@ onMounted(async () => {
           if (directOrgs && directOrgs.length > 0) {
               console.log('Onboarding: Direct DB check found orgs! Redirecting...', directOrgs)
               // Force hydration manually to unblock UI
-              const { data: fullOrg } = await client.from('organizations').select('id, name, logo_url, fiscal_doc, address, phone, receipt_footer, created_at').eq('id', directOrgs[0].organization_id).single()
+              const { data: fullOrg } = await client.from('organizations').select('id, name, logo_url, subscription_status, created_at').eq('id', directOrgs[0].organization_id).single()
               if (fullOrg) {
                   organization.value = { ...fullOrg, role: 'member' } // Temporary role
                   return router.push('/app')

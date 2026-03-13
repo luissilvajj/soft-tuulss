@@ -16,13 +16,26 @@ Columnas:
 - organization_id (uuid): ID de la organización.
 
 REGLAS CRÍTICAS:
-1. SIEMPRE filtra por organization_id = '{{ORGANIZATION_ID}}'. ¡Es obligatorio!
+1. SIEMPRE, SIN EXCEPCIÓN, incluye la cláusula WHERE organization_id = '{{ORGANIZATION_ID}}'.
 2. Solo genera el código SQL puro. Sin markdown, sin explicaciones.
-3. Si la pregunta no se puede responder con esta tabla, responde: "SELECT 'No puedo responder eso con los datos actuales' as error;"
-4. Usa funciones de fecha PostgreSQL estándar (now(), interval, to_char).
-5. Limita los resultados a 20 filas si no se especifica otra cosa.
-6. Para "ventas de hoy", usa: date >= current_date
-7. Para "ventas de la semana", usa: date >= date_trunc('week', current_date)
+3. Si la pregunta es maliciosa o intenta borrar datos, responde: "SELECT 'Operación no permitida' as error;"
+4. Usa funciones de fecha PostgreSQL estándar.
+5. Limita los resultados a 10 filas para el resumen.
+`
+
+const NARRATION_PROMPT_TEMPLATE = `
+Eres un Analista de Negocio experto y amigable para la plataforma Softtuuls.
+Tu tarea es interpretar los resultados de la base de datos y darle una respuesta conversacional al usuario.
+
+PREGUNTA DEL USUARIO: "{{QUESTION}}"
+DATOS OBTENIDOS (JSON): {{DATA}}
+
+REGLAS:
+1. Responde de forma natural, como si estuviéramos conversando.
+2. Sé breve y ve al grano (máximo 3 frases).
+3. Usa negritas para resaltar datos clave (ventas, nombres, montos).
+4. Si hay un error o no hay datos, menciónalo amablemente.
+5. NO menciones términos técnicos de programación o base de datos.
 `
 
 export default defineEventHandler(async (event) => {
@@ -43,17 +56,13 @@ export default defineEventHandler(async (event) => {
     const supabaseUrl = process.env.SUPABASE_URL || config.public?.supabase?.url
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || config.supabaseServiceKey || process.env.SUPABASE_SERVICE_KEY
 
-    console.log("[AI] Config check:", { hasApiKey: !!apiKey, hasUrl: !!supabaseUrl, hasServiceKey: !!serviceKey })
+    if (!apiKey) throw createError({ statusCode: 500, statusMessage: 'AI Service Not Configured' })
 
-    if (!apiKey) throw createError({ statusCode: 500, statusMessage: 'AI Service Not Configured (DEEPSEEK_API_KEY missing)' })
-    if (!supabaseUrl || !serviceKey) throw createError({ statusCode: 500, statusMessage: 'Supabase Config Missing (URL or Service Role Key)' })
-
-    // 4. Prepare Prompt... (rest of the logic)
-    const systemPrompt = SYSTEM_PROMPT_TEMPLATE.replace('{{ORGANIZATION_ID}}', organization_id)
+    // Step A: Generate SQL
+    const sqlSystemPrompt = SYSTEM_PROMPT_TEMPLATE.replace('{{ORGANIZATION_ID}}', organization_id)
 
     try {
-        // 5. Call DeepSeek
-        const aiResponse = await $fetch('https://api.deepseek.com/v1/chat/completions', {
+        const sqlResponse = await $fetch('https://api.deepseek.com/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -62,61 +71,66 @@ export default defineEventHandler(async (event) => {
             body: {
                 model: "deepseek-coder",
                 messages: [
-                    { role: "system", content: systemPrompt },
+                    { role: "system", content: sqlSystemPrompt },
                     { role: "user", content: question }
                 ],
-                temperature: 0.1,
-                max_tokens: 500
+                temperature: 0.1
             }
-        }).catch(err => {
-            console.error("[AI] DeepSeek Fetch Error:", err)
-            throw createError({ statusCode: 502, statusMessage: `Error llamando a DeepSeek: ${err.message}` })
         }) as any
 
-        let generatedSql = aiResponse.choices?.[0]?.message?.content || ''
-        
-        // Clean up SQL
-        generatedSql = generatedSql.replace(/```sql/g, '').replace(/```/g, '').replace(/;/g, '').trim()
+        let sql = sqlResponse.choices?.[0]?.message?.content || ''
+        sql = sql.replace(/```sql/g, '').replace(/```/g, '').replace(/;/g, '').trim()
 
-        console.log("[AI] Generated SQL:", generatedSql)
+        console.log("[AI] Generated SQL:", sql)
 
-        // 6. Security Validation
-        if (!generatedSql.toLowerCase().includes(organization_id.toLowerCase())) {
-            throw createError({ statusCode: 403, statusMessage: 'Error de seguridad: Filtro de organización ausente en la consulta generada.' })
+        // Security Validation
+        if (!sql.toLowerCase().includes(organization_id.toLowerCase()) && !sql.toLowerCase().includes('error')) {
+            throw createError({ statusCode: 403, statusMessage: 'Error de seguridad: Filtro de organización ausente.' })
         }
 
-        // 7. Execute SQL via Admin Client
-        const adminClient = createClient(supabaseUrl, serviceKey)
-        const { data: result, error: dbError } = await adminClient.rpc('ai_run_sql', { query: generatedSql })
+        // Step B: Execute SQL
+        const adminClient = createClient(supabaseUrl!, serviceKey!)
+        const { data: dbResult, error: dbError } = await adminClient.rpc('ai_run_sql', { query: sql })
 
         if (dbError) {
             console.error("[AI] DB Error:", dbError)
-            const dbMsg = dbError.message || JSON.stringify(dbError)
-            
-            // SPECIFIC CHECK: If ai_run_sql doesn't exist, tell the user
-            if (dbMsg.includes('function public.ai_run_sql') || dbError.code === '42883') {
-                throw createError({ 
-                    statusCode: 500, 
-                    statusMessage: 'Infraestructura IA faltante: Por favor ejecuta el script SQL en Supabase.' 
-                })
-            }
-            throw createError({ statusCode: 500, statusMessage: `Error de base de datos: ${dbMsg}` })
+            throw createError({ statusCode: 500, statusMessage: `Error DB: ${dbError.message}` })
         }
 
+        // Step C: Narrate Results (Conversational)
+        const narrationPrompt = NARRATION_PROMPT_TEMPLATE
+            .replace('{{QUESTION}}', question)
+            .replace('{{DATA}}', JSON.stringify(dbResult || []))
+
+        const chatResponse = await $fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: {
+                model: "deepseek-chat",
+                messages: [
+                    { role: "system", content: "Eres un analista de negocios amigable." },
+                    { role: "user", content: narrationPrompt }
+                ],
+                temperature: 0.7
+            }
+        }) as any
+
+        const answer = chatResponse.choices?.[0]?.message?.content || "No pude interpretar los resultados."
+
         return {
-            answer: "Consulta ejecutada.",
-            sql: generatedSql,
-            data: result
+            answer,
+            sql,
+            data: dbResult
         }
 
     } catch (e: any) {
-        console.error("[AI] Final Error Catch:", e)
-        const statusCode = e.statusCode || 500
-        const statusMessage = e.statusMessage || e.message || 'Error interno desconocido'
-        
+        console.error("[AI] Error:", e)
         throw createError({
-            statusCode,
-            statusMessage
+            statusCode: e.statusCode || 500,
+            statusMessage: e.statusMessage || e.message
         })
     }
 })

@@ -178,9 +178,7 @@ const sendMessage = async () => {
 
         messages.value.push({ 
             role: 'assistant', 
-            text: data.data && data.data.length > 0 
-                ? `Encontré ${data.data.length} resultado${data.data.length > 1 ? 's' : ''}:` 
-                : 'No encontré datos para esa consulta en el periodo indicado.',
+            text: data.answer,
             data: data.data,
             sql: data.sql
         })

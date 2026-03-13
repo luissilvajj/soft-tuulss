@@ -507,7 +507,7 @@ watch(isOnline, (online) => {
 
 // Initial Load
 onMounted(async () => {
-    console.log('Softtuuls Build: 1.1.0 - AI Security Vault Applied')
+    console.log('Softtuuls Build: 1.1.1 - Bank Switch to Banplus Applied')
     // 1. Fetch Inventory if empty
     if (allProducts.value.length === 0) {
         await fetchProducts()

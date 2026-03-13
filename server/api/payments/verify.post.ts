@@ -8,28 +8,28 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, statusMessage: 'Organization ID required' })
     }
 
-    // 1. Instanciar Cliente (Usará variables de entorno cuando estén listas)
-    const bancoPlaza = new BancoPlazaClient()
+    // 1. Instanciar Cliente
+    const bankClient = new BanplusClient()
     let isValid = false
 
     // 2. Verificar según el tipo
     try {
         if (type === 'pago_movil') {
-            isValid = await bancoPlaza.verifyPagoMovil({
+            isValid = await bankClient.verifyPagoMovil({
                 reference,
                 date,
                 amount: parseFloat(amount),
                 phone
             })
         } else if (type === 'transferencia') {
-            isValid = await bancoPlaza.verifyTransferencia({
+            isValid = await bankClient.verifyTransferencia({
                 reference,
                 date,
                 amount: parseFloat(amount)
             })
         }
     } catch (e: any) {
-        throw createError({ statusCode: 500, statusMessage: 'Error comunicando con Banco Plaza: ' + e.message })
+        throw createError({ statusCode: 500, statusMessage: 'Error comunicando con Banplus: ' + e.message })
     }
 
     if (!isValid) {

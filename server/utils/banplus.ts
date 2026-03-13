@@ -8,16 +8,16 @@ interface BancoPlazaConfig {
     account: string
 }
 
-export class BancoPlazaClient {
-    private config: BancoPlazaConfig
+export class BanplusClient {
+    private config: any
 
-    constructor(config?: Partial<BancoPlazaConfig>) {
+    constructor(config?: any) {
         this.config = {
-            apiKey: config?.apiKey || process.env.BANCO_PLAZA_API_KEY || '',
-            apiSecret: config?.apiSecret || process.env.BANCO_PLAZA_API_SECRET || '',
-            baseUrl: config?.baseUrl || process.env.BANCO_PLAZA_URL || 'https://api.bancoplaza.com:8282',
-            rif: config?.rif || process.env.BANCO_PLAZA_ID || '',
-            account: config?.account || process.env.BANCO_PLAZA_ACCOUNT || ''
+            apiKey: config?.apiKey || process.env.BANPLUS_API_KEY || '',
+            apiSecret: config?.apiSecret || process.env.BANPLUS_API_SECRET || '',
+            baseUrl: config?.baseUrl || process.env.BANPLUS_URL || 'https://api.banplus.com',
+            rif: config?.rif || process.env.BANPLUS_ID || '',
+            account: config?.account || process.env.BANPLUS_ACCOUNT || ''
         }
     }
 

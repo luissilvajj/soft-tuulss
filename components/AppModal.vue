@@ -11,7 +11,7 @@
       <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
       <!-- Panel -->
-      <div class="relative z-50 inline-block align-bottom bg-surface-ground rounded-2xl text-left overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/10 dark:border-white/5 transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full animate-fade-in-up">
+      <div :class="['relative z-50 inline-block align-bottom bg-surface-ground rounded-2xl text-left overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/10 dark:border-white/5 transform transition-all sm:my-8 sm:align-middle sm:w-full animate-fade-in-up', size]">
         
          <!-- Header -->
          <div class="px-6 pt-6 pb-4 bg-gradient-to-b from-surface-subtle/50 to-transparent border-b border-surface-border">
@@ -61,6 +61,10 @@ defineProps({
   description: {
     type: String,
     default: ''
+  },
+  size: {
+    type: String,
+    default: 'max-w-xl'
   }
 })
 

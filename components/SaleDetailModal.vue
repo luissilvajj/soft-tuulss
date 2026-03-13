@@ -1,5 +1,5 @@
 <template>
-  <AppModal :show="true" :title="sale.document_type === 'delivery_note' ? 'Nota de Entrega' : 'Factura Fiscal'" description="Recibo de operación" size="max-w-4xl" @close="$emit('close')">
+  <AppModal :show="true" :title="sale.document_type === 'delivery_note' ? 'Nota de Entrega' : 'Factura Fiscal'" description="Recibo de operación" size="max-w-5xl w-[95vw] md:w-full" @close="$emit('close')">
     <div class="space-y-8">
         <!-- Header Info -->
         <div class="flex flex-col md:flex-row justify-between items-start gap-6 border-b border-surface-border pb-6">
@@ -14,7 +14,7 @@
                         {{ sale.status === 'paid' ? 'DOCUMENTO PAGADO' : 'PAGO PENDIENTE' }}
                     </span>
                      <!-- Currency Toggle -->
-                    <button @click="toggleCurrency" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-surface-border text-text-secondary hover:bg-surface-subtle hover:text-text-heading transition-all flex items-center gap-2 shadow-sm bg-surface-ground active:scale-95">
+                    <button v-if="hasVesPayment" @click="toggleCurrency" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-surface-border text-text-secondary hover:bg-surface-subtle hover:text-text-heading transition-all flex items-center gap-2 shadow-sm bg-surface-ground active:scale-95">
                          <span>{{ showInVes ? 'Ver en USD ($)' : 'Ver en VES (Bs.)' }}</span>
                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
                     </button>
@@ -405,6 +405,12 @@ const baseUsdAmount = computed(() => {
 // The Paid Amount in VES ( Transaction truth)
 const paidVesAmount = computed(() => {
     return Number(props.sale.amount) * (Number(props.sale.exchange_rate) || 1)
+})
+
+const hasVesPayment = computed(() => {
+    if (props.sale.currency === 'VES') return true;
+    if (props.sale.payment_details && Number(props.sale.payment_details.ves_amount) > 0) return true;
+    return false;
 })
 
 const financials = computed(() => {

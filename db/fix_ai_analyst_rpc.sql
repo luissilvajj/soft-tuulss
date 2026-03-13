@@ -42,15 +42,9 @@ RETURNS json AS $$
 DECLARE
     result json;
 BEGIN
-    -- Switch to restricted role for safety
-    SET LOCAL ROLE ai_readonly;
-    
     -- Execute dynamic SQL and aggregate results to JSON
     EXECUTE 'SELECT json_agg(t) FROM (' || query || ') t' INTO result;
     
     RETURN result;
-EXCEPTION WHEN OTHERS THEN
-    RESET ROLE;
-    RAISE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

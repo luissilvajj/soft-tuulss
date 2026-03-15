@@ -169,7 +169,7 @@
              </div>
          </div>
 
-         <template #footer>
+         <template #actions>
              <BaseButton variant="ghost" @click="showPaymentModal = false">Cancelar</BaseButton>
              <BaseButton variant="primary" :loading="submittingPayment" @click="submitPayment">Reportar Pago</BaseButton>
          </template>

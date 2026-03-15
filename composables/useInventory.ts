@@ -154,16 +154,33 @@ export const useInventory = () => {
     }
 
     const importProductsFromExcel = async (items: any[]) => {
-        // ... (Keep existing logic or refactor similarly if needed. For brevity, assuming existing logic fits but needs organization check)
-        // Ideally we use a batch insert endpoint or loop. Keeping it simple for this turn as not main focus.
-        // Re-implementing briefly to ensure 'useInventory' is complete.
-        if (!organization.value?.id) throw new Error('No Organization')
+        if (!organization.value?.id) throw new Error('No Apps')
+        
         const formatted = items.map(i => ({
             organization_id: organization.value!.id,
-            name: i.name, sku: i.sku, price: i.price, stock: i.stock, cost: i.cost
+            name: i.name,
+            sku: i.sku,
+            price: i.price,
+            stock: i.stock,
+            cost: i.cost,
+            tax_condition: i.tax_condition || 'exempt',
+            min_stock: i.min_stock || 5
         }))
-        const { error } = await client.from('products').upsert(formatted, { onConflict: 'sku' }) // Assuming SKU constraint exists or we rely on ID
-        if (error) throw error
+
+        // Use upsert with resolution on SKU + Org
+        const { error } = await client
+            .from('products')
+            .upsert(formatted, { 
+                onConflict: 'sku,organization_id',
+                ignoreDuplicates: false // We want to update prices/stock if SKU exists
+            })
+
+        if (error) {
+            console.error('Import Error:', error)
+            throw new Error('Error en importación masiva: ' + error.message)
+        }
+        
+        logAction('products_imported_excel', { count: items.length })
     }
 
     return {

@@ -277,7 +277,7 @@ const columns = [
 
 
 const { organization } = useOrganization()
-const { products, loading, fetchProducts, resetInventoryState, totalProducts, addStock, softDeleteProduct, addProduct: createProd, updateProduct: updateProd } = useInventory()
+const { products, loading, fetchProducts, resetInventoryState, totalProducts, addStock, softDeleteProduct, addProduct: createProd, updateProduct: updateProd, importProductsFromExcel } = useInventory()
 const toast = useToast()
 
 // Kardex State
@@ -413,9 +413,13 @@ const submitRestock = async () => {
 // Import Modal logic
 const showImportModal = ref(false)
 const handleImport = async (items: any[]) => {
-    // Basic implementation for now, just to show connection
-    toast.info(`Simulando importación de ${items.length} items`)
-    showImportModal.value = false
-    refresh()
+    try {
+        await importProductsFromExcel(items)
+        toast.success(`Se importaron ${items.length} productos con éxito`)
+        showImportModal.value = false
+        refresh()
+    } catch (e: any) {
+        toast.error('Error en importación: ' + e.message)
+    }
 }
 </script>

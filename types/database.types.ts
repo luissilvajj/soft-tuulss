@@ -106,6 +106,8 @@ export interface Database {
                     stock: number
                     cost: number
                     deleted_at: string | null
+                    tax_condition: 'exempt' | 'general' | 'reduced'
+                    min_stock: number
                 }
                 Insert: {
                     created_at?: string
@@ -117,6 +119,8 @@ export interface Database {
                     stock?: number
                     cost?: number
                     deleted_at?: string | null
+                    tax_condition?: 'exempt' | 'general' | 'reduced'
+                    min_stock?: number
                 }
                 Update: {
                     created_at?: string
@@ -128,6 +132,8 @@ export interface Database {
                     stock?: number
                     cost?: number
                     deleted_at?: string | null
+                    tax_condition?: 'exempt' | 'general' | 'reduced'
+                    min_stock?: number
                 }
             }
             transactions: {

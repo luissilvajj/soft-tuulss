@@ -46,7 +46,7 @@ export const useClients = () => {
                 
             query = query.range(from, to)
 
-            if (search && search.length >= 2) {
+            if (search && search.length >= 1) {
                  query = query.or(`name.ilike.%${search}%,identity_document.ilike.%${search}%,email.ilike.%${search}%`)
             }
 

@@ -20,7 +20,7 @@
           // Conditional Styles
           error 
             ? 'border-status-error text-status-error placeholder-red-300 focus:border-status-error focus:ring-status-error/20' 
-            : 'border-surface-border bg-surface-ground text-text-heading placeholder-text-secondary/50 focus:border-primary-500 focus:ring-primary-500/20 hover:border-slate-300',
+            : 'border-surface-border bg-surface-ground text-text-heading placeholder-text-secondary/50 focus:border-primary-500 focus:ring-primary-500/20 hover:border-primary-500/50',
            disabled ? 'opacity-50 cursor-not-allowed bg-surface-subtle' : ''
         ]"
       />

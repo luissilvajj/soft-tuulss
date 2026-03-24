@@ -40,6 +40,7 @@ interface SalesState {
             usdAmount: number
             vesAmount: number
         }
+        paymentTermDays: number
     }
     isOfflineMode: boolean
     pendingCount: number
@@ -64,7 +65,8 @@ export const useSalesStore = defineStore('sales', {
             mixedPayment: {
                 usdAmount: 0,
                 vesAmount: 0
-            }
+            },
+            paymentTermDays: 30
         },
         isOfflineMode: false,
         pendingCount: 0
@@ -123,7 +125,8 @@ export const useSalesStore = defineStore('sales', {
                 currency: 'USD',
                 exchangeRate: this.currentSale.exchangeRate, // Keep rate
                 isMixedPayment: false,
-                mixedPayment: { usdAmount: 0, vesAmount: 0 }
+                mixedPayment: { usdAmount: 0, vesAmount: 0 },
+                paymentTermDays: 30
             }
         },
 
@@ -160,8 +163,9 @@ export const useSalesStore = defineStore('sales', {
                         amount: Number(payload.total || 0),
                         client_id: payload.clientId,
                         status: payload.status,
-                        payment_method: payload.paymentMethod,
+                        payment_method: payload.paymentMethod === 'credit' ? 'other' : payload.paymentMethod,
                         payment_reference: payload.paymentReference,
+                        ...(payload.paymentTermDays ? { payment_term_days: payload.paymentTermDays } : {}),
                         amount_paid: payload.status === 'paid' ? Number(payload.total || 0) : 0, 
                         date: payload.date,
                         currency: payload.currency,
@@ -181,7 +185,7 @@ export const useSalesStore = defineStore('sales', {
                         payment_details: payload.paymentDetails
                     } as any)
                     .abortSignal(controller.signal)
-                    .select()
+                    .select('*, client:clients(name)')
                     .single()
 
                 if (saleError) throw saleError

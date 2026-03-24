@@ -12,8 +12,8 @@
         @keydown.up.prevent="selectPrev"
         @keydown.enter.prevent="selectCurrent"
         @keydown.esc="closeDropdown"
-        class="w-full bg-surface-ground border border-surface-border rounded-xl py-3 pl-4 pr-10 text-text-heading focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder-text-secondary font-medium truncate"
-        placeholder="Buscar por nombre, cédula o RIF (V26899, J-40...)..."
+        class="w-full bg-surface-subtle border border-surface-border rounded-xl py-3 pl-4 pr-10 text-text-heading focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all placeholder-text-secondary/50 font-medium truncate"
+        placeholder="Buscar por nombre, cédula o RIF..."
       />
       
       <!-- Icons (Loading or Clear or Search) -->
@@ -25,13 +25,13 @@
     </div>
 
     <!-- Results Dropdown -->
-    <div v-if="isOpen && (searchQuery || filteredClients.length > 0)" class="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 max-h-60 overflow-y-auto ring-1 ring-black/5 divide-y divide-gray-50">
+    <div v-if="isOpen && (searchQuery || filteredClients.length > 0)" class="absolute top-full left-0 right-0 mt-2 bg-surface-section border border-surface-border rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto z-50 ring-1 ring-black/5 dark:ring-white/10 divide-y divide-surface-border">
         
-        <div v-if="filteredClients.length === 0" class="p-4 text-center text-gray-500 text-sm flex flex-col items-center gap-2">
+        <div v-if="filteredClients.length === 0" class="p-4 text-center text-text-secondary text-sm flex flex-col items-center gap-2">
             <p>No encontrado.</p>
             <button 
                 type="button"
-                class="px-4 py-2 bg-[var(--color-bg-subtle)] text-[var(--color-text-primary)] rounded-lg font-bold hover:bg-[var(--color-bg-hover)] transition-colors w-full"
+                class="px-4 py-2 bg-surface-subtle text-text-heading rounded-lg font-bold hover:bg-surface-section transition-colors w-full"
                 @click="$emit('create-client')"
             >
                 + Crear "{{ searchQuery }}"
@@ -42,17 +42,17 @@
             v-for="(client, index) in filteredClients" 
             :key="client.id"
             @click="selectClient(client)"
-            :class="['p-3 cursor-pointer hover:bg-blue-50 flex flex-col transition-colors', activeIndex === index ? 'bg-blue-50' : '']"
+            :class="['p-3 cursor-pointer hover:bg-surface-subtle flex flex-col transition-colors', activeIndex === index ? 'bg-surface-subtle' : '']"
         >
-            <span class="font-bold text-gray-900">{{ client.name }}</span>
-            <span class="text-xs text-gray-400" v-if="client.identity_document || client.email">
+            <span class="font-bold text-text-heading">{{ client.name }}</span>
+            <span class="text-xs text-text-secondary" v-if="client.identity_document || client.email">
                 Identidad: {{ client.identity_document || 'N/A' }} • {{ client.email }}
             </span>
         </div>
     </div>
     
     <!-- Link to create new client -->
-    <button type="button" class="absolute -bottom-6 right-0 text-xs font-bold text-[var(--color-primary)] hover:underline" @click="$emit('create-client')">
+    <button v-if="!hideCreateButton" type="button" class="absolute -bottom-6 right-0 text-xs font-bold text-[var(--color-primary)] hover:underline" @click="$emit('create-client')">
         + Crear nuevo cliente
     </button>
   </div>
@@ -66,7 +66,8 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 
 const props = defineProps<{
-  modelValue?: string
+  modelValue?: string,
+  hideCreateButton?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue', 'create-client'])
@@ -89,27 +90,50 @@ const normalizeIdentity = (str: string) => {
 
 const filteredClients = computed(() => {
     if (!clients.value) return []
-    // Si no hay búsqueda, retorna los 5 primeros directamente sin filtrar (Fast path)
-    if (!searchQuery.value) return clients.value.slice(0, 5) 
+    // Si la barra está vacía, no mostrar ninguna lista desplegable
+    if (!searchQuery.value) return [] 
     
     const rawQuery = searchQuery.value.trim()
     const q = rawQuery.toLowerCase()
     const qNormalized = normalizeIdentity(rawQuery)
     
-    return clients.value.filter(c => {
-        // Búsqueda por nombre
-        if (c.name && c.name.toLowerCase().includes(q)) return true
-        // Búsqueda por email
-        if (c.email && c.email.toLowerCase().includes(q)) return true
-        // Búsqueda inteligente de cédula/RIF (normalizada)
-        if (c.identity_document) {
-            const docNormalized = normalizeIdentity(c.identity_document)
-            if (docNormalized.includes(qNormalized)) return true
-            // También comparar con el original
-            if (c.identity_document.toLowerCase().includes(q)) return true
+    const scoredClients = clients.value.map(c => {
+        let score = 0
+        const nameLc = (c.name || '').toLowerCase()
+        const emailLc = (c.email || '').toLowerCase()
+        const doc = (c.identity_document || '').toLowerCase()
+        const docNormalized = normalizeIdentity(doc)
+
+        // Exact Matches
+        if (doc === q || (qNormalized && docNormalized === qNormalized)) score += 100
+        else if (nameLc === q) score += 100
+        
+        // Starts with (Prefix Matches)
+        if (doc.startsWith(q) || (qNormalized && docNormalized.startsWith(qNormalized))) score += 80
+        if (nameLc.startsWith(q)) score += 70
+        else if (nameLc.split(' ').some(word => word.startsWith(q))) score += 60
+        
+        if (emailLc.startsWith(q)) score += 50
+
+        // Substring Matches
+        if (score === 0) {
+            if ((qNormalized && docNormalized.includes(qNormalized)) || doc.includes(q)) score += 40
+            if (nameLc.includes(q)) score += 30
+            if (emailLc.includes(q)) score += 10
         }
-        return false
-    }).slice(0, 10)
+
+        return { client: c, score }
+    })
+
+    return scoredClients
+        .filter(item => item.score > 0)
+        .sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score
+            // Alphabetical tie-breaker
+            return a.client.name.localeCompare(b.client.name)
+        })
+        .map(item => item.client)
+        .slice(0, 10)
 })
 
 const selectedClient = computed(() => {

@@ -162,7 +162,7 @@ onMounted(async () => {
     <!-- Mobile Header -->
     <header class="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-surface-border bg-surface-ground px-4 shadow-sm lg:hidden">
       <div class="flex items-center">
-        <span class="text-lg font-bold text-primary-600">Softtuuls</span>
+        <span class="text-lg font-bold text-primary-600">Soft Tuuls</span>
       </div>
       <div class="flex items-center gap-2">
         <ThemeSwitcher />

@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-[1600px] mx-auto h-[calc(100vh-8rem)] flex flex-col font-sans">
+  <div class="max-w-[1600px] mx-auto h-[calc(100vh-3rem)] flex flex-col font-sans">
     <!-- Header -->
     <div class="flex justify-between items-center mb-6 shrink-0 border-b border-surface-border pb-4">
         <div class="flex items-center gap-4">
@@ -44,13 +44,26 @@
     </div>
 
     <!-- Content -->
-    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-0 overflow-y-auto lg:overflow-visible pb-20 lg:pb-0">
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-0 overflow-y-auto lg:overflow-hidden pb-20 lg:pb-0">
         <!-- Left: Search & Table -->
-        <div class="lg:col-span-8 flex flex-col gap-6 min-h-0 order-2 lg:order-1">
+        <div class="lg:col-span-8 flex flex-col gap-6 min-h-0 order-2 lg:order-1 lg:h-full">
             <!-- Search Section -->
-            <div class="bg-surface-ground border border-surface-border rounded-2xl p-4 shadow-sm z-30">
-                <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Buscar Producto</label>
-                <div class="relative">
+            <div class="bg-surface-ground border border-surface-border rounded-2xl p-4 shadow-sm z-30 flex flex-col gap-4">
+                <!-- Client Search -->
+                <div class="z-40">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider">Cliente</label>
+                        <button type="button" class="text-xs font-bold text-primary-600 hover:underline" @click="showClientModal = true">
+                            + Crear nuevo cliente
+                        </button>
+                    </div>
+                    <ClientSelector :key="clientSelectorKey" v-model="salesStore.currentSale.clientId" hide-create-button />
+                </div>
+                
+                <!-- Product Search -->
+                <div class="z-30">
+                    <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Buscar Producto</label>
+                    <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
@@ -58,7 +71,7 @@
                         ref="searchInput"
                         v-model="searchQuery"
                         type="text" 
-                        class="w-full bg-surface-subtle border border-surface-border rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-gray-400 text-text-heading outline-none font-medium"
+                        class="w-full bg-surface-subtle border border-surface-border rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all placeholder-text-secondary/50 text-text-heading outline-none font-medium"
                         placeholder="Escribe nombre, código o escanea SKU..."
                         @keydown.down.prevent="selectNextResult"
                         @keydown.up.prevent="selectPrevResult"
@@ -66,14 +79,14 @@
                     />
 
                     <!-- Results Dropdown -->
-                    <div v-if="searchQuery" class="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden max-h-96 overflow-y-auto z-50 ring-1 ring-black/5">
-                        <div v-if="loadingProducts" class="p-4 text-center text-sm text-gray-400">
+                    <div v-if="searchQuery" class="absolute top-full left-0 right-0 mt-2 bg-surface-section border border-surface-border rounded-xl shadow-2xl overflow-hidden max-h-96 overflow-y-auto z-50 ring-1 ring-black/5 dark:ring-white/10">
+                        <div v-if="loadingProducts" class="p-4 text-center text-sm text-text-secondary">
                             <span class="inline-block animate-spin mr-2">⟳</span> Cargando inventario...
                         </div>
                         <div v-else-if="allProducts.length === 0" class="p-4 text-center text-sm text-status-error">
                              Tu inventario está vacío. Ve a "Inventario" pro crear productos.
                         </div>
-                        <div v-else-if="searchResults.length === 0" class="p-4 text-center text-sm text-gray-500">
+                        <div v-else-if="searchResults.length === 0" class="p-4 text-center text-sm text-text-secondary">
                              No encontrado.
                         </div>
                         <div 
@@ -82,22 +95,23 @@
                             :key="product.id"
                             @click="handleAddProduct(product)"
                             :class="[
-                                'p-3 cursor-pointer flex justify-between items-center border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors',
-                                focusedResultIndex === index ? 'bg-gray-50' : ''
+                                'p-3 cursor-pointer flex justify-between items-center border-b border-surface-border last:border-0 hover:bg-surface-subtle transition-colors',
+                                focusedResultIndex === index ? 'bg-surface-subtle' : ''
                             ]"
                         >
                             <div>
-                                 <p class="text-sm font-medium text-gray-900">{{ product.name }}</p>
-                                 <p class="text-xs text-gray-400">SKU: {{ product.sku || '-' }} • Stock: {{ product.stock }}</p>
+                                 <p class="text-sm font-medium text-text-heading">{{ product.name }}</p>
+                                 <p class="text-xs text-text-secondary">SKU: {{ product.sku || '-' }} • Stock: {{ product.stock }}</p>
                             </div>
-                            <span class="text-sm font-semibold text-gray-900">{{ fmtPrice(product.price) }}</span>
+                            <span class="text-sm font-semibold text-text-heading">{{ fmtPrice(product.price) }}</span>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
             <!-- Table -->
-            <div class="flex-1 bg-surface-ground border border-surface-border rounded-2xl flex flex-col shadow-sm overflow-hidden min-h-[400px]">
+            <div class="flex-1 bg-surface-ground border border-surface-border rounded-2xl flex flex-col shadow-sm overflow-hidden min-h-0">
                 <div class="p-3 border-b border-surface-border bg-surface-subtle/50 flex justify-between items-center">
                     <span class="text-xs font-bold text-text-secondary uppercase tracking-wider">Items ({{ salesStore.cart.length }})</span>
                     <button v-if="salesStore.cart.length > 0" @click="salesStore.clearCart" class="text-xs text-status-error hover:text-red-700 font-bold transition-colors">Vaciar</button>
@@ -106,60 +120,71 @@
                     <table class="w-full text-left text-sm">
                         <thead class="bg-surface-subtle sticky top-0 z-10">
                             <tr>
-                                <th class="pl-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider w-[40%]">Producto</th>
+                                <th class="pl-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider w-[35%]">Producto</th>
                                 <th class="text-center py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Cant.</th>
                                 <th class="text-right py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Precio</th>
-                                <th class="text-center py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Desc. ($)</th>
+                                <th class="text-center py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Desc. (%)</th>
+                                <th class="text-right py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">IVA</th>
                                 <th class="text-right pr-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Total</th>
                                 <th class="w-10"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            <tr v-for="(item, index) in salesStore.cart" :key="item.product.id" class="group hover:bg-gray-50/50 transition-colors">
+                            <tr v-for="(item, index) in salesStore.cart" :key="item.product.id" class="group hover:bg-surface-subtle/50 transition-colors">
                                 <td class="pl-4 py-3">
-                                    <p class="font-medium text-gray-900">{{ item.product.name }}</p>
-                                    <p class="text-[10px] text-gray-400">Stock: {{ item.product.stock }}</p>
+                                    <p class="font-medium text-text-heading">{{ item.product.name }}</p>
+                                    <p class="text-[10px] text-text-secondary">Stock: {{ item.product.stock }}</p>
                                 </td>
                                 <td class="py-3 text-center">
-                                    <div class="inline-flex items-center border border-gray-200 rounded-lg bg-white shadow-sm">
-                                        <button @click="handleUpdateQty(index, item.quantity - 1)" class="px-2 py-1 text-gray-500 hover:text-primary-600 transition-colors font-bold text-lg leading-none pb-2">-</button>
+                                    <div class="inline-flex items-center border border-surface-border rounded-lg bg-surface-subtle shadow-sm">
+                                        <button @click="handleUpdateQty(index, item.quantity - 1)" class="px-2 py-1 text-text-secondary hover:text-primary-600 transition-colors font-bold text-lg leading-none pb-2">-</button>
                                         <input 
                                             :value="item.quantity"
                                             @input="(e) => handleUpdateQtyInput(index, (e.target as HTMLInputElement).value)"
-                                            class="w-10 text-center text-xs font-bold outline-none appearance-none bg-transparent text-gray-900" 
+                                            class="w-10 text-center text-xs font-bold outline-none appearance-none bg-transparent text-text-heading" 
                                         />
-                                        <button @click="handleUpdateQty(index, item.quantity + 1)" class="px-2 py-1 text-gray-500 hover:text-primary-600 transition-colors font-bold text-lg leading-none pb-2">+</button>
+                                        <button @click="handleUpdateQty(index, item.quantity + 1)" class="px-2 py-1 text-text-secondary hover:text-primary-600 transition-colors font-bold text-lg leading-none pb-2">+</button>
                                     </div>
                                 </td>
-                                <td class="py-4 text-right font-mono text-sm text-gray-600">
+                                <td class="py-4 text-right font-mono text-sm text-text-secondary">
                                     {{ fmtPrice(item.product.price) }}
                                 </td>
                                 <td class="py-3 text-center">
-                                    <!-- Per Item Discount -->
-                                    <input 
-                                       v-model.number="item.discount"
-                                       type="number"
-                                       min="0"
-                                       class="w-16 bg-transparent border-b border-gray-200 text-center text-xs outline-none focus:border-primary-500 text-gray-900 transition-colors font-mono"
-                                       placeholder="0.00"
-                                    >
+                                    <!-- Per Item Discount (%) -->
+                                    <div class="inline-flex items-center gap-1">
+                                        <input 
+                                            v-model.number="item.discount"
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            class="w-12 bg-transparent border-b border-surface-border text-center text-xs outline-none focus:border-primary-500 text-text-heading transition-colors font-mono"
+                                            placeholder="0"
+                                        >
+                                        <span class="text-[10px] text-text-secondary">%</span>
+                                    </div>
                                 </td>
-                                <td class="py-4 text-right font-bold font-mono text-sm text-gray-900">
-                                    {{ fmtPrice((item.product.price * item.quantity) - (item.discount || 0)) }}
+                                <td class="py-4 text-right font-mono text-sm text-text-secondary">
+                                    <template v-if="!salesStore.currentSale.isExempt">
+                                        {{ fmtPrice(((item.product.price * item.quantity) * (1 - (item.discount || 0) / 100)) * (getItemTaxRate(item.product) / 100)) }}
+                                    </template>
+                                    <template v-else>0.00</template>
+                                </td>
+                                <td class="py-4 text-right font-bold font-mono text-sm text-text-heading">
+                                    {{ fmtPrice(((item.product.price * item.quantity) * (1 - (item.discount || 0) / 100)) * (1 + (getItemTaxRate(item.product) / 100))) }}
                                 </td>    
                                 <td class="py-3 text-center">
-                                    <button @click="salesStore.removeFromCart(index)" class="text-gray-300 hover:text-status-error transition-colors p-1">
+                                    <button @click="salesStore.removeFromCart(index)" class="text-text-secondary hover:text-status-error transition-colors p-1">
                                         &times;
                                     </button>
                                 </td>
                             </tr>
                              <tr v-if="salesStore.cart.length === 0">
-                                <td colspan="6" class="py-20 text-center text-gray-400">
-                                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
-                                        <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                <td colspan="6" class="py-20 text-center text-text-secondary">
+                                    <div class="w-16 h-16 bg-surface-subtle rounded-full flex items-center justify-center mx-auto mb-4 border border-surface-border">
+                                        <svg class="w-8 h-8 text-text-secondary opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                                     </div>
-                                    <p class="text-sm font-medium text-gray-500">Carrito vacío</p>
-                                    <p class="text-xs text-gray-400 mt-1">Busca productos para agregar a la venta</p>
+                                    <p class="text-sm font-medium text-text-secondary">Carrito vacío</p>
+                                    <p class="text-xs text-text-secondary opacity-70 mt-1">Busca productos para agregar a la venta</p>
                                 </td>
                             </tr>
                         </tbody>
@@ -169,25 +194,19 @@
         </div>
 
         <!-- Right: Summary -->
-        <div class="lg:col-span-4 flex flex-col min-h-0 order-1 lg:order-2 lg:sticky lg:top-0 h-fit lg:max-h-[calc(100vh-12rem)]">
+        <div class="lg:col-span-4 flex flex-col min-h-0 order-1 lg:order-2 lg:h-full">
             <div class="bg-surface-ground border border-surface-border rounded-2xl shadow-sm flex flex-col h-full overflow-hidden">
                 
                 <!-- Scrollable Content Area -->
-                <div class="flex-1 overflow-y-auto p-6 space-y-6">
-                    <!-- Client -->
-                    <div>
-                         <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Cliente</label>
-                         <ClientSelector :key="clientSelectorKey" v-model="salesStore.currentSale.clientId" @create-client="showClientModal = true" />
-                    </div>
-
+                <div class="flex-1 overflow-y-auto p-4 space-y-4">
                     <!-- Document Type (Fiscal vs Internal) -->
                     <div>
-                        <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Tipo de Documento</label>
-                        <div class="flex bg-surface-subtle p-1 rounded-lg border border-surface-border">
+                        <label class="block text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-1.5">Tipo de Documento</label>
+                        <div class="flex bg-surface-subtle p-1 rounded border border-surface-border">
                             <button 
                                 @click="salesStore.currentSale.documentType = 'invoice'"
                                 :class="[
-                                    'flex-1 py-2 px-3 text-sm font-bold rounded-md transition-all',
+                                    'flex-1 py-1 px-1.5 text-[11px] font-bold rounded-sm transition-all truncate',
                                     salesStore.currentSale.documentType === 'invoice' 
                                         ? 'bg-status-success text-white shadow-sm' 
                                         : 'text-text-secondary hover:bg-surface-border/50'
@@ -198,7 +217,7 @@
                             <button 
                                 @click="salesStore.currentSale.documentType = 'delivery_note'"
                                 :class="[
-                                    'flex-1 py-2 px-3 text-sm font-bold rounded-md transition-all',
+                                    'flex-1 py-1 px-1.5 text-[11px] font-bold rounded-sm transition-all truncate',
                                     salesStore.currentSale.documentType === 'delivery_note' 
                                         ? 'bg-surface-ground text-text-heading shadow-sm border border-surface-border' 
                                         : 'text-text-secondary hover:bg-surface-border/50'
@@ -211,25 +230,37 @@
 
                     <!-- Payment Method -->
                     <div>
-                        <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-3">Método de Pago</label>
-                        <div class="grid grid-cols-2 gap-3 mb-4">
-                            <button 
-                                v-for="method in availableMethods" :key="method.id"
-                                @click="setPaymentMethod(method.id)"
-                                :class="[
-                                    'relative px-4 py-3 text-sm rounded-xl transition-all text-left flex items-start flex-col gap-1 border-2',
-                                    salesStore.currentSale.paymentMethod === method.id 
-                                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300 ring-2 ring-primary-200 dark:ring-primary-900/50' 
-                                        : 'border-surface-subtle bg-surface-ground text-text-secondary hover:border-surface-border hover:bg-surface-subtle/50'
-                                ]"
+                        <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Método de Pago</label>
+                        <div class="relative mb-2">
+                            <select 
+                                v-model="salesStore.currentSale.paymentMethod"
+                                @change="setPaymentMethod(salesStore.currentSale.paymentMethod)"
+                                class="w-full bg-surface-ground border border-surface-border rounded-xl pl-4 pr-10 py-2.5 text-sm font-bold text-text-heading focus:ring-2 focus:ring-primary-500 shadow-sm outline-none appearance-none cursor-pointer"
                             >
-                                <span class="font-bold block">{{ method.label }}</span>
-                                <span v-if="salesStore.currentSale.paymentMethod === method.id" class="absolute top-3 right-3 w-2 h-2 rounded-full bg-primary-500"></span>
-                            </button>
+                                <option v-for="method in availableMethods" :key="method.id" :value="method.id">
+                                    {{ method.label }}
+                                </option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-text-secondary">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                        </div>
+
+                        <!-- Credit Days Section -->
+                        <div v-if="salesStore.currentSale.paymentMethod === 'credit'" class="bg-primary-50/50 dark:bg-primary-900/10 rounded-xl p-4 border border-primary-200 dark:border-primary-900/30 space-y-3">
+                            <label class="text-xs font-bold text-primary-700 dark:text-primary-400 uppercase tracking-widest block">Términos de Crédito</label>
+                            <BaseInput 
+                                v-model.number="salesStore.currentSale.paymentTermDays"
+                                type="number"
+                                label="Plazo (Días)"
+                                placeholder="Ej. 15, 30"
+                                min="1"
+                            />
+                            <p class="text-[10px] text-text-secondary mt-1">El estado de la factura se marcará como <strong>Pendiente</strong>.</p>
                         </div>
 
                         <!-- Mixed Payment / Amounts Section -->
-                        <div class="bg-surface-subtle/50 rounded-xl p-4 border border-surface-border space-y-4">
+                        <div class="bg-surface-subtle/50 rounded-xl p-3 border border-surface-border space-y-3">
                              <div class="flex items-center justify-between">
                                 <label class="text-xs font-bold text-text-secondary uppercase">Desglose</label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
@@ -298,43 +329,54 @@
                         </div>
                     </div>
 
-                    <!-- Reference -->
-                    <div v-if="needsReference">
-                        <BaseInput 
-                            v-model="salesStore.currentSale.paymentReference" 
-                            label="Referencia" 
-                            placeholder="000000" 
-                        />
+                    <!-- Dynamic Row: Ref/Credit + Discount -->
+                    <div class="flex gap-3 items-start">
+                         <!-- Reference or Credit Term -->
+                         <div class="flex-1" v-if="salesStore.currentSale.paymentMethod === 'credit'">
+                              <BaseInput 
+                                  v-model.number="salesStore.currentSale.paymentTermDays" 
+                                  type="number" 
+                                  label="Días Crédito" 
+                                  placeholder="15" 
+                              />
+                         </div>
+                         <div class="flex-1" v-else-if="needsReference">
+                             <BaseInput 
+                                 v-model="salesStore.currentSale.paymentReference" 
+                                 label="Referencia" 
+                                 placeholder="000000" 
+                             />
+                         </div>
+
+                         <!-- Discount Global -->
+                         <div class="flex-1 w-full" :class="{'max-w-[50%]': salesStore.currentSale.paymentMethod === 'credit' || needsReference}">
+                            <BaseInput 
+                                v-model.number="salesStore.currentSale.globalDiscount" 
+                                label="Descuento (%)" 
+                                type="number"
+                                placeholder="0" 
+                                min="0" max="100"
+                            />
+                         </div>
                     </div>
 
-                    <!-- Discount Global -->
-                     <div>
-                        <BaseInput 
-                            v-model.number="salesStore.currentSale.globalDiscount" 
-                            label="Descuento Global ($)" 
-                            type="number"
-                            placeholder="0.00" 
-                        />
-                     </div>
-
                     <!-- Tax Toggles -->
-                     <div class="flex flex-col gap-3 pt-2">
-                         <label class="flex items-center gap-2 cursor-pointer group">
-                            <input type="checkbox" v-model="salesStore.currentSale.isExempt" class="rounded border-surface-border bg-surface-ground text-primary-600 focus:ring-primary-500">
-                            <span class="text-sm text-text-secondary group-hover:text-text-heading transition-colors">Venta Exenta de IVA</span>
+                     <div class="flex items-center gap-4 pt-1">
+                         <label class="flex items-center gap-1.5 cursor-pointer group">
+                            <input type="checkbox" v-model="salesStore.currentSale.isExempt" class="rounded w-3.5 h-3.5 border-surface-border bg-surface-ground text-primary-600 focus:ring-primary-500">
+                            <span class="text-[11px] font-bold text-text-secondary group-hover:text-text-heading transition-colors">Sin IVA</span>
                          </label>
-                         <label class="flex items-center gap-2 cursor-pointer group">
-                            <!-- INVERTED LOGIC: Default OFF. Check to INCLUDE tax. -->
-                            <input type="checkbox" v-model="salesStore.currentSale.includeIgtf" class="rounded border-surface-border bg-surface-ground text-primary-600 focus:ring-primary-500">
-                        <span class="text-sm text-text-secondary group-hover:text-text-heading transition-colors">Cobrar IGTF (3%)</span>
+                         <label class="flex items-center gap-1.5 cursor-pointer group">
+                            <input type="checkbox" v-model="salesStore.currentSale.includeIgtf" class="rounded w-3.5 h-3.5 border-surface-border bg-surface-ground text-primary-600 focus:ring-primary-500">
+                        <span class="text-[11px] font-bold text-text-secondary group-hover:text-text-heading transition-colors">IGTF 3%</span>
                          </label>
                      </div>
                 </div>
 
-                <!-- Sticky Footer: Totals & Action -->
-                <div class="bg-surface-subtle border-t border-surface-border p-4 space-y-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+                 <!-- Sticky Footer: Totals & Action -->
+                <div class="bg-surface-subtle border-t border-surface-border p-3 space-y-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10 shrink-0">
                     <!-- Mini Totals -->
-                    <div class="space-y-1 text-sm">
+                    <div class="space-y-1 text-[11px]">
                         <div class="flex justify-between text-text-secondary">
                             <span>Subtotal Bruto</span>
                             <span class="font-bold text-text-heading">{{ fmtPrice(financials.subtotal) }}</span>
@@ -366,11 +408,11 @@
                     </div>
 
                     <!-- Grand Total -->
-                    <div class="flex justify-between items-end border-t border-dashed border-surface-border pt-3">
-                        <span class="text-lg font-bold text-text-secondary mb-1">Total</span>
+                    <div class="flex justify-between items-end border-t border-dashed border-surface-border pt-2">
+                        <span class="text-base font-bold text-text-secondary mb-1">Total</span>
                          <div class="text-right">
-                              <span class="block text-3xl font-black text-primary-600 dark:text-primary-500 leading-none">{{ fmtPrice(financials.total) }}</span>
-                              <span class="text-[10px] text-text-secondary dark:text-gray-400 font-mono font-medium block mt-1">
+                              <span class="block text-2xl font-black text-primary-600 dark:text-primary-500 leading-none">{{ fmtPrice(financials.total) }}</span>
+                              <span class="text-[9px] text-text-secondary dark:text-gray-400 font-mono font-medium block mt-1">
                                  ~ {{ salesStore.currentSale.currency === 'USD' ? `Bs. ${(financials.total * salesStore.currentSale.exchangeRate).toLocaleString('es-VE', { maximumFractionDigits: 2 })}` : `$ ${financials.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` }}
                               </span>
                          </div>
@@ -383,9 +425,9 @@
                          :loading="processingCheckout"
                          variant="primary"
                          full-width
-                         class="py-3 text-lg shadow-lg shadow-primary-500/30"
+                         class="py-2 text-sm font-bold shadow-lg shadow-primary-500/30"
                      >
-                         {{ processingCheckout ? 'Procesando...' : 'Cobrar Venta' }}
+                         {{ processingCheckout ? 'Procesando...' : (salesStore.currentSale.paymentMethod === 'credit' ? (salesStore.currentSale.documentType === 'invoice' ? 'Emitir Factura' : 'Emitir Nota') : 'Cobrar / Generar factura') }}
                      </BaseButton>
                 </div>
             </div>
@@ -527,9 +569,9 @@ watch(rate, (newRate) => {
     if (newRate > 0) salesStore.currentSale.exchangeRate = newRate
 })
 
-// Search Logic
+// Search filtering
 const searchResults = computed(() => {
-    if (!searchQuery.value || searchQuery.value.length < 2) return []
+    if (!searchQuery.value || searchQuery.value.length < 1) return []
     const q = searchQuery.value.toLowerCase()
     return allProducts.value.filter(p => 
         p.name.toLowerCase().includes(q) || 
@@ -612,6 +654,14 @@ const saveClient = async () => {
     }
 }
 
+const getItemTaxRate = (product: any) => {
+    if (salesStore.currentSale.isExempt) return 0
+    const taxCond = (product?.tax_condition || 'general').toLowerCase()
+    if (taxCond === 'exempt' || taxCond === 'exento' || taxCond === 'e') return 0
+    if (taxCond === 'reduced') return 8
+    return 16
+}
+
 // Currency Logic
 const setCurrency = (currency: 'USD' | 'VES') => {
     salesStore.currentSale.currency = currency
@@ -623,6 +673,11 @@ const setCurrency = (currency: 'USD' | 'VES') => {
 }
 const setPaymentMethod = (method: string) => {
     salesStore.currentSale.paymentMethod = method
+    if (method === 'credit') {
+        salesStore.currentSale.status = 'pending'
+    } else {
+        salesStore.currentSale.status = 'paid'
+    }
     if (method !== 'exchanged' && method !== 'cash_usd') {
         salesStore.currentSale.isMixedPayment = false
     }
@@ -687,27 +742,28 @@ const financials = computed(() => {
     let baseGeneral = 0
     let baseReduced = 0
 
-    // Calculate bases after item discounts
+    // Calculate bases after item discounts (%)
     salesStore.cart.forEach(item => {
-        const itemTotal = ((item.product?.price || 0) * item.quantity) - (item.discount || 0)
+        const itemGross = (item.product?.price || 0) * item.quantity
+        const itemTotal = itemGross * (1 - (item.discount || 0) / 100)
         subtotal += itemTotal
 
         if (salesStore.currentSale.isExempt) {
             exemptAmount += itemTotal
         } else {
             // Updated default logic: Use General (16%) if not explicitly exempt.
-            const taxCond = item.product?.tax_condition || 'general'
-            if (taxCond === 'exempt') exemptAmount += itemTotal
-            else if (taxCond === 'general') baseGeneral += itemTotal
+            const taxCond = (item.product?.tax_condition || 'general').toLowerCase()
+            if (taxCond === 'exempt' || taxCond === 'exento' || taxCond === 'e') exemptAmount += itemTotal
             else if (taxCond === 'reduced') baseReduced += itemTotal
+            else baseGeneral += itemTotal 
         }
     })
     
     // Pro-rate global discount across bases
-    const globalDiscount = salesStore.currentSale.globalDiscount || 0
+    const globalDiscountPercent = salesStore.currentSale.globalDiscount || 0
     let discountRatio = 0
-    if (subtotal > 0 && globalDiscount > 0) {
-        discountRatio = globalDiscount / subtotal
+    if (subtotal > 0 && globalDiscountPercent > 0) {
+        discountRatio = Math.min(1, globalDiscountPercent / 100)
         exemptAmount -= (exemptAmount * discountRatio)
         baseGeneral -= (baseGeneral * discountRatio)
         baseReduced -= (baseReduced * discountRatio)
@@ -791,6 +847,7 @@ const handleCheckout = async () => {
             discount: salesStore.currentSale.globalDiscount,
             isExempt: salesStore.currentSale.isExempt,
             total: financials.value.total,
+            paymentTermDays: salesStore.currentSale.paymentMethod === 'credit' ? salesStore.currentSale.paymentTermDays : null,
             paymentDetails: salesStore.currentSale.isMixedPayment ? {
                 usd_amount: salesStore.currentSale.mixedPayment.usdAmount,
                 ves_amount: salesStore.currentSale.mixedPayment.vesAmount,
@@ -798,31 +855,31 @@ const handleCheckout = async () => {
             } : null,
             rawItems: salesStore.cart.map(i => {
                 const taxCond = salesStore.currentSale.isExempt ? 'exempt' : (i.product.tax_condition || 'general')
-                let taxR = 0
-                if (taxCond === 'general') taxR = 16.00
-                if (taxCond === 'reduced') taxR = 8.00
+                const taxR = getItemTaxRate(i.product)
+                const basePrice = Number(i.product.price || 0) * Number(i.quantity || 0)
+                const absDiscount = basePrice * (Number(i.discount || 0) / 100)
                 
                 return {
                     productId: i.product.id,
                     quantity: Number(i.quantity || 0),
                     price: Number(i.product.price || 0),
-                    discount: Number(i.discount || 0),
+                    discount: Number(absDiscount || 0), // Save calculated absolute discount
                     taxCondition: taxCond as 'exempt' | 'general' | 'reduced',
                     taxRate: Number(taxR || 0)
                 }
             }),
             itemsSnapshot: salesStore.cart.map(i => {
                 const taxCond = salesStore.currentSale.isExempt ? 'exempt' : (i.product.tax_condition || 'general')
-                let taxR = 0
-                if (taxCond === 'general') taxR = 16.00
-                if (taxCond === 'reduced') taxR = 8.00
+                const taxR = getItemTaxRate(i.product)
+                const basePrice = Number(i.product.price || 0) * Number(i.quantity || 0)
+                const absDiscount = basePrice * (Number(i.discount || 0) / 100)
 
                 return {
                     id: i.product.id,
                     name: i.product.name,
                     qty: Number(i.quantity || 0),
                     price: Number(i.product.price || 0),
-                    discount: Number(i.discount || 0),
+                    discount: Number(absDiscount || 0), // Save calculated absolute discount
                     taxCondition: taxCond as 'exempt' | 'general' | 'reduced',
                     taxRate: Number(taxR || 0)
                 }

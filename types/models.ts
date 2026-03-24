@@ -142,6 +142,7 @@ export interface SalePayload {
     taxReducedAmount?: number
 
     total: number
+    paymentTermDays?: number | null // NEW
     paymentDetails: any // JSON structure varies
     rawItems: {
         productId: string

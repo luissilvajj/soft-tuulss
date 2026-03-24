@@ -31,36 +31,73 @@
         </div>
 
         <!-- Items Table -->
-        <div class="overflow-hidden rounded-2xl border border-surface-border bg-surface-subtle/20">
-            <table class="min-w-full divide-y divide-surface-border">
+        <div class="overflow-x-auto rounded-2xl border border-surface-border bg-surface-subtle/20">
+            <table class="min-w-full divide-y divide-surface-border text-left">
                 <thead>
-                    <tr class="bg-surface-subtle/50">
-                        <th class="px-6 py-4 text-center text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] w-20">Cant</th>
-                        <th class="px-6 py-4 text-left text-[10px] font-black text-text-secondary uppercase tracking-[0.2em]">Descripción del Producto</th>
-                        <th class="px-6 py-4 text-right text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] whitespace-nowrap">Precio Unit</th>
-                        <th class="px-6 py-4 text-right text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] whitespace-nowrap">Monto Total</th>
+                    <tr class="bg-surface-subtle/50 text-[9px] font-black text-text-secondary uppercase tracking-[0.1em]">
+                        <th class="px-3 py-4 text-center w-12">Cant</th>
+                        <th class="px-3 py-4 w-20">SKU</th>
+                        <th class="px-4 py-4 min-w-[200px]">Descripción</th>
+                        <th class="px-3 py-4 text-right whitespace-nowrap">P. Unit ({{ showInVes ? 'Bs' : '$' }})</th>
+                        <th class="px-3 py-4 text-center w-16">Desc %</th>
+                        <th class="px-3 py-4 text-right whitespace-nowrap">Desc ({{ showInVes ? 'Bs' : '$' }})</th>
+                        <th class="px-3 py-4 text-center w-16">Alíc.</th>
+                        <th class="px-3 py-4 text-right whitespace-nowrap">IVA ({{ showInVes ? 'Bs' : '$' }})</th>
+                        <th class="px-4 py-4 text-right whitespace-nowrap">Total ({{ showInVes ? 'Bs' : '$' }})</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-surface-border/50">
                     <tr v-for="(item, i) in displayItems" :key="i" class="hover:bg-surface-subtle/40 transition-colors group">
-                        <td class="px-6 py-4 text-sm text-text-secondary text-center font-mono font-bold">{{ item.qty }}</td>
-                        <td class="px-6 py-4 text-sm font-bold text-text-heading">
-                            {{ item.name }}
-                             <div v-if="item.sku" class="text-[10px] font-mono text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity">SKU: {{ item.sku }}</div>
+                        <td class="px-3 py-4 text-xs text-text-secondary text-center font-mono font-bold">{{ item.qty }}</td>
+                        <td class="px-3 py-4 text-[10px] text-text-secondary font-mono">{{ item.sku || '-' }}</td>
+                        <td class="px-4 py-4 text-xs font-bold text-text-heading capitalize">
+                            {{ item.name.toLowerCase() }}
                         </td>
-                        <td class="px-6 py-4 text-sm text-text-secondary text-right font-mono font-bold whitespace-nowrap">
-                            {{ formatMoney(item.price, showInVes ? 'VES' : 'USD') }}
+                        <td class="px-3 py-4 text-xs text-text-secondary text-right font-mono font-bold whitespace-nowrap">
+                            <div class="text-[9px] opacity-70">{{ showInVes ? 'Bs' : '$' }}</div>
+                            {{ formatRawMoney(item.price) }}
                         </td>
-                        <td class="px-6 py-4 text-sm font-black text-text-heading text-right font-mono whitespace-nowrap">
-                             {{ formatMoney(item.price * item.qty, showInVes ? 'VES' : 'USD') }}
+                        <td class="px-3 py-4 text-xs text-text-secondary text-center font-mono">
+                            {{ item.discountPercentage > 0 ? item.discountPercentage.toFixed(0) + '%' : '-' }}
+                        </td>
+                        <td class="px-3 py-4 text-xs text-text-secondary text-right font-mono whitespace-nowrap">
+                             {{ item.discount > 0 ? formatRawMoney(item.discount) : '-' }}
+                        </td>
+                        <td class="px-3 py-4 text-xs text-text-secondary text-center font-mono">
+                            {{ item.taxRate }}%
+                        </td>
+                        <td class="px-3 py-4 text-xs text-text-secondary text-right font-mono whitespace-nowrap">
+                            <div class="text-[9px] opacity-70">{{ showInVes ? 'Bs' : '$' }}</div>
+                            {{ formatRawMoney(item.iva) }}
+                        </td>
+                        <td class="px-4 py-4 text-xs font-black text-text-heading text-right font-mono whitespace-nowrap">
+                             <div class="text-[9px] opacity-70">{{ showInVes ? 'Bs' : '$' }}</div>
+                             {{ formatRawMoney(item.total) }}
                         </td>
                     </tr>
                     <tr v-if="displayItems.length === 0">
-                        <td colspan="4" class="px-6 py-12 text-center text-sm text-text-secondary italic bg-surface-ground">
+                        <td colspan="9" class="px-6 py-12 text-center text-sm text-text-secondary italic bg-surface-ground">
                             No se encontraron items registrados para este documento.
                         </td>
                     </tr>
                 </tbody>
+                <tfoot v-if="displayItems.length > 0" class="bg-surface-subtle/30 border-t-2 border-surface-border">
+                    <tr class="text-xs font-black text-text-heading">
+                        <td colspan="5" class="px-4 py-4 text-right uppercase tracking-[0.2em] text-[10px]">Totales:</td>
+                        <td class="px-3 py-4 text-right font-mono text-emerald-600 dark:text-emerald-400">
+                             {{ tableTotals.discount > 0 ? `-` + (showInVes ? 'Bs ' : '$ ') + formatRawMoney(tableTotals.discount) : (showInVes ? 'Bs 0,00' : '$ 0.00') }}
+                        </td>
+                        <td class="px-3 py-4"></td>
+                        <td class="px-3 py-4 text-right font-mono">
+                             <div class="text-[9px] opacity-70">{{ showInVes ? 'Bs' : '$' }}</div>
+                             {{ formatRawMoney(tableTotals.iva) }}
+                        </td>
+                        <td class="px-4 py-4 text-right font-mono text-lg tracking-tighter">
+                             <div class="text-[9px] opacity-70 text-primary-500">{{ showInVes ? 'Bs' : '$' }}</div>
+                             {{ formatRawMoney(tableTotals.total) }}
+                        </td>
+                    </tr>
+                </tfoot>
             </table>
         </div>        <!-- Financials & Details -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
@@ -231,37 +268,36 @@
     </div>
 
     <template #actions>
-        <div class="flex flex-wrap items-center justify-between gap-4 w-full">
-            <div class="flex gap-3">
-                <BaseButton v-if="sale.document_type === 'invoice'" @click="issueCreditNote" :disabled="isGeneratingCreditNote" :loading="isGeneratingCreditNote" variant="danger" outline class="font-black uppercase tracking-widest text-[10px]">
-                    Anular Documento
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 w-full">
+            <!-- Botones Primarios (Izquierda en Desktop) -->
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto order-1">
+                 <BaseButton v-if="canShare" @click="shareInvoice" variant="secondary" class="flex-1 md:flex-none flex items-center justify-center gap-2 font-black uppercase tracking-widest text-[10px] whitespace-nowrap min-w-[100px]">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                    <span>Compartir</span>
+                </BaseButton>
+                
+                <BaseButton @click="downloadPDF" :loading="generating" variant="primary" class="flex-1 md:flex-none flex items-center justify-center gap-2 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary-500/20 whitespace-nowrap min-w-[100px]">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span>PDF A4</span>
+                </BaseButton>
+
+                <BaseButton @click="printInvoice" variant="secondary" class="flex-1 md:flex-none flex items-center justify-center gap-2 font-black uppercase tracking-widest text-[10px] whitespace-nowrap min-w-[100px]">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    <span>Ticket</span>
+                </BaseButton>
+
+                <BaseButton v-if="fiscalAgentOnline" @click="printFiscal" :loading="printingFiscal" variant="primary" class="flex-1 md:flex-none flex items-center justify-center gap-2 font-black uppercase tracking-widest text-[10px] whitespace-nowrap min-w-[100px] bg-emerald-600 hover:bg-emerald-700">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+                    <span>Imp. Fiscal</span>
                 </BaseButton>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
-                 <BaseButton v-if="canShare" @click="shareInvoice" variant="secondary" class="flex items-center gap-2 font-black uppercase tracking-widest text-[10px]">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                    Compartir
+            <!-- Botones de Control (Derecha en Desktop) -->
+            <div class="flex items-center gap-2 w-full md:w-auto order-2 mt-4 md:mt-0">
+                <BaseButton v-if="sale.status !== 'voided'" @click="issueCreditNote" :disabled="isGeneratingCreditNote" :loading="isGeneratingCreditNote" variant="danger" outline class="flex-1 md:flex-none font-black uppercase tracking-widest text-[10px] whitespace-nowrap">
+                    Anular Factura
                 </BaseButton>
-                
-                <BaseButton @click="downloadPDF" :loading="generating" variant="primary" class="flex items-center gap-2 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary-500/20">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    Descargar PDF
-                </BaseButton>
-
-                <BaseButton @click="printInvoice" variant="secondary" class="flex items-center gap-2 font-black uppercase tracking-widest text-[10px]">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    Ticket
-                </BaseButton>
-
-                <BaseButton v-if="fiscalAgentOnline" @click="printFiscal" :loading="printingFiscal" variant="success" class="flex items-center gap-2 font-black uppercase tracking-widest text-[10px]">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
-                    Imp. Fiscal
-                </BaseButton>
-
-                <div class="w-px h-8 bg-surface-border mx-2"></div>
-
-                <BaseButton @click="$emit('close')" variant="secondary" class="font-black uppercase tracking-widest text-[10px]">
+                <BaseButton @click="$emit('close')" variant="secondary" class="flex-1 md:flex-none font-black uppercase tracking-widest text-[10px]">
                     Cerrar
                 </BaseButton>
             </div>
@@ -427,14 +463,17 @@ const financials = computed(() => {
 })
 
 const displayItems = computed(() => {
-    let items = []
+    let items: any[] = []
     
     // 1. Try relational data
     if (props.sale.items && Array.isArray(props.sale.items) && props.sale.items.length > 0) {
         items = props.sale.items.map((i: any) => ({
             qty: i.quantity,
             name: i.product?.name || 'Producto Desconocido',
-            price: i.price_at_transaction || 0
+            price: i.price_at_transaction || 0,
+            discount: i.discount || 0,
+            taxRate: i.tax_rate || 0,
+            sku: i.product?.sku || i.sku || ''
         }))
     }
     // 2. Try Snapshot
@@ -442,20 +481,50 @@ const displayItems = computed(() => {
         const raw = typeof props.sale.items_snapshot === 'string' 
             ? JSON.parse(props.sale.items_snapshot) 
             : props.sale.items_snapshot
-        items = Array.isArray(raw) ? raw : []
+        items = Array.isArray(raw) ? raw.map((i: any) => ({
+            qty: i.qty || i.quantity || 0,
+            name: i.name || 'Producto',
+            price: i.price || 0,
+            discount: i.discount || 0,
+            taxRate: i.taxRate || i.tax_rate || 0,
+            sku: i.sku || ''
+        })) : []
     }
 
-    // Normalize prices based on the toggle view
+    const rate = Number(props.sale.exchange_rate) || 1
+    
     return items.map(item => {
         let price = Number(item.price)
-        // If the item price comes from DB, it's usually USD (unless legacy snapshot was VES).
-        // Assuming database item prices are USD base.
+        let discount = Number(item.discount)
         
         if (showInVes.value) {
-             return { ...item, price: price * (Number(props.sale.exchange_rate) || 1) }
+             price = price * rate
+             discount = discount * rate
         }
-        return { ...item, price }
+
+        const subtotal = (price * item.qty) - discount
+        const iva = subtotal * (item.taxRate / 100)
+        const total = subtotal + iva
+        const discountPercentage = (price * item.qty) > 0 ? (discount / (price * item.qty)) * 100 : 0
+        
+        return { 
+            ...item, 
+            price, 
+            discount,
+            subtotal,
+            iva,
+            total,
+            discountPercentage
+        }
     })
+})
+
+const tableTotals = computed(() => {
+    return displayItems.value.reduce((acc, item) => ({
+        discount: acc.discount + (item.discount || 0),
+        iva: acc.iva + (item.iva || 0),
+        total: acc.total + (item.total || 0)
+    }), { discount: 0, iva: 0, total: 0 })
 })
 
 const displayPaymentMethod = (method: string) => {
@@ -481,6 +550,11 @@ const formatMoney = (amount: number, currency: 'USD' | 'VES') => {
     } else {
         return `$${Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     }
+}
+
+const formatRawMoney = (amount: number) => {
+    const locale = showInVes.value ? 'es-VE' : 'en-US'
+    return Number(amount || 0).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 // === Retenciones Fiscales Logic ===

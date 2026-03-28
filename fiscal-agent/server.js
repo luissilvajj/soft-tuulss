@@ -159,8 +159,11 @@ function buildReceipt(sale) {
     if (sale.tax_base > 0) {
         push(columns('Base Imp. (16%):', `${currency}${Number(sale.tax_base).toFixed(2)}`))
     }
-    if (sale.tax_general_amount > 0) {
-        push(columns('IVA (16%):', `${currency}${Number(sale.tax_general_amount).toFixed(2)}`))
+    if (sale.tax_reduced_amount > 0) {
+        push(columns('IVA (8%):', `${currency}${Number(sale.tax_reduced_amount).toFixed(2)}`))
+    }
+    if (sale.tax_luxury_amount > 0) {
+        push(columns('IVA (31%):', `${currency}${Number(sale.tax_luxury_amount).toFixed(2)}`))
     }
     if (sale.tax_igtf > 0) {
         push(columns('IGTF (3%):', `${currency}${Number(sale.tax_igtf).toFixed(2)}`))

@@ -401,6 +401,10 @@
                             <span>IVA Reducido (8%)</span>
                              <span class="font-bold text-text-heading">{{ fmtPrice(financials.taxReducedAmount) }}</span>
                         </div>
+                        <div v-if="financials.taxLuxuryAmount > 0" class="flex justify-between text-text-secondary">
+                            <span>IVA Lujo (31%)</span>
+                             <span class="font-bold text-text-heading">{{ fmtPrice(financials.taxLuxuryAmount) }}</span>
+                        </div>
                         <div v-if="financials.taxIgtf > 0" class="flex justify-between text-text-secondary">
                             <span>IGTF (3%)</span>
                              <span class="font-bold text-text-heading">{{ fmtPrice(financials.taxIgtf) }}</span>
@@ -659,6 +663,7 @@ const getItemTaxRate = (product: any) => {
     const taxCond = (product?.tax_condition || 'general').toLowerCase()
     if (taxCond === 'exempt' || taxCond === 'exento' || taxCond === 'e') return 0
     if (taxCond === 'reduced') return 8
+    if (taxCond === 'luxury') return 31
     return 16
 }
 
@@ -741,6 +746,7 @@ const financials = computed(() => {
     let exemptAmount = 0
     let baseGeneral = 0
     let baseReduced = 0
+    let baseLuxury = 0
 
     // Calculate bases after item discounts (%)
     salesStore.cart.forEach(item => {
@@ -755,6 +761,7 @@ const financials = computed(() => {
             const taxCond = (item.product?.tax_condition || 'general').toLowerCase()
             if (taxCond === 'exempt' || taxCond === 'exento' || taxCond === 'e') exemptAmount += itemTotal
             else if (taxCond === 'reduced') baseReduced += itemTotal
+            else if (taxCond === 'luxury') baseLuxury += itemTotal
             else baseGeneral += itemTotal 
         }
     })
@@ -772,8 +779,9 @@ const financials = computed(() => {
     // Calculate Taxes
     const taxGeneralAmount = baseGeneral * 0.16
     const taxReducedAmount = baseReduced * 0.08
-    const taxIva = taxGeneralAmount + taxReducedAmount
-    const taxBase = baseGeneral + baseReduced
+    const taxLuxuryAmount = baseLuxury * 0.31
+    const taxIva = taxGeneralAmount + taxReducedAmount + taxLuxuryAmount
+    const taxBase = baseGeneral + baseReduced + baseLuxury
 
     // IGTF logic (3% on strictly the USD portion, skipped for non-fiscal docs)
     let igtfAmount = 0
@@ -802,6 +810,7 @@ const financials = computed(() => {
         baseReduced,
         taxGeneralAmount,
         taxReducedAmount,
+        taxLuxuryAmount,
         taxIva,
         taxIgtf: igtfAmount,
         total: exemptAmount + taxBase + taxIva + igtfAmount

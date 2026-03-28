@@ -24,7 +24,7 @@ export interface Product {
     price: number
     cost?: number // Added cost
     stock: number
-    tax_condition?: 'exempt' | 'general' | 'reduced' // Nuevo IVA
+    tax_condition?: 'exempt' | 'general' | 'reduced' | 'luxury' // Nuevo IVA
     min_stock?: number // Umbral de alerta de stock bajo
     created_at: string
 }
@@ -47,7 +47,7 @@ export interface SaleItem {
     product?: Product // joined
     quantity: number
     price_at_transaction: number
-    tax_condition?: 'exempt' | 'general' | 'reduced'
+    tax_condition?: 'exempt' | 'general' | 'reduced' | 'luxury'
     tax_rate?: number
     subtotal?: number // computed
     discount?: number // New: Item discount amount
@@ -76,6 +76,7 @@ export interface Sale {
     tax_base?: number
     tax_general_amount?: number
     tax_reduced_amount?: number
+    tax_luxury_amount?: number
     tax_igtf?: number
 
     items?: SaleItem[]
@@ -110,6 +111,7 @@ export interface Transaction {
     tax_base?: number
     tax_general_amount?: number
     tax_reduced_amount?: number
+    tax_luxury_amount?: number
 }
 
 
@@ -140,6 +142,7 @@ export interface SalePayload {
     taxBase?: number
     taxGeneralAmount?: number
     taxReducedAmount?: number
+    taxLuxuryAmount?: number
 
     total: number
     paymentTermDays?: number | null // NEW
@@ -149,7 +152,7 @@ export interface SalePayload {
         quantity: number
         price: number
         discount: number
-        taxCondition?: 'exempt' | 'general' | 'reduced'
+        taxCondition?: 'exempt' | 'general' | 'reduced' | 'luxury'
         taxRate?: number
     }[]
     itemsSnapshot: {
@@ -158,7 +161,7 @@ export interface SalePayload {
         qty: number
         price: number
         discount: number
-        taxCondition?: 'exempt' | 'general' | 'reduced'
+        taxCondition?: 'exempt' | 'general' | 'reduced' | 'luxury'
         taxRate?: number
     }[]
     offline_flag?: boolean // Internal flag for offline sync

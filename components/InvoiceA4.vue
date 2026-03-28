@@ -129,7 +129,7 @@
                         <td class="p-1.5 text-center border-r border-gray-300">
                             <span v-if="exemptBs > 0" class="text-blue-700 font-bold text-[9px]">Inc. Exentos</span>
                         </td>
-                        <td class="p-1.5 text-right font-bold border-r border-gray-300">{{ fmt(taxGeneralBs) }}</td>
+                        <td class="p-1.5 text-right font-bold border-r border-gray-300">{{ fmt(taxGeneralBs + taxLuxuryBs) }}</td>
                         <td class="p-1.5 text-right font-bold text-gray-900">{{ fmt(totalBs) }}</td>
                     </tr>
                 </tfoot>
@@ -185,6 +185,11 @@
                              <td class="p-1.5 font-bold text-gray-600 pl-3 uppercase">IVA (16%):</td>
                              <td class="p-1.5 text-right pr-3">{{ fmt(taxGeneralBs) }}</td>
                              <td class="p-1.5 text-right pr-3 text-gray-500">${{ fmtUsd(taxGeneralUsd) }}</td>
+                         </tr>
+                         <tr v-if="sale.tax_luxury_amount > 0" class="border-b border-gray-100">
+                             <td class="p-1.5 font-bold text-gray-600 pl-3 uppercase">IVA Lujo (31%):</td>
+                             <td class="p-1.5 text-right pr-3">{{ fmt(Number(sale.tax_luxury_amount) * exchangeRate) }}</td>
+                             <td class="p-1.5 text-right pr-3 text-gray-500">${{ fmtUsd(Number(sale.tax_luxury_amount)) }}</td>
                          </tr>
                          <tr v-if="sale.tax_reduced_amount > 0" class="border-b border-gray-100">
                              <td class="p-1.5 font-bold text-gray-600 pl-3 uppercase">IVA Reducido (8%):</td>
@@ -267,6 +272,7 @@ const itemTaxRate = (item: any): number => {
     const cond = (item.tax_condition || '').toLowerCase()
     if (cond === 'exempt' || cond === 'exento' || cond === 'e') return 0
     if (cond === 'reduced') return 8
+    if (cond === 'luxury') return 31
     return 16
 }
 
@@ -301,6 +307,7 @@ const discountBs = computed(() => discountUsd.value * exchangeRate.value)
 const exemptBs = computed(() => exemptUsd.value * exchangeRate.value)
 const taxBaseBs = computed(() => taxBaseUsd.value * exchangeRate.value)
 const taxGeneralBs = computed(() => taxGeneralUsd.value * exchangeRate.value)
+const taxLuxuryBs = computed(() => (Number(props.sale.tax_luxury_amount) || 0) * exchangeRate.value)
 const igtfAmountBs = computed(() => igtfAmountUsd.value * exchangeRate.value)
 const totalBs = computed(() => totalUsd.value * exchangeRate.value)
 

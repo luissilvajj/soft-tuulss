@@ -179,6 +179,7 @@ export const useSalesStore = defineStore('sales', {
                         tax_base: Number(payload.taxBase || 0),
                         tax_general_amount: Number(payload.taxGeneralAmount || 0),
                         tax_reduced_amount: Number(payload.taxReducedAmount || 0),
+                        tax_luxury_amount: Number(payload.taxLuxuryAmount || 0),
 
                         discount: Number(payload.discount || 0),
                         items_snapshot: payload.itemsSnapshot,

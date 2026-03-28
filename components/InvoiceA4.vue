@@ -211,8 +211,32 @@
              </div>
         </section>
 
+        <!-- Fiscal Validation (CUFE & QR) -->
+        <section v-if="sale.document_type === 'invoice'" class="mt-4 pt-4 border-t-2 border-dashed border-gray-200 flex gap-6 items-start">
+            <div class="flex-1 space-y-2">
+                <div>
+                   <span class="block text-[9px] font-bold text-gray-400 uppercase tracking-widest">CUFE (Código Único de Factura Electrónica)</span>
+                   <span class="block font-mono text-[10px] break-all bg-gray-50 p-2 rounded border border-gray-100 text-gray-600">
+                       {{ sale.cufe || 'PENDIENTE DE FIRMA ELECTRÓNICA' }}
+                   </span>
+                </div>
+                <p class="text-[9px] text-gray-400 leading-tight">
+                    Esta factura ha sido emitida bajo la modalidad de Facturación Electrónica del SENIAT (SFE). El CUFE y el código QR certifican la validez legal del documento ante la administración tributaria.
+                </p>
+            </div>
+            <div class="shrink-0">
+                <!-- QR Code Placeholder -->
+                <div class="w-24 h-24 bg-white border border-gray-200 flex items-center justify-center relative overflow-hidden group">
+                    <img v-if="sale.sfe_qr_code" :src="`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(sale.sfe_qr_code)}`" class="w-full h-full" />
+                    <div v-else class="text-[8px] text-center text-gray-300 uppercase font-bold p-2">
+                         QR Fiscal<br>No Generado
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Disclaimer & Tasa -->
-        <footer class="text-center text-[10px] text-gray-500 border-t border-gray-200 pt-2 pb-2 flex justify-between items-center">
+        <footer class="mt-4 text-center text-[10px] text-gray-500 border-t border-gray-100 pt-2 pb-2 flex justify-between items-center">
              <span>Documento emitido en cumplimiento de normativas fiscales.</span>
              <span class="font-mono bg-yellow-50 px-2 py-1 rounded text-yellow-800 border border-yellow-200">
                  Tasa BCV: {{ fmt(exchangeRate) }} Bs/USD

@@ -216,7 +216,7 @@ export const useSalesStore = defineStore('sales', {
                 }
 
                 clearTimeout(timeoutId)
-                this.clearCart()
+                ;(this as any).clearCart()
                 return { status: 'success', sale }
 
             } catch (e: any) {
@@ -244,8 +244,8 @@ export const useSalesStore = defineStore('sales', {
                 })
 
                 this.isOfflineMode = true
-                await this.checkPendingSales()
-                this.clearCart() // Clear UI so they can continue selling
+                await (this as any).checkPendingSales()
+                ;(this as any).clearCart() // Clear UI so they can continue selling
                 return { status: 'offline' }
             }
         },

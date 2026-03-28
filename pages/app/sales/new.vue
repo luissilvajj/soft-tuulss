@@ -227,9 +227,37 @@
                             </button>
                         </div>
                     </div>
-
-                    <!-- Payment Method -->
+                    <!-- Payment Type Toggle (Contado vs Crédito) -->
                     <div>
+                        <label class="block text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-1.5">Condición de Venta</label>
+                        <div class="flex bg-surface-subtle p-1 rounded border border-surface-border">
+                            <button 
+                                @click="isCreditSale = false"
+                                :class="[
+                                    'flex-1 py-1 px-1.5 text-[11px] font-bold rounded-sm transition-all truncate',
+                                    !isCreditSale 
+                                        ? 'bg-primary-600 text-white shadow-sm' 
+                                        : 'text-text-secondary hover:bg-surface-border/50'
+                                ]"
+                            >
+                                Contado
+                            </button>
+                            <button 
+                                @click="isCreditSale = true"
+                                :class="[
+                                    'flex-1 py-1 px-1.5 text-[11px] font-bold rounded-sm transition-all truncate',
+                                    isCreditSale 
+                                        ? 'bg-status-warning text-white shadow-sm' 
+                                        : 'text-text-secondary hover:bg-surface-border/50'
+                                ]"
+                            >
+                                Crédito
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method (Only if Contado) -->
+                    <div v-if="!isCreditSale">
                         <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Método de Pago</label>
                         <div class="relative mb-2">
                             <select 
@@ -536,6 +564,7 @@ const savingClient = ref(false)
 const newClient = ref({ name: '', email: '', phone: '', identity_document: '' })
 const showSuccessModal = ref(false)
 const lastSale = ref<any>(null)
+const isCreditSale = ref(false)
 
 const resetCheckout = () => {
     showSuccessModal.value = false
@@ -549,6 +578,16 @@ const resetCheckout = () => {
 // Sync offline sales when coming online
 watch(isOnline, (online) => {
     if (online) salesStore.syncOfflineSales()
+})
+
+// React to Credit Toggle
+watch(isCreditSale, (val) => {
+    if (val) {
+        setPaymentMethod('credit')
+    } else {
+        // Default to cash if switching back to Contado
+        setPaymentMethod('cash')
+    }
 })
 
 // Initial Load
@@ -720,22 +759,21 @@ const needsReference = computed(() => {
 
 const availableMethods = computed(() => {
     const methods = [
+        { id: 'cash', label: 'Efectivo' },
         { id: 'mobile_pay', label: 'Pago Móvil' },
         { id: 'card', label: 'Punto de Venta' },
         { id: 'transfer', label: 'Transferencia' },
-        { id: 'zelle', label: 'Zelle' },
-        { id: 'cash', label: 'Efectivo' },
-        { id: 'credit', label: 'Venta a Crédito' }
+        { id: 'zelle', label: 'Zelle' }
     ]
 
     if (salesStore.currentSale.isMixedPayment) {
-        return methods.filter(m => ['mobile_pay', 'card', 'transfer', 'zelle', 'cash'].includes(m.id))
+        return methods 
     }
 
     if (salesStore.currentSale.currency === 'USD') {
-        return methods.filter(m => ['cash', 'zelle', 'mobile_pay', 'card', 'credit'].includes(m.id))
+        return methods.filter(m => ['cash', 'zelle', 'mobile_pay', 'card'].includes(m.id))
     } else {
-        return methods.filter(m => ['mobile_pay', 'card', 'transfer', 'cash', 'credit'].includes(m.id))
+        return methods.filter(m => ['mobile_pay', 'card', 'transfer', 'cash'].includes(m.id))
     }
 })
 

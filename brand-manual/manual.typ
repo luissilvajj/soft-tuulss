@@ -15,6 +15,47 @@
   paper: "a4",
   margin: (top: 2.5cm, bottom: 2.5cm, left: 2.5cm, right: 2.5cm),
   fill: carbon-base,
+  background: context {
+    let page-num = counter(page).get().first()
+    let num-color = rgb("FFFFFF06") // Sutil número de página
+    
+    // Glowing orbs of gold (Efecto de iluminación de fondo premium)
+    place(
+      top + right,
+      dx: 4.5cm,
+      dy: -4.5cm,
+      circle(radius: 12cm, fill: rgb("EAB3080A")) // 4% de opacidad para el orbe dorado
+    )
+    place(
+      bottom + left,
+      dx: -3cm,
+      dy: 3cm,
+      circle(radius: 8cm, fill: rgb("EAB30805")) // 2% de opacidad
+    )
+    // Líneas tecnológicas en diagonal en esquinas
+    place(
+      top + left,
+      dx: 1.5cm,
+      dy: 1.5cm,
+      line(length: 4cm, angle: 45deg, stroke: 1pt + rgb("EAB30815"))
+    )
+    place(
+      top + left,
+      dx: 1.8cm,
+      dy: 1.3cm,
+      line(length: 3cm, angle: 45deg, stroke: 1.5pt + rgb("EAB3080E"))
+    )
+    
+    // Número de página gigante en el fondo (a partir de la página 2)
+    if page-num > 1 {
+      place(
+        bottom + right,
+        dx: 0.5cm,
+        dy: 0.5cm,
+        text(font: ("Roboto", "Arial"), size: 140pt, fill: num-color, weight: "bold")[#page-num]
+      )
+    }
+  },
   header: context {
     let page-num = counter(page).get().first()
     if page-num > 1 [
@@ -49,11 +90,13 @@
 )
 #set par(justify: true, leading: 0.75em)
 
-// Helpers de Encabezados
+// Helpers de Encabezados con Acento Gold
 #let h1(body) = {
   v(0.3cm)
-  text(font: ("Roboto", "Arial"), size: 24pt, weight: "bold", fill: text-white)[#body]
-  v(0.6cm)
+  text(font: ("Roboto", "Arial"), size: 24pt, weight: "bold", fill: text-white, tracking: 0.5pt)[#body]
+  v(0.15cm)
+  rect(width: 30pt, height: 2pt, fill: kaptiva-gold, radius: 1pt)
+  v(0.5cm)
 }
 #let h2(body) = {
   v(0.2cm)

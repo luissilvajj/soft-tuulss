@@ -72,25 +72,25 @@
   )[
     // Lado Izquierdo del Diamante (Dorado Oscuro)
     #place(left + top, polygon(
-      (12pt * scale-factor, 2pt * scale-factor),
-      (2pt * scale-factor, 12pt * scale-factor),
-      (12pt * scale-factor, 22pt * scale-factor),
+      (12pt * scale-factor, 3.5pt * scale-factor),
+      (2pt * scale-factor, 13.5pt * scale-factor),
+      (12pt * scale-factor, 23.5pt * scale-factor),
       fill: custom-left,
       stroke: 1.2pt * scale-factor + stroke-color
     ))
     // Lado Superior Derecho (Dorado Primario)
     #place(left + top, polygon(
-      (12pt * scale-factor, 2pt * scale-factor),
-      (22pt * scale-factor, 12pt * scale-factor),
-      (12pt * scale-factor, 12pt * scale-factor),
+      (12pt * scale-factor, 3.5pt * scale-factor),
+      (22pt * scale-factor, 13.5pt * scale-factor),
+      (12pt * scale-factor, 13.5pt * scale-factor),
       fill: custom-top-right,
       stroke: 1.2pt * scale-factor + stroke-color
     ))
     // Lado Inferior Derecho (Dorado Claro)
     #place(left + top, polygon(
-      (12pt * scale-factor, 12pt * scale-factor),
-      (22pt * scale-factor, 12pt * scale-factor),
-      (12pt * scale-factor, 22pt * scale-factor),
+      (12pt * scale-factor, 13.5pt * scale-factor),
+      (22pt * scale-factor, 13.5pt * scale-factor),
+      (12pt * scale-factor, 23.5pt * scale-factor),
       fill: custom-bottom-right,
       stroke: 1.2pt * scale-factor + stroke-color
     ))

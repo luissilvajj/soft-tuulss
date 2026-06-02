@@ -393,9 +393,9 @@ Los colores principales respetan la paleta original de la app. El *Oro Kaptiva* 
     stroke: (left: 2pt + kaptiva-gold),
     inset: (left: 0.4cm, top: 0.1cm, bottom: 0.1cm),
   )[
-    #text(font: "Roboto", size: 18pt, weight: weight-val, fill: text-white)[Aa Bb Cc 0123] \
+    #text(font: ("Roboto", "Arial"), size: 18pt, weight: weight-val, fill: text-white)[Aa Bb Cc 0123] \
     #v(0.05cm)
-    #text(font: "Roboto", size: 8.5pt, fill: text-dark-body)[Roboto - #weight-name]
+    #text(font: ("Roboto", "Arial"), size: 8.5pt, fill: text-dark-body)[Roboto - #weight-name]
   ]
   #v(0.3cm)
 ]
@@ -496,7 +496,7 @@ La tarjeta de presentaci√≥n institucional de Kaptiva App se rige por la geometr√
 
 #v(0.6cm)
 
-#text(font: "Roboto", size: 7pt, tracking: 1.5pt, fill: text-muted)[FRENTE DE TARJETA (HORIZONTAL)]
+#text(font: ("Roboto", "Arial"), size: 7pt, tracking: 1.5pt, fill: text-muted)[FRENTE DE TARJETA (HORIZONTAL)]
 #v(0.2cm)
 #align(center)[
   #rect(
@@ -515,7 +515,7 @@ La tarjeta de presentaci√≥n institucional de Kaptiva App se rige por la geometr√
             gutter: 8pt,
             align: horizon,
             kaptiva-logo(size: 20pt, stroke-color: text-white),
-            text(font: "Roboto", size: 12pt, weight: "bold", fill: rgb("020617"))[Kaptiva]
+            text(font: ("Roboto", "Arial"), size: 12pt, weight: "bold", fill: rgb("020617"))[Kaptiva]
           )
           #v(1.6cm)
           #text(size: 6pt, fill: rgb("64748B"))[kaptiva-app.com]
@@ -538,7 +538,7 @@ La tarjeta de presentaci√≥n institucional de Kaptiva App se rige por la geometr√
 
 #v(0.6cm)
 
-#text(font: "Roboto", size: 7pt, tracking: 1.5pt, fill: text-muted)[REVERSO DE TARJETA (HORIZONTAL)]
+#text(font: ("Roboto", "Arial"), size: 7pt, tracking: 1.5pt, fill: text-muted)[REVERSO DE TARJETA (HORIZONTAL)]
 #v(0.2cm)
 #align(center)[
   #rect(
@@ -551,7 +551,7 @@ La tarjeta de presentaci√≥n institucional de Kaptiva App se rige por la geometr√
     #align(center + horizon)[
       #kaptiva-logo(size: 32pt, stroke-color: carbon-card)
       #v(0.3cm)
-      #text(font: "Roboto", size: 14pt, weight: "bold", fill: text-white)[Kaptiva]
+      #text(font: ("Roboto", "Arial"), size: 14pt, weight: "bold", fill: text-white)[Kaptiva]
       #v(0.1cm)
       #text(size: 5.5pt, tracking: 2pt, fill: text-muted)[CONTROL ¬∑ EFICACIA ¬∑ CRECIMIENTO]
     ]

@@ -5,7 +5,12 @@
     <!-- Mobile Header -->
     <div class="md:hidden fixed top-0 w-full z-30 bg-[var(--glass-bg)] backdrop-blur-xl border-b border-[var(--color-border-subtle)] h-16 flex items-center justify-between px-4">
         <span class="text-lg font-bold text-[var(--color-white)] flex items-center gap-2">
-          <div class="w-5 h-5 rounded bg-gradient-to-br from-[var(--color-accent-blue)] to-[var(--color-accent-violet)]"></div>
+          <div class="w-6 h-6 rounded bg-gradient-to-br from-[var(--color-accent-blue)] to-[var(--color-accent-violet)] flex items-center justify-center shadow-md shadow-indigo-500/10">
+             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 4v16M16 5.5L10 12l6 6.5" />
+               <circle cx="17.5" cy="4.5" r="2" fill="#EAB308" stroke="none" />
+             </svg>
+          </div>
           Kaptiva App
         </span>
         <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="text-[var(--color-text-secondary)] hover:text-[var(--color-white)]">

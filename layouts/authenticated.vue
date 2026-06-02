@@ -113,7 +113,15 @@ onMounted(async () => {
     <!-- Desktop Sidebar -->
     <aside class="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-surface-border bg-surface-ground lg:flex">
       <div class="flex h-16 items-center px-6 border-b border-surface-border">
-        <span class="text-xl font-bold tracking-tight text-primary-600">Kaptiva App</span>
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center shadow-md shadow-primary-500/20">
+             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 4v16M16 5.5L10 12l6 6.5" />
+               <circle cx="17.5" cy="4.5" r="2" fill="#EAB308" stroke="none" />
+             </svg>
+          </div>
+          <span class="text-xl font-bold tracking-tight text-primary-600">Kaptiva App</span>
+        </div>
         <span class="ml-2 rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700">Gold</span>
       </div>
 
@@ -161,8 +169,14 @@ onMounted(async () => {
 
     <!-- Mobile Header -->
     <header class="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-surface-border bg-surface-ground px-4 shadow-sm lg:hidden">
-      <div class="flex items-center">
-        <span class="text-lg font-bold text-primary-600">Kaptiva App</span>
+      <div class="flex items-center gap-2">
+         <div class="w-6 h-6 rounded bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center shadow-sm shadow-primary-500/20">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 4v16M16 5.5L10 12l6 6.5" />
+              <circle cx="17.5" cy="4.5" r="2" fill="#EAB308" stroke="none" />
+            </svg>
+         </div>
+         <span class="text-lg font-bold text-primary-600">Kaptiva App</span>
       </div>
       <div class="flex items-center gap-2">
         <ThemeSwitcher />

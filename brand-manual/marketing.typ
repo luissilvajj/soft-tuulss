@@ -339,3 +339,81 @@ Adquirir un lead no sirve de nada si este no experimenta el valor real del siste
   funnel-step("03", "Hito de Valor (50 Ventas)", "Conversión a Pago (>15%)", "Al acumular 50 ventas procesadas, el usuario recibe soporte dedicado de bienvenida para ayudarle a elegir su plan mensual de pago."),
   funnel-step("04", "Efecto Red (Referidos)", "Bucle Viral", "Se premia al comerciante activo otorgando 1 mes gratuito por cada referido que complete su primer pago del sistema POS.")
 )
+
+#pagebreak()
+
+// ==========================================
+// PÁGINA 6 - ESTRATEGIA DE REDES SOCIALES (INSTAGRAM)
+// ==========================================
+#h1[Estrategia de Instagram & Redes]
+
+Instagram no es solo una vitrina estética para Kaptiva App; es nuestro canal principal de generación de leads consultivos (conversaciones por Mensaje Directo). La estrategia se centra en la empatía con el dolor diario del comerciante y la demostración inmediata de la solución.
+
+#v(0.5cm)
+
+#h2[Pilares de Contenido (Content Pillars)]
+
+#let pillar-item(num, name, description) = rect(
+  fill: carbon-card,
+  radius: 8pt,
+  stroke: 1pt + border-dark,
+  inset: 0.4cm,
+  width: 100%,
+)[
+  #text(weight: "bold", fill: kaptiva-gold, size: 10pt)[Pilar #num: #name] \
+  #v(0.05cm)
+  #text(size: 8.5pt, fill: text-dark-body)[#description]
+]
+
+#grid(
+  columns: (1fr, 1fr),
+  gutter: 0.5cm,
+  pillar-item("01", "Dolores de Caja", "Videos humorísticos o empáticos sobre el descuadre de caja al final del día, billetes falsos o robos hormiga. Genera identificación inmediata."),
+  pillar-item("02", "Demos Flash (15s)", "Grabaciones de pantalla fluidas en tableta o laptop mostrando: 'Cómo facturar un producto en 3 clics' o 'Cierre de caja en 10 segundos'."),
+  pillar-item("03", "Casos de Éxito", "Testimonios en formato Reel de dueños de comercios reales locales (ej. 'Antes tardaba 1 hora en cerrar caja, ahora lo hago en 2 minutos con Kaptiva')."),
+  pillar-item("04", "Educación de Negocios", "Carruseles informativos y educativos: 'Cómo calcular tu margen de ganancia real', 'Cómo evitar pérdidas en tu inventario'.")
+)
+
+#v(0.5cm)
+
+#h2[Estrategia de Conversión: DM & ManyChat]
+El objetivo de cada publicación orgánica o pautada es llevar al usuario a comentar una palabra clave (ej. *CAJA* o *PRUEBA*). 
+*   **Gancho (Caption)**: Explicar el dolor del inventario y terminar con: *"Comenta la palabra CAJA abajo y te enviamos un acceso exclusivo de 14 días gratis por DM"*.
+*   **ManyChat (Automatización)**: Envío automático por mensaje directo de un enlace optimizado que abre una conversación de WhatsApp con el soporte para activar la cuenta o registra su email directamente en la web.
+
+#pagebreak()
+
+// ==========================================
+// PÁGINA 7 - CALENDARIO SEMANAL Y GUIONES
+// ==========================================
+#h1[Calendario Semanal & Guión Reel]
+
+Para mantener consistencia, se propone un calendario de publicación ágil enfocado en formatos de alto impacto orgánico (Reels y Carruseles) y venta directa.
+
+#v(0.4cm)
+
+#h2[Calendario de Publicación Semanal]
+*   **Lunes (Reel - Pilar Dolores)**: Humor o situación real sobre el dolor de contar billetes al final del día.
+*   **Miércoles (Carrusel - Pilar Educación)**: 3 errores que cometen los comercios de retail al fijar precios.
+*   **Viernes (Reel - Pilar Demo)**: Demostración rápida de cómo Kaptiva factura sin conexión a internet.
+*   **Domingo (Historias - Interacción)**: Caja de preguntas con stickers para resolver dudas sobre control de inventario.
+
+#v(0.5cm)
+
+#h2[Guión de Reel de Alta Conversión (Ejemplo)]
+#rect(
+  fill: carbon-card,
+  radius: 8pt,
+  stroke: 1pt + border-dark,
+  inset: 0.5cm,
+  width: 100%,
+)[
+  #text(weight: "bold", fill: text-white, size: 10.5pt)[Estructura de Reel: 'El Misterio del Dinero Perdido'] \
+  #v(0.2cm)
+  #text(size: 8.5pt, fill: text-dark-body)[
+    *   **0:00 - 0:03 (Gancho Visual)**: Muestra al dueño de un comercio rascándose la cabeza al lado de una calculadora. Texto en pantalla: *"¿Por qué nunca cuadra la caja al final del día?"*.
+    *   **0:03 - 0:10 (Dolor)**: Explicación de los pequeños robos hormiga y las ventas no anotadas en el cuaderno comercial. *"Escribir todo a mano hace que pierdas hasta un 15% de tus ganancias mensuales sin darte cuenta..."*.
+    *   **0:10 - 0:20 (Solución/Demo)**: Se muestra la pantalla de Kaptiva en una tableta registrando un producto rápidamente con lector de barras. *"Con Kaptiva App, cada venta queda registrada al instante. Haces tu cierre de caja con 1 botón y controlas tu stock en tiempo real desde tu móvil"*.
+    *   **0:20 - 0:25 (Llamado a la Acción)**: *"Comenta la palabra 'PRUEBA' y te damos 14 días gratis para que automatices tu negocio hoy mismo"*.
+  ]
+]

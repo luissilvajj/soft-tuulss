@@ -62,35 +62,38 @@
 }
 
 // ==========================================
-// FUNCIÓN LOGO VECTORIAL: Monograma Material K (Superpuesto tricolor)
+// FUNCIÓN LOGO VECTORIAL: Material Origami Diamond (Tricolor geométrico)
 // ==========================================
-#let kaptiva-logo(size: 60pt, custom-stem: kaptiva-gold-dark, custom-top: kaptiva-gold, custom-bottom: kaptiva-gold-light) = {
-  let scale-factor = size / 60pt
+#let kaptiva-logo(size: 60pt, custom-left: kaptiva-gold-dark, custom-top-right: kaptiva-gold, custom-bottom-right: kaptiva-gold-light, stroke-color: carbon-base) = {
+  let scale-factor = size / 24pt
   block(
     width: size,
     height: size,
   )[
-    // Tallo Vertical Principal (Capa Inferior - Dorado Oscuro)
-    #place(
-      left + top,
-      dx: 12pt * scale-factor,
-      dy: 0pt,
-      rect(width: 8pt * scale-factor, height: 60pt * scale-factor, fill: custom-stem, radius: 4pt * scale-factor)
-    )
-    // Brazo Diagonal Superior (Capa Intermedia - Dorado Primario)
-    #place(
-      left + top,
-      dx: 16pt * scale-factor,
-      dy: 26pt * scale-factor,
-      rotate(-45deg, origin: left + bottom, rect(width: 35pt * scale-factor, height: 8pt * scale-factor, fill: custom-top, radius: 4pt * scale-factor))
-    )
-    // Brazo Diagonal Inferior (Capa Superior - Dorado Claro)
-    #place(
-      left + top,
-      dx: 16pt * scale-factor,
-      dy: 26pt * scale-factor,
-      rotate(45deg, origin: left + top, rect(width: 35pt * scale-factor, height: 8pt * scale-factor, fill: custom-bottom, radius: 4pt * scale-factor))
-    )
+    // Lado Izquierdo del Diamante (Dorado Oscuro)
+    #place(left + top, polygon(
+      (12pt * scale-factor, 2pt * scale-factor),
+      (2pt * scale-factor, 12pt * scale-factor),
+      (12pt * scale-factor, 22pt * scale-factor),
+      fill: custom-left,
+      stroke: 1.2pt * scale-factor + stroke-color
+    ))
+    // Lado Superior Derecho (Dorado Primario)
+    #place(left + top, polygon(
+      (12pt * scale-factor, 2pt * scale-factor),
+      (22pt * scale-factor, 12pt * scale-factor),
+      (12pt * scale-factor, 12pt * scale-factor),
+      fill: custom-top-right,
+      stroke: 1.2pt * scale-factor + stroke-color
+    ))
+    // Lado Inferior Derecho (Dorado Claro)
+    #place(left + top, polygon(
+      (12pt * scale-factor, 12pt * scale-factor),
+      (22pt * scale-factor, 12pt * scale-factor),
+      (12pt * scale-factor, 22pt * scale-factor),
+      fill: custom-bottom-right,
+      stroke: 1.2pt * scale-factor + stroke-color
+    ))
   ]
 }
 
@@ -156,7 +159,7 @@ Nuestros pilares se centran en el control inmutable, la resiliencia operativa y 
 // ==========================================
 #h1[El Logotipo y Construcción]
 
-El logotipo oficial de *Kaptiva App* combina el *Isotipo* (Monograma Material K) con el *Logotipo* tipográfico en fuente Roboto Bold.
+El logotipo oficial de *Kaptiva App* combina el *Isotipo* (Diamante Material Origami) con el *Logotipo* tipográfico en fuente Roboto Bold.
 
 El Isotipo se basa en la superposición de planos geométricos propia de Material Design. Sus tres capas redondeadas en dorados cromáticos simbolizan la confluencia de tres ramas operativas fundamentales del SaaS: Facturación, Control de Stock y Análisis de Negocio.
 
@@ -249,9 +252,10 @@ Para garantizar el reconocimiento inmediato de la marca, solo se autoriza el uso
       align: horizon,
       kaptiva-logo(
         size: 32pt, 
-        custom-stem: logo-stem, 
-        custom-top: logo-top, 
-        custom-bottom: logo-bottom
+        custom-left: logo-stem, 
+        custom-top-right: logo-top, 
+        custom-bottom-right: logo-bottom,
+        stroke-color: bg
       ),
       text(
         font: ("Roboto", "Arial"), 
@@ -281,7 +285,7 @@ Para garantizar el reconocimiento inmediato de la marca, solo se autoriza el uso
 // ==========================================
 #h1[Usos Incorrectos]
 
-El isotipo tricolor Material K no debe verse alterado bajo ninguna circunstancia. Abajo se ilustran deformaciones y malas prácticas comunes que comprometen la seriedad de la marca.
+El isotipo del Diamante Origami no debe verse alterado bajo ninguna circunstancia. Abajo se ilustran deformaciones y malas prácticas comunes que comprometen la seriedad de la marca.
 
 #v(0.5cm)
 
@@ -322,7 +326,7 @@ El isotipo tricolor Material K no debe verse alterado bajo ninguna circunstancia
       columns: 2,
       gutter: 8pt,
       align: horizon,
-      kaptiva-logo(size: 24pt, custom-stem: rgb("EC4899"), custom-top: rgb("3B82F6"), custom-bottom: rgb("10B981")),
+      kaptiva-logo(size: 24pt, custom-left: rgb("EC4899"), custom-top-right: rgb("3B82F6"), custom-bottom-right: rgb("10B981"), stroke-color: carbon-card),
       text(size: 14pt, weight: "bold", fill: rgb("EF4444"))[Kaptiva]
     )
   }),
@@ -510,7 +514,7 @@ La tarjeta de presentación institucional de Kaptiva App se rige por la geometr�
             columns: (auto, auto),
             gutter: 8pt,
             align: horizon,
-            kaptiva-logo(size: 20pt),
+            kaptiva-logo(size: 20pt, stroke-color: text-white),
             text(font: "Roboto", size: 12pt, weight: "bold", fill: rgb("020617"))[Kaptiva]
           )
           #v(1.6cm)
@@ -545,7 +549,7 @@ La tarjeta de presentación institucional de Kaptiva App se rige por la geometr�
     stroke: 0.5pt + border-dark,
   )[
     #align(center + horizon)[
-      #kaptiva-logo(size: 32pt)
+      #kaptiva-logo(size: 32pt, stroke-color: carbon-card)
       #v(0.3cm)
       #text(font: "Roboto", size: 14pt, weight: "bold", fill: text-white)[Kaptiva]
       #v(0.1cm)

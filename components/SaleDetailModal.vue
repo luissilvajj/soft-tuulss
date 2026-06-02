@@ -411,7 +411,7 @@ const shareInvoice = async () => {
         const url = router.resolve(`/app/sales/print/${props.sale.id}`).href
         const fullUrl = window.location.origin + url
         await navigator.share({
-            title: props.sale.document_type === 'delivery_note' ? `Nota de Entrega #${props.sale.id.slice(0, 8)}` : `Factura Softtuuls #${props.sale.control_number || props.sale.id.slice(0, 8)}`,
+            title: props.sale.document_type === 'delivery_note' ? `Nota de Entrega #${props.sale.id.slice(0, 8)}` : `Factura Kaptiva #${props.sale.control_number || props.sale.id.slice(0, 8)}`,
             text: `Aquí tienes tu comprobante digital. Total: ${formatMoney(showInVes.value ? paidVesAmount.value : baseUsdAmount.value, showInVes.value ? 'VES' : 'USD')}`,
             url: fullUrl
         })

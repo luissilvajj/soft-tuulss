@@ -2,7 +2,7 @@
 // POST /api/scan-invoice
 // Recibe una imagen de factura y la envía a Gemini para extraer datos estructurados
 
-import { GoogleGenerativeAI } from '@google/genai'
+import { GoogleGenAI } from '@google/genai'
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -26,10 +26,9 @@ export default defineEventHandler(async (event) => {
     const base64Image = imageFile.data.toString('base64')
     const mimeType = imageFile.type || 'image/jpeg'
 
-    // Inicializar Gemini
-    const genAI = new GoogleGenerativeAI(config.geminiApiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
-
+    // Inicializar Gemini (Unified SDK @google/genai)
+    const client = new GoogleGenAI({ apiKey: config.geminiApiKey })
+    
     const prompt = `Eres un experto en contabilidad venezolana. Analiza esta imagen de una factura o nota de entrega de un proveedor.
 
 Extrae TODOS los datos en el siguiente formato JSON estricto. Si no puedes determinar un campo, usa null.
@@ -77,17 +76,20 @@ IMPORTANTE:
 - Responde SOLO con el JSON, sin texto adicional ni markdown.`
 
     try {
-        const result = await model.generateContent([
-            prompt,
-            {
-                inlineData: {
-                    data: base64Image,
-                    mimeType: mimeType
+        const result = await client.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: [
+                {
+                    role: 'user',
+                    parts: [
+                        { text: prompt },
+                        { inlineData: { data: base64Image, mimeType: mimeType } }
+                    ]
                 }
-            }
-        ])
+            ]
+        })
 
-        const responseText = result.response.text()
+        const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text || ''
         
         // Intentar parsear el JSON de la respuesta
         let parsedData

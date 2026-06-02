@@ -11,7 +11,7 @@
                     <img :src="organization.logo_url" alt="Logo" class="max-w-full max-h-full object-contain" />
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold uppercase tracking-wide text-gray-900">{{ organization?.name || 'Soft Tuuls' }}</h1>
+                    <h1 class="text-2xl font-bold uppercase tracking-wide text-gray-900">{{ organization?.name || 'Kaptiva App' }}</h1>
                     <p v-if="organization?.rif" class="text-xs text-gray-700 font-bold mt-1">RIF: {{ organization.rif }}</p>
                     <p class="text-xs text-gray-600 max-w-xs mt-1">{{ organization?.address || 'Dirección de la Empresa' }}</p>
                     <p v-if="organization?.phone" class="text-xs text-gray-600">Tel: {{ organization.phone }}</p>

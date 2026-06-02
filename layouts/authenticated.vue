@@ -113,7 +113,7 @@ onMounted(async () => {
     <!-- Desktop Sidebar -->
     <aside class="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-surface-border bg-surface-ground lg:flex">
       <div class="flex h-16 items-center px-6 border-b border-surface-border">
-        <span class="text-xl font-bold tracking-tight text-primary-600">Soft Tuuls</span>
+        <span class="text-xl font-bold tracking-tight text-primary-600">Kaptiva App</span>
         <span class="ml-2 rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700">Gold</span>
       </div>
 
@@ -162,7 +162,7 @@ onMounted(async () => {
     <!-- Mobile Header -->
     <header class="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-surface-border bg-surface-ground px-4 shadow-sm lg:hidden">
       <div class="flex items-center">
-        <span class="text-lg font-bold text-primary-600">Soft Tuuls</span>
+        <span class="text-lg font-bold text-primary-600">Kaptiva App</span>
       </div>
       <div class="flex items-center gap-2">
         <ThemeSwitcher />

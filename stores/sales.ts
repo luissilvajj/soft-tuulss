@@ -13,7 +13,7 @@ interface PendingSale {
 class OfflineDB extends Dexie {
     pendingSales!: Table<PendingSale>
     constructor() {
-        super('SofttuulsDB')
+        super('KaptivaDB')
         this.version(1).stores({
             pendingSales: '++id, createdAt'
         })
@@ -150,70 +150,22 @@ export const useSalesStore = defineStore('sales', {
             const timeoutId = setTimeout(() => controller.abort(), 15000)
 
             try {
-                // Intento 1: Supabase Directo
+                // Intento 1: Llamada al Endpoint Seguro
                 if (!navigator.onLine) throw new Error('Offline')
 
-                // 1. Transaction
-                const { data: sale, error: saleError } = await client
-                    .from('transactions')
-                    .insert({
-                        organization_id: (useOrganization().organization.value as any)?.id,
-                        type: 'sale',
-                        document_type: payload.documentType || 'invoice',
-                        amount: Number(payload.total || 0),
-                        client_id: payload.clientId,
-                        status: payload.status,
-                        payment_method: payload.paymentMethod === 'credit' ? 'other' : payload.paymentMethod,
-                        payment_reference: payload.paymentReference,
-                        ...(payload.paymentTermDays ? { payment_term_days: payload.paymentTermDays } : {}),
-                        amount_paid: payload.status === 'paid' ? Number(payload.total || 0) : 0, 
-                        date: payload.date,
-                        currency: payload.currency,
-                        exchange_rate: Number(payload.exchangeRate || 1),
-                        subtotal: Number(payload.subtotal || 0),
-                        tax_iva: Number(payload.taxIva || 0),
-                        tax_igtf: Number(payload.taxIgtf || 0),
-                        is_exempt: payload.isExempt,
-
-                        exempt_amount: Number(payload.exemptAmount || 0),
-                        tax_base: Number(payload.taxBase || 0),
-                        tax_general_amount: Number(payload.taxGeneralAmount || 0),
-                        tax_reduced_amount: Number(payload.taxReducedAmount || 0),
-                        tax_luxury_amount: Number(payload.taxLuxuryAmount || 0),
-
-                        discount: Number(payload.discount || 0),
-                        items_snapshot: payload.itemsSnapshot,
-                        payment_details: payload.paymentDetails
-                    } as any)
-                    .abortSignal(controller.signal)
-                    .select('*, client:clients(name)')
-                    .single()
-
-                if (saleError) throw saleError
-
-                // 2. Items
-                const formattedItems = payload.rawItems.map((item) => ({
-                    organization_id: (useOrganization().organization.value as any)?.id,
-                    transaction_id: sale.id,
-                    product_id: item.productId,
-                    quantity: Number(item.quantity || 0),
-                    price_at_transaction: Number(item.price || 0),
-                    discount: Number(item.discount || 0),
-                    tax_condition: item.taxCondition || 'exempt',
-                    tax_rate: Number(item.taxRate || 0)
-                }))
-
-                const { error: itemsError } = await client
-                    .from('transaction_items')
-                    .insert(formattedItems as any)
-                    .abortSignal(controller.signal)
-
-                if (itemsError) throw itemsError
-
-                // 3. Stock Decrement
-                for (const item of payload.rawItems) {
-                    await client.rpc('decrement_stock', { p_id: item.productId, q: item.quantity })
+                const currentOrgId = (useOrganization().organization.value as any)?.id;
+                const safePayload = {
+                    ...payload,
+                    organization_id: currentOrgId
                 }
+
+                const response = await $fetch('/api/sales/process', {
+                    method: 'POST',
+                    body: { payload: safePayload },
+                    signal: controller.signal
+                }) as any
+
+                const sale = response.sale
 
                 clearTimeout(timeoutId)
                 ;(this as any).clearCart()
@@ -235,8 +187,12 @@ export const useSalesStore = defineStore('sales', {
                 console.warn('Network fail, saving locally', e)
 
                 // Ensure ID doesn't conflict if we retry
-                // We add offline_flag to payload
-                const offlineLoad = { ...payload, offline_flag: true }
+                // We add offline_flag to payload and snapshot organization_id
+                const offlineLoad = { 
+                    ...payload, 
+                    offline_flag: true,
+                    organization_id: (useOrganization().organization.value as any)?.id 
+                }
 
                 await db.pendingSales.add({
                     payload: offlineLoad,
@@ -267,29 +223,12 @@ export const useSalesStore = defineStore('sales', {
 
             for (const sale of pending) {
                 try {
-                    // Reuse logic? Or direct insert?
-                    // Direct insert to avoid complexity for now, mirroring the processSale logic but automated
-                    // Note: We need organization_id. Assuming it's still same user/org.
-                    // RISK: user changed org while offline.
-                    // For MVP Phase 2, we assume same org.
-                    const pStatus = (sale.payload as any).status
-                    const pTotal = (sale.payload as any).total
-                    const { error } = await client.from('transactions').insert({
-                        ...sale.payload as any,
-                        amount_paid: pStatus === 'paid' ? pTotal : 0,
-                        offline_flag: undefined,
-                        // We need to inject org id if it wasn't valid in payload?
-                        // Actually logic above fetches it from composable. Ideally payload should have it.
-                        // IMPORTANT: Payload didn't save org_id in processSale above. Let's fix processSale to include it in payload if possible or fetch current.
-                        organization_id: (useOrganization().organization.value as any)?.id
-                    })
+                    const response = await $fetch('/api/sales/process', {
+                        method: 'POST',
+                        body: { payload: sale.payload }
+                    }) as any
 
-                    // We skip items/stock logic here for brevity in this snippet? 
-                    // NO, we must do it.
-                    // Ideally we should extract the "Core Insert" logic to a function that accepts client + payload.
-                    // detailed logic skipped for brevity, assuming standard insert works.
-
-                    if (!error) {
+                    if (response.status === 'success') {
                         await db.pendingSales.delete(sale.id!)
                         synced++
                     } else {

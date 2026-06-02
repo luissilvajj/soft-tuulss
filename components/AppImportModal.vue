@@ -114,7 +114,7 @@
                 <input type="radio" v-model="duplicateAction" value="ignore" class="mt-1 text-primary-600 focus:ring-primary-500 border-surface-border">
                 <div>
                      <p class="text-sm font-bold text-text-heading">Ignorarlos (Solo importar nuevos)</p>
-                     <p class="text-xs text-text-secondary">Los productos con SKU duplicado serán saltados y mantendrán su precio/stock actual en Softtuuls.</p>
+                     <p class="text-xs text-text-secondary">Los productos con SKU duplicado serán saltados y mantendrán su precio/stock actual en Kaptiva App.</p>
                 </div>
             </label>
         </div>
@@ -327,6 +327,6 @@ const downloadTemplate = () => {
     ]
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Productos')
-    XLSX.writeFile(workbook, 'Plantilla_Inventario_Softtuuls.xlsx')
+    XLSX.writeFile(workbook, 'Plantilla_Inventario_Kaptiva.xlsx')
 }
 </script>

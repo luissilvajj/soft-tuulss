@@ -19,7 +19,7 @@
     <!-- Invoice Header -->
     <header class="flex justify-between items-start mb-8 border-b-2 border-black pb-4">
         <div>
-            <h1 class="text-3xl font-bold uppercase tracking-wide mb-1">{{ organization?.name || 'Soft Tuuls' }}</h1>
+            <h1 class="text-3xl font-bold uppercase tracking-wide mb-1">{{ organization?.name || 'Kaptiva App' }}</h1>
             <p class="text-sm text-gray-600">Nota de Entrega / Recibo</p>
         </div>
         <div class="text-right">
@@ -111,7 +111,7 @@
     <!-- Footer -->
     <footer class="text-center text-xs text-gray-400 border-t border-gray-200 pt-4">
         <p>Gracias por su compra</p>
-        <p class="mt-1 font-mono">Generado por Soft Tuuls</p>
+        <p class="mt-1 font-mono">Generado por Kaptiva App</p>
     </footer>
 
   </div>

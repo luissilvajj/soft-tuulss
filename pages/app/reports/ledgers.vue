@@ -270,7 +270,7 @@ const exportExcel = () => {
 
     // Download file
     const bookType = ledgerType.value === 'purchases' ? 'Compras' : 'Ventas'
-    XLSX.writeFile(workbook, `Libro_${bookType}_Softtuuls_${filterMonth.value}.xlsx`)
+    XLSX.writeFile(workbook, `Libro_${bookType}_Kaptiva_${filterMonth.value}.xlsx`)
 }
 
 const exportPurchasesExcel = () => {
@@ -294,7 +294,7 @@ const exportPurchasesExcel = () => {
     worksheet['!cols'] = [{ wch: 20 }, { wch: 18 }, { wch: 16 }, { wch: 35 }, { wch: 18 }, { wch: 18 }, { wch: 22 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 15 }]
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, `Compras_${filterMonth.value}`)
-    XLSX.writeFile(workbook, `Libro_Compras_Softtuuls_${filterMonth.value}.xlsx`)
+    XLSX.writeFile(workbook, `Libro_Compras_Kaptiva_${filterMonth.value}.xlsx`)
 }
 
 // === TXT EXPORT LOGIC FOR SENIAT PORTAL ===

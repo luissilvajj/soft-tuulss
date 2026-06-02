@@ -7,7 +7,7 @@ export const useOrganization = () => {
     const organization = useState<any>('current_org', () => null)
     const userOrganizations = useState<any[]>('user_orgs', () => [])
     const loading = useState('org_loading', () => false)
-    const orgCookie = useCookie('softtuuls_org_id')
+    const orgCookie = useCookie('kaptiva_org_id')
 
     const switchOrganization = async (orgId: string) => {
         if (!userOrganizations.value.length) await fetchOrganization()

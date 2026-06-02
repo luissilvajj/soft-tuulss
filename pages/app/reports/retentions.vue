@@ -217,6 +217,6 @@ const exportExcel = () => {
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, worksheet, `Retenciones_${filterMonth.value}`)
 
-    XLSX.writeFile(workbook, `Relacion_Retenciones_Softtuuls_${filterMonth.value}.xlsx`)
+    XLSX.writeFile(workbook, `Relacion_Retenciones_Kaptiva_${filterMonth.value}.xlsx`)
 }
 </script>

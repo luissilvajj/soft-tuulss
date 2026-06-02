@@ -1,7 +1,7 @@
 {
-  "name": "softtuuls-fiscal-agent",
+  "name": "kaptiva-fiscal-agent",
   "version": "1.0.0",
-  "description": "Agente local puente entre Softtuuls Web y la Impresora Fiscal (USB/Serial). Compatible con Bixolon, PNP, Aclas y cualquier impresora ESC/POS.",
+  "description": "Agente local puente entre Kaptiva Web y la Impresora Fiscal (USB/Serial). Compatible con Bixolon, PNP, Aclas y cualquier impresora ESC/POS.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -14,7 +14,7 @@
     "escpos": "^3.0.0-alpha.6",
     "escpos-serialport": "^0.0.3"
   },
-  "author": "Softtuuls",
+  "author": "Kaptiva",
   "license": "UNLICENSED",
   "private": true
 }

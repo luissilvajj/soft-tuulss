@@ -14,7 +14,7 @@ export const generateCUFE = (data: {
     rifReceptor: string
 }) => {
     // El secreto debería venir de variables de entorno (SFE_SECRET_KEY)
-    const secret = process.env.SFE_SECRET_KEY || 'softtuuls_demo_secret_2026'
+    const secret = process.env.SFE_SECRET_KEY || 'kaptiva_demo_secret_2026'
     
     // Cadena de concatenación estandarizada
     const chain = [

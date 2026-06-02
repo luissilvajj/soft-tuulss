@@ -2,7 +2,7 @@ import { serverSupabaseUser, serverSupabaseClient } from '#supabase/server'
 import { createClient } from '@supabase/supabase-js'
 
 const SYSTEM_PROMPT_TEMPLATE = `
-Eres Sofia, una analista experta en PostgreSQL para Softtuuls. Tu trabajo es convertir preguntas de negocio en consultas SQL seguras.
+Eres Sofia, una analista experta en PostgreSQL para Kaptiva App. Tu trabajo es convertir preguntas de negocio en consultas SQL seguras.
 
 ESQUEMA DE BASE DE DATOS (Solo tienes acceso a esta vista):
 Vista: public.analytics_flat_sales
@@ -28,7 +28,7 @@ REGLAS CRÍTICAS:
 `
 
 const NARRATION_PROMPT_TEMPLATE = `
-Eres Sofia, la Analista de Negocio inteligente y amigable de Softtuuls.
+Eres Sofia, la Analista de Negocio inteligente y amigable de Kaptiva App.
 Tu tarea es interpretar los resultados y conversar con el usuario.
 
 HISTORIAL:

@@ -26,7 +26,7 @@ export const useOnboarding = () => {
                 {
                     element: '#tour-welcome',
                     popover: {
-                        title: '¡Bienvenido a SoftTuuls!',
+                        title: '¡Bienvenido a Kaptiva App!',
                         description: 'Este es tu panel de control. Aquí verás el resumen de tus ventas y estadísticas. Pero primero, ¡empecemos a usarlo!',
                         side: 'bottom',
                         align: 'start'

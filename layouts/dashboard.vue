@@ -6,7 +6,7 @@
     <div class="md:hidden fixed top-0 w-full z-30 bg-[var(--glass-bg)] backdrop-blur-xl border-b border-[var(--color-border-subtle)] h-16 flex items-center justify-between px-4">
         <span class="text-lg font-bold text-[var(--color-white)] flex items-center gap-2">
           <div class="w-5 h-5 rounded bg-gradient-to-br from-[var(--color-accent-blue)] to-[var(--color-accent-violet)]"></div>
-          Soft Tuuls
+          Kaptiva App
         </span>
         <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="text-[var(--color-text-secondary)] hover:text-[var(--color-white)]">
             <svg v-if="!isMobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>

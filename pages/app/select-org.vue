@@ -65,7 +65,7 @@
         
         <!-- Bottom Link -->
         <div class="absolute bottom-8 text-xs text-[var(--color-text-secondary)] text-center">
-            Soft Tuuls &bull; v1.0
+            Kaptiva App &bull; v1.0
             <br>
             <span class="opacity-50 font-mono mt-2 block">
                 UID: {{ user?.id }}

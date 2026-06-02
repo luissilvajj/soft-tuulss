@@ -15,8 +15,20 @@ export default defineEventHandler(async (event) => {
         if (error || !data) {
             console.error('DB Cache Miss:', error)
             // Fallback: Try to fetch fresh if DB is empty (Cold Start)
-            // In a production app, verify if we want this or just a hardcoded safe value
-            return await fetchFreshRateFallback()
+            const freshData = await fetchFreshRateFallback()
+            
+            // Populating DB immediately on cold start
+            const { error: updateError } = await client
+                .from('sys_exchange_rates')
+                .upsert({
+                    currency_pair: 'USD-VES',
+                    rate: freshData.rate,
+                    last_update: freshData.last_update
+                }, { onConflict: 'currency_pair' })
+            
+            if (updateError) console.error('Failed to update rate cache on cold start:', updateError)
+            
+            return freshData
         }
 
         // 3. Stale Data Check (Safety Net)

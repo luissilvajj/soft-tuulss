@@ -10,7 +10,7 @@
             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform duration-300">
                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
             </div>
-            <span class="text-xl font-bold tracking-tight text-text-heading">Soft Tuuls</span>
+            <span class="text-xl font-bold tracking-tight text-text-heading">Kaptiva App</span>
           </div>
           
           <!-- Links Desktop -->
@@ -115,7 +115,7 @@
           <h2 class="text-sm font-bold tracking-wide text-primary-500 uppercase mb-2">Potencia tu empresa</h2>
           <h3 class="text-3xl font-bold text-text-heading sm:text-4xl text-primary-600 dark:text-primary-400">Todo lo que necesitas para operar</h3>
           <p class="mt-4 text-lg text-text-secondary">
-            Soft Tuuls centraliza tus operaciones en una plataforma rápida, segura y fácil de usar.
+            Kaptiva App centraliza tus operaciones en una plataforma rápida, segura y fácil de usar.
           </p>
         </div>
 
@@ -230,9 +230,9 @@
       <div class="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col items-center">
          <div class="flex items-center gap-2 mb-6 opacity-80">
             <div class="w-6 h-6 rounded bg-primary-500"></div>
-            <span class="text-lg font-bold text-text-heading">Soft Tuuls</span>
+            <span class="text-lg font-bold text-text-heading">Kaptiva App</span>
          </div>
-         <p class="text-text-secondary text-sm mb-4">© {{ new Date().getFullYear() }} Soft Tuuls. Todos los derechos reservados.</p>
+         <p class="text-text-secondary text-sm mb-4">© {{ new Date().getFullYear() }} Kaptiva App. Todos los derechos reservados.</p>
          <div class="flex gap-6 text-sm text-text-secondary">
             <a href="#" class="hover:text-text-heading transition-colors">Términos</a>
             <a href="#" class="hover:text-text-heading transition-colors">Privacidad</a>

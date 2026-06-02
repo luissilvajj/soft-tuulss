@@ -20,7 +20,7 @@ export default defineNuxtConfig({
         {
           children: `(function() {
             try {
-              var theme = window.localStorage.getItem('softtuuls-theme');
+              var theme = window.localStorage.getItem('kaptiva-theme');
               if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
               } else {
@@ -35,8 +35,8 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
-      name: 'Softtuuls POS',
-      short_name: 'Softtuuls',
+      name: 'Kaptiva POS',
+      short_name: 'Kaptiva',
       theme_color: '#000000',
       background_color: '#ffffff',
       display: 'standalone',

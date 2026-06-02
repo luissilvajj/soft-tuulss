@@ -86,7 +86,7 @@
            <!-- Footer -->
            <div class="text-center mt-4 text-[10px]">
                <p>{{ organization?.receipt_footer || '¡Gracias por su compra!' }}</p>
-               <p class="mt-2 text-[8px] opacity-70">Softtuuls POS System</p>
+               <p class="mt-2 text-[8px] opacity-70">Kaptiva POS System</p>
            </div>
       </div>
   </div>

@@ -1,9 +1,9 @@
 /**
  * ============================================================
- * SOFTTUULS FISCAL AGENT v1.0
+ * KAPTIVA FISCAL AGENT v1.0
  * ============================================================
  * Micro-servidor local que actúa como puente entre la App Web
- * de Softtuuls (Nuxt) y la impresora fiscal física conectada
+ * de Kaptiva (Nuxt) y la impresora fiscal física conectada
  * por USB/Serial (Bixolon, PNP, Aclas, genéricas ESC/POS).
  *
  * La app web envía un POST JSON a http://localhost:4040/print
@@ -199,7 +199,7 @@ function buildReceipt(sale) {
     // ── Footer ──
     push(ESC.CENTER)
     push(text(config.footer))
-    push(text('Softtuuls POS'))
+    push(text('Kaptiva POS'))
     push(text(new Date().toLocaleDateString('es-VE')))
     push(ESC.LEFT)
 
@@ -216,7 +216,7 @@ function buildReceipt(sale) {
 app.get('/status', (req, res) => {
     res.json({
         status: 'online',
-        agent: 'Softtuuls Fiscal Agent v1.0',
+        agent: 'Kaptiva Fiscal Agent v1.0',
         port: config.serialPort,
         baudRate: config.baudRate,
         timestamp: new Date().toISOString()
@@ -320,11 +320,11 @@ app.post('/open-drawer', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`
 ╔═══════════════════════════════════════════════════╗
-║     SOFTTUULS FISCAL AGENT v1.0                   ║
+║     KAPTIVA FISCAL AGENT v1.0                     ║
 ║     Escuchando en http://localhost:${PORT}          ║
 ║     Puerto Impresora: ${config.serialPort.padEnd(27)}║
 ║     Baud Rate: ${String(config.baudRate).padEnd(33)}║
 ╚═══════════════════════════════════════════════════╝
     `)
-    console.log('Esperando órdenes de impresión desde Softtuuls Web...\n')
+    console.log('Esperando órdenes de impresión desde Kaptiva Web...\n')
 })

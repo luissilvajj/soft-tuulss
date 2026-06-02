@@ -1,6 +1,6 @@
-# Softtuuls Fiscal Agent 🖨️
+# Kaptiva Fiscal Agent 🖨️
 
-Agente local puente entre **Softtuuls Web** y la **Impresora Fiscal** (USB/Serial).  
+Agente local puente entre **Kaptiva Web** y la **Impresora Fiscal** (USB/Serial).  
 Compatible con Bixolon, PNP, Aclas y cualquier impresora ESC/POS estándar.
 
 ## ¿Qué hace?
@@ -8,7 +8,7 @@ Compatible con Bixolon, PNP, Aclas y cualquier impresora ESC/POS estándar.
 Los navegadores web (Chrome, Edge, Safari) **no pueden** comunicarse directamente con puertos USB o Serial por razones de seguridad. Este pequeño programa se instala en la computadora de la **caja registradora** y actúa como intermediario:
 
 ```
-Softtuuls Web ──► HTTP POST (JSON) ──► Agente Local (localhost:4040) ──► Puerto Serial ──► Impresora Fiscal
+Kaptiva Web ──► HTTP POST (JSON) ──► Agente Local (localhost:4040) ──► Puerto Serial ──► Impresora Fiscal
 ```
 
 ## Instalación
@@ -50,7 +50,7 @@ npm start
 Verás el banner de confirmación:
 ```
 ╔═══════════════════════════════════════════════════╗
-║     SOFTTUULS FISCAL AGENT v1.0                   ║
+║     KAPTIVA FISCAL AGENT v1.0                     ║
 ║     Escuchando en http://localhost:4040            ║
 ║     Puerto Impresora: COM3                         ║
 ╚═══════════════════════════════════════════════════╝
@@ -66,7 +66,7 @@ Verás el banner de confirmación:
 | `POST` | `/print` | Imprimir factura/nota de crédito |
 | `POST` | `/open-drawer` | Abrir gaveta de efectivo |
 
-## Ejemplo de uso (desde Softtuuls)
+## Ejemplo de uso (desde Kaptiva)
 ```javascript
 await fetch('http://localhost:4040/print', {
     method: 'POST',
@@ -79,5 +79,5 @@ await fetch('http://localhost:4040/print', {
 Para crear un ejecutable portátil sin necesidad de instalar Node.js:
 ```bash
 npm install -g pkg
-pkg server.js --targets node18-win-x64 --output SofttuulsFiscalAgent.exe
+pkg server.js --targets node18-win-x64 --output KaptivaFiscalAgent.exe
 ```

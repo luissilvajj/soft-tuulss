@@ -1,4 +1,4 @@
--- SOFTTUULS CONSOLIDATED SCHEMA
+-- KAPTIVA APP CONSOLIDATED SCHEMA
 -- Generated: 2026-01-06
 -- Includes: Base Schema + RLS Security Fixes
 

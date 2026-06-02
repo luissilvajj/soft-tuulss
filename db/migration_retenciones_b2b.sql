@@ -1,5 +1,5 @@
 -- =================================================================================
--- Softtuuls POS - Migration: Retenciones B2B (Contribuyentes Especiales)
+-- Kaptiva App POS - Migration: Retenciones B2B (Contribuyentes Especiales)
 -- =================================================================================
 
 -- 1. Actualizar tabla Clientes para soportar B2B / Contribuyentes Especiales

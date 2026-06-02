@@ -37,7 +37,7 @@ BEGIN
 
     -- Si no hay anterior, usar semilla genesis
     IF v_prev_hash IS NULL THEN
-        v_prev_hash := 'GENESIS_SOFTTUULS_' || NEW.organization_id::text;
+        v_prev_hash := 'GENESIS_KAPTIVA_APP_' || NEW.organization_id::text;
     END IF;
 
     -- Construir payload: hash_anterior + datos críticos de la factura

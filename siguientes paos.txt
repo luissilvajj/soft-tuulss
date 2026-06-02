@@ -1,8 +1,8 @@
-🚀 SOFTTUULS: Reporte de Ingeniería & Hoja de Ruta (v1.0 Gold)
+🚀 KAPTIVA APP: Reporte de Ingeniería & Hoja de Ruta (v1.0 Gold)
 Fecha: 14 de Enero, 2026 Estado: MVP Completo (Feature Complete) / Listo para Beta Arquitectura: Offline-First SaaS (Nuxt 3 + Supabase)
 
 1. Resumen Ejecutivo
-Hemos construido un ERP/POS de grado militar diseñado específicamente para el mercado inestable de LATAM/Venezuela. A diferencia de las soluciones web tradicionales, Softtuuls no muere cuando se va el internet y no se rompe con la inflación.
+Hemos construido un ERP/POS de grado militar diseñado específicamente para el mercado inestable de LATAM/Venezuela. A diferencia de las soluciones web tradicionales, Kaptiva App no muere cuando se va el internet y no se rompe con la inflación.
 
 Diferenciadores Clave Logrados:
 

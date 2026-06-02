@@ -592,7 +592,7 @@ watch(isCreditSale, (val) => {
 
 // Initial Load
 onMounted(async () => {
-    console.log('Softtuuls Build: 1.2.3 - Massive Import Fixed')
+    console.log('Kaptiva App Build: 1.2.3 - Massive Import Fixed')
     // 1. Fetch Inventory if empty
     if (allProducts.value.length === 0) {
         await fetchProducts()

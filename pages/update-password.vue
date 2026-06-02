@@ -6,9 +6,10 @@
         <div>
           <NuxtLink to="/" class="flex items-center gap-2 group">
              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--color-accent-blue)] to-[var(--color-accent-violet)] flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
-               <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 4v16M16 5.5L10 12l6 6.5" />
-                 <circle cx="17.5" cy="4.5" r="2" fill="#EAB308" stroke="none" />
+               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24">
+                 <path d="M5.75 3.75v16.5" stroke="#ca8a04" stroke-width="3.5" stroke-linecap="round" />
+                 <path d="M6.5 11.5l8-7" stroke="#eab308" stroke-width="3.5" stroke-linecap="round" />
+                 <path d="M6.5 12.5l8 7" stroke="#facc15" stroke-width="3.5" stroke-linecap="round" />
                </svg>
              </div>
              <span class="text-xl font-bold text-[var(--color-white)] tracking-tight">Kaptiva App</span>

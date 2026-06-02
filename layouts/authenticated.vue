@@ -115,9 +115,10 @@ onMounted(async () => {
       <div class="flex h-16 items-center px-6 border-b border-surface-border">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center shadow-md shadow-primary-500/20">
-             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 4v16M16 5.5L10 12l6 6.5" />
-               <circle cx="17.5" cy="4.5" r="2" fill="#EAB308" stroke="none" />
+             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+               <polygon points="12,2 2,12 12,22" fill="#ca8a04" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+               <polygon points="12,2 22,12 12,12" fill="#eab308" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+               <polygon points="12,12 22,12 12,22" fill="#facc15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
              </svg>
           </div>
           <span class="text-xl font-bold tracking-tight text-primary-600">Kaptiva App</span>
@@ -171,9 +172,10 @@ onMounted(async () => {
     <header class="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-surface-border bg-surface-ground px-4 shadow-sm lg:hidden">
       <div class="flex items-center gap-2">
          <div class="w-6 h-6 rounded bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center shadow-sm shadow-primary-500/20">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 4v16M16 5.5L10 12l6 6.5" />
-              <circle cx="17.5" cy="4.5" r="2" fill="#EAB308" stroke="none" />
+            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+              <polygon points="12,2 2,12 12,22" fill="#ca8a04" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+              <polygon points="12,2 22,12 12,12" fill="#eab308" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+              <polygon points="12,12 22,12 12,22" fill="#facc15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
             </svg>
          </div>
          <span class="text-lg font-bold text-primary-600">Kaptiva App</span>
